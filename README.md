@@ -154,7 +154,7 @@ java_c/
 
 ####The main script, ezdpl.sh, does the following:
   * Copies the dedicated files(./apps/app_name/version) to the target server
-  * Runs an initial script, if any, remotedly on the target server.
+  * Runs an initial script(./apps/app_name/version/runme.sh) remotedly on the target server.
   * Target server user name can be specified, default is root.
   * Reboot the target server as you command, default is not to reboot.
 
