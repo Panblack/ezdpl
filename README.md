@@ -2,7 +2,7 @@
 =====
 Easy deployment of linux server apps.
 
-Use simple ssh and shell scripts to deploy, upgrade, rollback, reconfigure linux servers.
+Use simple ssh and shell scripts to deploy, upgrade, rollback and reconfigure linux servers.
 
 #Important!
    Warning: This project is still being tested. Read README carefully and try it at your own risk.
@@ -35,13 +35,26 @@ Level0: ezdpl files<br>
 Level1: apps<br>
 Level2: versions<br>
 Any modifications/updates to the servers will be configured in a new directory in versions level.<br>
+If rollback is required, just use the previous version as an argument of the main script.
 
 ###Senario:
-All servers(operation server,target servers) are installed Centos6 x86_64.<br>
-Target servers are configured only IP addresses and hostnames.<br>
-The operation server need to have the trusted ssh access to all target servers. If not, you will have to enter password each time you run the main script. <br>
-The operation server's ssh key is better to be protected by a passphrase.<br>
-All the apps are to be deployed in /opt .<br>
+  * All servers(operation server,target servers) are installed Centos6 x86_64.<br>
+  * Target servers are configured only IP addresses and hostnames.<br>
+  * The operation server need to have the trusted ssh access to all target servers. If not, you will have to enter password each time you run the main script. <br>
+  * ezdpl is deployed at /home/ezdpl on operation server<br>
+  * The operation server's ssh key is better to be protected by a passphrase.<br>
+  * All the apps are to be deployed in /opt .<br>
+
+###Provisioning the apps dir
+You can build the files in ./apps/SomeApps from scratch or copy them from a running production server. Commands below  may be helpful.
+```
+[root@java_c-server /] mkdir -p /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /etc/logrotate.d/java_c /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /home/operuser/bin /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /opt/java_c /tmp/java_c
+[root@java_c-server /] find /opt/logs/ -type d -exec mkdir -p /tmp/java_c/{} \;
+[root@java_c-server /] scp -r /tmp/java_c/* root@operation-server:/home/ezdpl/apps/java_c/current/
+```
 
 ###Directory infrastructure:
 ```
@@ -141,6 +154,7 @@ java_c/
 
 ####The main script, ezdpl.sh, does the following:
   * Copies the dedicated files(./apps/app_name/version) to the target server
-  * Runs an initial script, if any, remotedly on the target server.
+  * Runs an initial script(./apps/app_name/version/runme.sh) remotedly on the target server.
   * Target server user name can be specified, default is root.
   * Reboot the target server as you command, default is not to reboot.
+
