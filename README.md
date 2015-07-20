@@ -38,12 +38,12 @@ Any modifications/updates to the servers will be configured in a new directory i
 If rollback is required, just use the previous version as an argument of the main script.
 
 ###Senario:
-All servers(operation server,target servers) are installed Centos6 x86_64.<br>
-Target servers are configured only IP addresses and hostnames.<br>
-The operation server need to have the trusted ssh access to all target servers. If not, you will have to enter password each time you run the main script. <br>
-ezdpl is deployed at /home/ezdpl on operation server<br>
-The operation server's ssh key is better to be protected by a passphrase.<br>
-All the apps are to be deployed in /opt .<br>
+  * All servers(operation server,target servers) are installed Centos6 x86_64.<br>
+  * Target servers are configured only IP addresses and hostnames.<br>
+  * The operation server need to have the trusted ssh access to all target servers. If not, you will have to enter password each time you run the main script. <br>
+  * ezdpl is deployed at /home/ezdpl on operation server<br>
+  * The operation server's ssh key is better to be protected by a passphrase.<br>
+  * All the apps are to be deployed in /opt .<br>
 
 ###Provisioning the apps dir
 You can build the files in ./apps/SomeApps from scratch or copy them from a running production server. Commands below  may be helpful.
