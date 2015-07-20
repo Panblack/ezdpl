@@ -2,7 +2,7 @@
 =====
 Easy deployment of linux server apps.
 
-Use simple ssh and shell scripts to deploy, upgrade, rollback, reconfigure linux servers.
+Use simple ssh and shell scripts to deploy, upgrade, rollback and reconfigure linux servers.
 
 #Important!
    Warning: This project is still being tested. Read README carefully and try it at your own risk.
@@ -46,7 +46,7 @@ The operation server's ssh key is better to be protected by a passphrase.<br>
 All the apps are to be deployed in /opt .<br>
 
 ###Provisioning the apps dir
-    You can build the files in ./apps/SomeApps from scratch or copy them from a running production server. Commands below  may be helpful.
+You can build the files in ./apps/SomeApps from scratch or copy them from a running production server. Commands below  may be helpful.
 ```
 [root@java_c-server /] mkdir -p /tmp/common
 [root@java_c-server /] /bin/cp -r --parents /etc/cron.daily/ntp_client.sh /tmp/common
