@@ -48,11 +48,12 @@ All the apps are to be deployed in /opt .<br>
 ###Provisioning the apps dir
 You can build the files in ./apps/SomeApps from scratch or copy them from a running production server. Commands below  may be helpful.
 ```
-[root@java_c-server /] mkdir -p /tmp/common
-[root@java_c-server /] /bin/cp -r --parents /etc/cron.daily/ntp_client.sh /tmp/common
-[root@java_c-server /] /bin/cp -r --parents /etc/sysyconfig/iptables /tmp/common
-[root@java_c-server /] /bin/cp -r --parents /etc/sysyconfig/static-routes /tmp/common
-[root@java_c-server /] scp -r /tmp/common/* root@operation-server:/home/ezdpl/apps/common/current/
+[root@java_c-server /] mkdir -p /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /etc/cron.daily/ntp_client.sh /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /etc/sysyconfig/iptables /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /etc/sysyconfig/static-routes /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /opt/java_c /tmp/java_c
+[root@java_c-server /] scp -r /tmp/java_c/* root@operation-server:/home/ezdpl/apps/java_c/current/
 ```
 
 ###Directory infrastructure:
