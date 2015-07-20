@@ -35,6 +35,10 @@ Level0: ezdpl files<br>
 Level1: apps<br>
 Level2: versions<br>
 Any modifications/updates to the servers will be configured in a new directory in versions level.<br>
+If rollback is required, just use the previous version as an argument of the main script.
+
+###Provisioning of apps dir
+
 
 ###Senario:
 All servers(operation server,target servers) are installed Centos6 x86_64.<br>
@@ -144,3 +148,4 @@ java_c/
   * Runs an initial script, if any, remotedly on the target server.
   * Target server user name can be specified, default is root.
   * Reboot the target server as you command, default is not to reboot.
+
