@@ -49,10 +49,10 @@ All the apps are to be deployed in /opt .<br>
 You can build the files in ./apps/SomeApps from scratch or copy them from a running production server. Commands below  may be helpful.
 ```
 [root@java_c-server /] mkdir -p /tmp/java_c
-[root@java_c-server /] /bin/cp -r --parents /etc/cron.daily/ntp_client.sh /tmp/java_c
-[root@java_c-server /] /bin/cp -r --parents /etc/sysyconfig/iptables /tmp/java_c
-[root@java_c-server /] /bin/cp -r --parents /etc/sysyconfig/static-routes /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /etc/logrotate.d/java_c /tmp/java_c
+[root@java_c-server /] /bin/cp -r --parents /home/operuser/bin /tmp/java_c
 [root@java_c-server /] /bin/cp -r --parents /opt/java_c /tmp/java_c
+[root@java_c-server /] find /opt/logs/ -type d -exec mkdir -p /tmp/java_c/{} \;
 [root@java_c-server /] scp -r /tmp/java_c/* root@operation-server:/home/ezdpl/apps/java_c/current/
 ```
 
