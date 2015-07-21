@@ -158,3 +158,5 @@ java_c/
   * Target server user name can be specified, default is root.
   * Reboot the target server as you command, default is not to reboot.
 
+	ezdpl_auto.sh is almost the same as ezdpl.sh, but in silent mode. It is used for batch deployment jobs.
+
