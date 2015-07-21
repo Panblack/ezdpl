@@ -66,6 +66,7 @@ ezdpl
 │   ├── web_b		[Level 1, tomcat webapp b, requires one or more servers.]
 │   └── java_c	[Level 1, java app c, requires 3 servers, each needs some extra ifcfg-eth0* configuration files.]
 ├── ezdpl.sh		[Level 0, main script]
+├── ezdpl_auto.sh	[Level 0, main script, silent mode]
 └── README		[Level 0, no comment ;)]
 
 
