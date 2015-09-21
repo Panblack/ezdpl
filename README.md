@@ -71,93 +71,43 @@ ezdpl
 
 
 Directory Level 2
-common/					
+common/
 ├── 20150720			[Level 2, version 20150720(now empty)]
-└── current			[Level 2, current version]
-    ├── etc				
-    │   ├── cron.daily
-    │   │   └── ntp_client.sh
-    │   └── sysconfig
-    │       ├── iptables
-    │       └── static-routes
-    ├── runme.sh		[init script]
-    └── tmp			[individual packages to be installed]
-        └── jdk-7u75-linux-x64.rpm
+└── current
+    ├── files
+    │   ├── etc
+    │   │   ├── cron.daily
+    │   │   │   └── ntp_sync.sh
+    │   │   └── sysconfig
+    │   │       ├── iptables
+    │   │       └── static-routes
+    │   └── tmp			[individual packages to be installed]
+    │       └── jdk-7u75-linux-x64.rpm
+    ├── finish.sh		[runs after files copied]
+    └── prepare.sh		[runs before files copied]
 
 web_a/
-├── 20150406					[Level 2, version 20150406]
-│   └── opt
-│       └── tomcat-web_a
-│           └── webapps		[tomcat webapps]
-└── current					[Level 2, current version]
-    ├── etc
-    │   └── logrotate.d
-    │       └── web_a
-    ├── opt
-    │   ├── logs
-    │   │   └── web_a		[log position for web_a(configured in tomcat-web_a/conf/logging.properties]
-    │   └── tomcat-web_a
-    │       ├── bin
-    │       ├── conf
-    │       ├── lib
-    │       ├── LICENSE
-    │       ├── NOTICE
-    │       ├── RELEASE-NOTES
-    │       ├── RUNNING.txt
-    │       ├── temp
-    │       ├── webapps
-    │       └── work
-    └── root
-        └── bin	[scripts for web_a]
-            ├── showlog
-            ├── shutdown_web_a
-            └── start_web_a
+├── 20150817			[Level 2, version 20150713 ]
+    ├── files
+    │   └── opt
+    │       └── tomcat6-web_a
+    │       	└── webapps	[tomcat webapps]
+    └── prepare.sh		[runs before files copied]
+            └── bin
 
-web_b/
-(ommited)
-
-java_c/
-├── current
-│   ├── etc
-│   │   └── logrotate.d
-│   │       └── java_c
-│   ├── home
-│   │   └── operuser		[java_c requires a none root user]
-│   │       └── bin		[scripts for java_c]
-│   │           ├── showlog
-│   │           ├── shutdown_java_c
-│   │           └── start_java_c
-│   ├── opt
-│   │   ├── logs
-│   │   │   └── java_c
-│   │   └── java_c
-│   │       ├── conf
-│   │       ├── lib
-│   │       ├── output
-│   │       └── java_c.jar
-│   └── runme.sh
-├── java_c1
-│   ├── etc
-│   │   └── sysconfig
-│   │       └── network-scripts	[ip config files for java_c1]
-│   └── runme.sh		
-├── java_c2
-│   ├── etc
-│   │   └── sysconfig
-│   │       └── network-scripts
-│   └── runme.sh
-└── java_c3
-    ├── etc
-    │   └── sysconfig
-    │       └── network-scripts
-    └── runme.sh
-```
+....
 
 ####The main script, ezdpl.sh, does the following:
-  * Copies the dedicated files(./apps/app_name/version) to the target server
-  * Runs an initial script(./apps/app_name/version/runme.sh) remotedly on the target server.
-  * Target server user name can be specified, default is root.
+  * Scp prepare.sh to the target server and runs it.
+  * Copies the dedicated files(./apps/app_name/version/files) to the target server
+  * Scp finish.sh to the target server and runs it.
   * Reboot the target server as you command, default is not to reboot.
+  * Target server user name can be specified, default is root.
 
-	ezdpl_auto.sh is almost the same as ezdpl.sh, but in silent mode. It is used for batch deployment jobs.
+ezdpl_auto.sh is almost the same as ezdpl.sh, but in silent mode. It is used for batch deployment jobs, like:
+web_a_deploy.sh
 
+sh ezdpl_auto.sh 10.1.1.1 web_a/20150817 &
+sh ezdpl_auto.sh 10.1.1.2 web_a/20150817 &
+sh ezdpl_auto.sh 10.1.1.3 web_a/20150817 &
+sh ezdpl_auto.sh 10.1.1.4 web_a/20150817 &
