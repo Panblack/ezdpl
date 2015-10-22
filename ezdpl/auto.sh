@@ -23,6 +23,6 @@ if [ -f "./server.list" ]; then
     do ./ezdpl.sh Y $x $_app_version $_reboot $_username
   done
 else
-  echo "server.list required!"
+  echo "server.list required. Exit!"
   exit 1
 fi
