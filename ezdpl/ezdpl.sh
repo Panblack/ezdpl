@@ -4,6 +4,12 @@
 # Check arameters
 if [ -n "$1" ]; then 
   _silent=$1
+  if [ "$_silent" != "Y" ]; then
+    if [ "$_silent" != "N" ]; then
+      echo "The first parameter must be Y or N. Exit!"
+      exit 1
+    fi
+  fi
 else
   echo "Usage: ./ezdpl.sh [Silent Mode Y|N(N)] <ip address> <app/version> [reboot Y|N(N)] [username(root)]...exit!"
   exit 1
