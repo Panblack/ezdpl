@@ -68,15 +68,12 @@ if [ "$_silent" != "Y" ]; then
 fi
 
 # Check
-
-#???
-chkaccess=$( ssh $_username@$_ipaddress ls -d ~/ )
-if [ ! -n "$chkaccess" ]; then
+ssh $_username@$_ipaddress uname > /dev/null
+if [ "$?" != "0" ]; then
   echo
   echo "$_ipaddress is not reachable. "
   exit 1
 fi
-#???
 
 if [ ! -d "./apps/$_app_version" ]; then
   echo
@@ -86,6 +83,7 @@ fi
 
 # Everything seems OK. Go!
 # Run prepare.sh on the target server
+echo "Target Server: $_ipaddress..." 
 if [ -f "./apps/$_app_version/prepare.sh" ]; then
   scp ./apps/$_app_version/prepare.sh $_username@$_ipaddress:/tmp/
   ssh $_username@$_ipaddress sh /tmp/prepare.sh
@@ -117,7 +115,3 @@ if [ "$_reboot" = "Y" ]; then
   ssh $_username@$_ipaddress reboot
 fi
 # End of ezdpl.sh
-
-
-
-
