@@ -7,7 +7,10 @@
 * Auto deploy multipule servers with scripts like auto.sh .
 
 ##Important!
-**Warning: This project is not 'Out of the box'. Always make your own changes, and use with EXTREME CAUTION.**
+**Warning: This project is not 'Out of the box'. 
+
+Always make your own changes, and use with EXTREME CAUTION.**
+
 Oct 22 2015
 
 
