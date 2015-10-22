@@ -2,6 +2,10 @@
 # https://github.com/Panblack/ezdpl
 
 # Check arameters
+#echo $1
+#echo $2
+#echo $3
+#echo 
 if [ -n "$1" ]; then 
   _silent=$1
   if [ "$_silent" != "Y" ]; then
@@ -11,21 +15,26 @@ if [ -n "$1" ]; then
     fi
   fi
 else
-  echo "Usage: ./ezdpl.sh [Silent Mode Y|N(N)] <ip address> <app/version> [reboot Y|N(N)] [username(root)]...exit!"
+  echo "silent. Usage: ./ezdpl.sh <Silent Mode Y|N> <ip address>:[port] <app/version> [reboot Y|N(N)] [username(root)]"
   exit 1
 fi
 
 if [ -n "$2" ]; then
-  _ipaddress=$2
+  #Detailed param check will be needed.
+  _ipaddress=$(echo $2|awk -F':' '{print $1}')
+  _port=$(echo $2|awk -F':' '{print $2}')
+  if [ ${#_port} -eq 0 ]; then
+    _port="22"
+  fi
 else
-  echo "Usage: ./ezdpl.sh [Silent Mode Y|N(N)] <ip address> <app/version> [reboot Y|N(N)] [username(root)]...exit!"
+  echo "ipaddress:port. Usage: ./ezdpl.sh <Silent Mode Y|N> <ip address>:[port] <app/version> [reboot Y|N(N)] [username(root)]"
   exit 1
 fi
 
 if [ -n "$3" ]; then
   _app_version=$3
 else
-  echo "Usage: ./ezdpl.sh [Silent Mode Y|N(N)] <ip address> <app/version> [reboot Y|N(N)] [username(root)]...exit!"
+  echo "app/version. Usage: ./ezdpl.sh <Silent Mode Y|N> <ip address>:[port] <app/version> [reboot Y|N(N)] [username(root)]"
   exit 1
 fi
 
@@ -46,16 +55,13 @@ if [ "$_silent" != "Y" ]; then
   echo
   echo "Ezdpl does things in a raw and simple way."
   echo "https://github.com/Panblack/ezdpl"
-  echo "Warning: This version works only on RHEL/CentOS."
   echo 
-  echo "Will initialize a new server."
-  echo "Or deploy apps to a certain server."
-  echo "Or upgrade a running production server."
-  echo "Usage: ./ezdpl.sh [Silent Mode Y|N(N)] <ip address> <app/version> [reboot Y|N(N)] [username(root)]"
+  echo "Will initialize a new server, or deploy apps to a certain server, or upgrade a production server."
+  echo "Usage: ./ezdpl.sh <Silent Mode Y|N> <ip address>:[port] <app/version> [reboot Y|N(N)] [username(root)]"
   echo "Manually Initialize 10.1.1.1: 		./ezdpl.sh N 10.1.1.1 common/current Y"
-  echo "Silently Deploy app_a to 10.1.1.1: 	./ezdpl.sh Y 10.1.1.1 app_a/current Y root"
-  echo "Silently Upgrade 10.1.1.2's app_a:	./ezdpl.sh Y 10.1.1.2 app_a/20150720"
-  echo "Manually Upgrade 10.1.1.2's conf:	./ezdpl.sh N 10.1.1.2 app_a/2015-10-12"
+  echo "Silently Deploy app_a to 10.1.1.1: 	./ezdpl.sh Y 10.1.1.1:22 app_a/current Y root"
+  echo "Silently Upgrade 10.1.1.2's app_a:	./ezdpl.sh Y 10.1.1.2:2222 app_a/20150720"
+  echo "Manually Upgrade 10.1.1.2's conf:	./ezdpl.sh N 10.1.1.2:2222 app_a/2015-10-12"
   echo
 
   # Confirmation
@@ -74,7 +80,8 @@ if [ "$_silent" != "Y" ]; then
 fi
 
 # Check
-ssh $_username@$_ipaddress uname > /dev/null
+echo "Target Server: ${_ipaddress}:${_port}..." 
+ssh -p $_port $_username@$_ipaddress uname > /dev/null
 if [ "$?" != "0" ]; then
   echo
   echo "$_ipaddress is not reachable. "
@@ -89,28 +96,23 @@ fi
 
 # Everything seems OK. Go!
 # Run prepare.sh on the target server
-echo "Target Server: $_ipaddress..." 
 if [ -f "./apps/$_app_version/prepare.sh" ]; then
-  scp ./apps/$_app_version/prepare.sh $_username@$_ipaddress:/tmp/
-  ssh $_username@$_ipaddress sh /tmp/prepare.sh
+  scp -P $_port ./apps/$_app_version/prepare.sh $_username@$_ipaddress:/tmp/
+  ssh -p $_port $_username@$_ipaddress sh /tmp/prepare.sh
   echo "$_username@$_ipaddress:/tmp/prepare.sh executed."
-  #ssh $_username@$_ipaddress /bin/rm /tmp/prepare.sh
-  #echo "$_username@$_ipaddress:/tmp/prepare.sh deleted."
 fi
 
 # Start copy app/version/files/*
 if [ -d ./apps/$_app_version/files  ]; then 
-  scp -r ./apps/$_app_version/files/* $_username@$_ipaddress:/
+  scp -P $_port -r ./apps/$_app_version/files/* $_username@$_ipaddress:/
   echo "./apps/$_app_version/files/* copied."
 fi
 
 # Run finish.sh on the target server
 if [ -f "./apps/$_app_version/finish.sh" ]; then
-  scp ./apps/$_app_version/finish.sh $_username@$_ipaddress:/tmp/
-  ssh $_username@$_ipaddress sh /tmp/finish.sh
+  scp -P $_port ./apps/$_app_version/finish.sh $_username@$_ipaddress:/tmp/
+  ssh -p $_port $_username@$_ipaddress sh /tmp/finish.sh
   echo "$_username@$_ipaddress:/tmp/finish.sh executed."
-  #ssh $_username@$_ipaddress /bin/rm /tmp/finish.sh
-  #echo "$_username@$_ipaddress:/tmp/finish.sh deleted."
 fi
 
 # Reboot target server.
@@ -118,6 +120,7 @@ if [ "$_reboot" = "Y" ]; then
   echo
   echo "Target server will reboot..."
   echo
-  ssh $_username@$_ipaddress reboot
+  ssh -p $_port $_username@$_ipaddress reboot
 fi
+echo "Target Server: ${_ipaddress}:${_port} done!"; echo
 # End of ezdpl.sh
