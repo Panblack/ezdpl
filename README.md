@@ -2,11 +2,10 @@
 =====
 #Version 1.1
 
-* Merged ezdpl.sh and ezdpl_auto.sh, added a command before ip_address to run it in silent mode or not.
+* Merged ezdpl.sh and ezdpl_auto.sh, added a parameter before ip_address to make it run in silent mode.
 * Auto deployment multipule servers with auto.sh together with server.list.
-* Reorganized apps directory
-* Replace runme.sh with prepare.sh and finish.sh
-* Runs prepare.sh, then scp files, finally runs finish.sh
+Usage: ./auto.sh app/version
+
 
 ##Important!
 Warning: This project is not 'Out of the box'. Always make your own changes to it.
