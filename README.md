@@ -3,12 +3,12 @@
 #Version 1.1
 
 * Merged ezdpl.sh and ezdpl_auto.sh, added a parameter before ip_address to make it run in silent mode.
-* Auto deployment multipule servers with auto.sh together with server.list.
-Usage: ./auto.sh app/version
-
+* Support server sshd port other than 22.
+* Auto deploy multipule servers with scripts like auto.sh .
 
 ##Important!
-Warning: This project is not 'Out of the box'. Always make your own changes to it.
+**Warning: This project is not 'Out of the box'. Always make your own changes, and use with EXTREME CAUTION.**
+Oct 22 2015
 
 
 #Version 1.0
