@@ -1,7 +1,7 @@
 #!/bin/bash
 # https://github.com/Panblack/ezdpl
 
-# Check arameters
+# Check Parameters
 #echo $1
 #echo $2
 #echo $3
@@ -80,7 +80,7 @@ if [ "$_silent" != "Y" ]; then
 fi
 
 # Check
-echo "Target Server: ${_ipaddress}:${_port}..." 
+echo "Target Server: ${_ipaddress}..." 
 ssh -p $_port $_username@$_ipaddress uname > /dev/null
 if [ "$?" != "0" ]; then
   echo
@@ -88,31 +88,31 @@ if [ "$?" != "0" ]; then
   exit 1
 fi
 
-if [ ! -d "./apps/$_app_version" ]; then
+if [ ! -d "./$_app_version" ]; then
   echo
   echo "There is no $_app_version configured here !"
   exit 1
 fi
 
 # Everything seems OK. Go!
-# Run prepare.sh on the target server
-if [ -f "./apps/$_app_version/prepare.sh" ]; then
-  scp -P $_port ./apps/$_app_version/prepare.sh $_username@$_ipaddress:/tmp/
-  ssh -p $_port $_username@$_ipaddress sh /tmp/prepare.sh
-  echo "$_username@$_ipaddress:/tmp/prepare.sh executed."
+# Run pre.sh on the target server
+if [ -f "./$_app_version/pre.sh" ]; then
+  scp -P $_port ./$_app_version/pre.sh $_username@$_ipaddress:/tmp/
+  ssh -p $_port $_username@$_ipaddress sh /tmp/pre.sh
+  echo "$_username@$_ipaddress:/tmp/pre.sh executed."
 fi
 
 # Start copy app/version/files/*
-if [ -d ./apps/$_app_version/files  ]; then 
-  scp -P $_port -r ./apps/$_app_version/files/* $_username@$_ipaddress:/
-  echo "./apps/$_app_version/files/* copied."
+if [ -d ./$_app_version/files  ]; then 
+  scp -P $_port -r ./$_app_version/files/* $_username@$_ipaddress:/
+  echo "./$_app_version/files/* copied."
 fi
 
-# Run finish.sh on the target server
-if [ -f "./apps/$_app_version/finish.sh" ]; then
-  scp -P $_port ./apps/$_app_version/finish.sh $_username@$_ipaddress:/tmp/
-  ssh -p $_port $_username@$_ipaddress sh /tmp/finish.sh
-  echo "$_username@$_ipaddress:/tmp/finish.sh executed."
+# Run fin.sh on the target server
+if [ -f "./$_app_version/fin.sh" ]; then
+  scp -P $_port ./$_app_version/fin.sh $_username@$_ipaddress:/tmp/
+  ssh -p $_port $_username@$_ipaddress sh /tmp/fin.sh
+  echo "$_username@$_ipaddress:/tmp/fin.sh executed."
 fi
 
 # Reboot target server.
@@ -122,5 +122,6 @@ if [ "$_reboot" = "Y" ]; then
   echo
   ssh -p $_port $_username@$_ipaddress reboot
 fi
-echo "Target Server: ${_ipaddress}:${_port} done!"; echo
+echo "Target Server: ${_ipaddress} done!"; echo
 # End of ezdpl.sh
+
