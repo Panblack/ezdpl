@@ -1,0 +1,8 @@
+#!/bin/bash
+_psinfo=`ps aux|grep java|grep -v grep`
+_psinfo=${_psinfo//-D/'\n\t'-D}
+_psinfo=${_psinfo//-classpath/'\n\t'-classpath}
+echo -e $_psinfo|sed 's/ root /\nroot /g'
+echo
+netstat -lntp |grep java
+

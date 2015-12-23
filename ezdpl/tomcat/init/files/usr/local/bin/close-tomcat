@@ -1,0 +1,13 @@
+#!/bin/bash
+hostname 
+psj|grep tomcat7 &>/dev/null
+if [[ $? = 0 ]]; then
+  /opt/tomcat7/bin/shutdown.sh
+fi
+sleep 3
+psj|grep tomcat7
+if [[ $? != 0 ]];then
+  echo
+  echo "`hostname -s` tomcat7 shutdown OK!"
+fi
+
