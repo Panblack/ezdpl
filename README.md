@@ -1,5 +1,13 @@
 # ezdpl
 =====
+#Version 1.2
+
+* Add logging feature.
+* Use server.list and batch.sh for multiple servers.
+* Add some app/version samples.
+
+Dec 23, 2015
+
 #Version 1.1
 
 * Merged ezdpl.sh and ezdpl_auto.sh, added a parameter before ip_address to make it run in silent mode.
