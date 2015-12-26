@@ -1,7 +1,6 @@
 #!/bin/bash
 # https://github.com/Panblack/ezdpl
 
-_usage="Usage: ./ezdpl.sh <Silent Mode Y|N> <ip address>:[port] <app/version> [reboot Y|N(N)] [username(root)]"
 if [ -n "$1" ]; then 
   _silent=$1
   if [ "$_silent" != "Y" ]; then
@@ -11,7 +10,7 @@ if [ -n "$1" ]; then
     fi
   fi
 else
-  echo "$_usage"
+  echo "silent. Usage: ./ezdpl.sh <Silent Mode Y|N> <ip address>:[port] <app/version> [reboot Y|N(N)] [username(root)]"
   exit 1
 fi
 
@@ -23,14 +22,14 @@ if [ -n "$2" ]; then
     _port="22"
   fi
 else
-  echo "$_usage"
+  echo "ipaddress:port. Usage: ./ezdpl.sh <Silent Mode Y|N> <ip address>:[port] <app/version> [reboot Y|N(N)] [username(root)]"
   exit 1
 fi
 
 if [ -n "$3" ]; then
   _app_version=$3
 else
-  echo "$_usage"
+  echo "app/version. Usage: ./ezdpl.sh <Silent Mode Y|N> <ip address>:[port] <app/version> [reboot Y|N(N)] [username(root)]"
   exit 1
 fi
 
@@ -96,20 +95,22 @@ fi
 if [ -f "./$_app_version/pre.sh" ]; then
   /usr/bin/scp -p -P$_port ./$_app_version/pre.sh $_username@$_ipaddress:/tmp/
   ssh -p$_port $_username@$_ipaddress 'source /etc/profile; sh /tmp/pre.sh'
-  echo "$_username@$_ipaddress:/tmp/pre.sh executed."
+  echo "$_username@$_ipaddress:/tmp/pre.sh executed: $?"
 fi
 
 # Start copy app/version/files/*
 if [ -d ./$_app_version/files  ]; then 
-  /usr/bin/scp -r -p -P$_port ./$_app_version/files/* $_username@$_ipaddress:/
-  echo "./$_app_version/files/* copied."
+  echo "Start to copy ./$_app_version/files/*"
+  echo "......"
+  /usr/bin/scp -rpq -P$_port ./$_app_version/files/* $_username@$_ipaddress:/
+  echo "./$_app_version/files/* copied: $?"
 fi
 
 # Run fin.sh on the target server
 if [ -f "./$_app_version/fin.sh" ]; then
   /usr/bin/scp -p -P$_port ./$_app_version/fin.sh $_username@$_ipaddress:/tmp/
   ssh -p$_port $_username@$_ipaddress 'source /etc/profile; sh /tmp/fin.sh'
-  echo "$_username@$_ipaddress:/tmp/fin.sh executed."
+  echo "$_username@$_ipaddress:/tmp/fin.sh executed: $?"
 fi
 
 # Reboot target server.
@@ -121,6 +122,6 @@ if [ "$_reboot" = "Y" ]; then
 fi
 echo "Target Server: ${_ipaddress} done!"; echo
 
-echo "`date +%Y-%m-%d_%H:%M:%S` # ./ezdpl Y $_ipaddress $_app_version $_reboot $_username" >>log.txt
+echo "`date +%Y-%m-%d_%H:%M:%S`, $_ipaddress, $_app_version, $_reboot" >>log.txt
 
 # End of ezdpl.sh
