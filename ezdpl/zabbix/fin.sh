@@ -3,7 +3,7 @@ rpm -ivh /tmp/zabbix-release-2.4-1.el6.noarch.rpm
 yum install zabbix-agent -y
 sleep 1
 _hostname=`hostname -s`
-sed -i 's/Server=127.0.0.1/Server=10.60.1.254/g' /etc/zabbix/zabbix_agentd.conf
+sed -i 's/Server=127.0.0.1/Server=10.1.1.254/g' /etc/zabbix/zabbix_agentd.conf
 sed -i 's/ServerActive=127.0.0.1/ServerActive=10.60.1.254/g' /etc/zabbix/zabbix_agentd.conf
 sed -i "s/Hostname=Zabbix server/Hostname=$_hostname/g" /etc/zabbix/zabbix_agentd.conf
 
