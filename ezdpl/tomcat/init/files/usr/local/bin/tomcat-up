@@ -1,0 +1,21 @@
+#!/bin/bash
+#Used for multi tomcat running in the same server.
+_path=`pwd`
+if ps aux|grep java|grep -v grep|grep "Dcatalina.base=$_path " &>/dev/null ;then
+  echo
+  echo "$_path already started."
+  echo
+  exit 1
+fi
+rm -rf ./work/Catalina/*
+rm -rf ./temp/*
+mv ./logs/catalina.out ./logs/catalina.out.`date +%s`
+if [[ $1 = N ]];then
+  ./bin/startup.sh 2>/dev/null
+else
+  ./bin/startup.sh 2>/dev/null && tail -f ./logs/catalina.out 2>/dev/null
+fi
+if [[ $? != 0 ]];then
+  echo "Check your path."
+fi
+

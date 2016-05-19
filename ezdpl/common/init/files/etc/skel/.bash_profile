@@ -6,7 +6,7 @@ if [ -f ~/.bashrc ]; then
 fi
 
 # User specific environment and startup programs
-PS1='[\u@\h:$PWD]$ '
+PS1='[\u@\h \t \w]$ '
 
 PATH=$PATH:$HOME/bin
 

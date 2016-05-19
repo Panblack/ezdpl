@@ -1,0 +1,7 @@
+#!/bin/bash
+if [ -z $1 ]; then
+    curl -s http://ip.cn
+else
+    curl -s http://ip.cn?ip=$1
+fi
+

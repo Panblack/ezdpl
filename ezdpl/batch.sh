@@ -9,6 +9,6 @@ for x in `cat ./server.list`;do
   fi
   echo [ $_host $_port ]
   ssh root@$_host -p $_port ls -l
-  #sh ezdpl Y $_host:$_port appsrv/mark
+  #sh ezdpl Y $_host:$_port common/init 
 done
 

@@ -1,0 +1,133 @@
+#!/bin/bash
+#!/bin/bash
+_tomcat=tomcat7
+_tomcat_path=/opt/tomcat7
+_thedate=`date +%F`
+
+_flag=$1
+_tail=$2
+
+fun_start () {
+    if ps aux|grep java|grep ${_tomcat_path} &>/dev/null ; then
+    	echo "${_tomcat} already started."
+    else
+	set -u
+    	cd $_tomcat_path
+    	/bin/rm ./work/* -rf
+    	$_tomcat_path/bin/startup.sh
+    	if [[ $_tail != N ]]; then
+            sleep 1
+            fun_catalina_roll
+        fi
+	set +u
+    fi
+}
+
+fun_shut () {
+    _max=16
+
+    #if tomcat found running, shut it down.
+    if ps aux|grep java|grep ${_tomcat_path} &>/dev/null ; then
+  	$_tomcat_path/bin/shutdown.sh
+    else
+	echo "${_tomcat} not running."
+	exit 1
+    fi
+
+    for ((i=1;i<=${_max};i++));do
+  	_pid=`ps aux|grep java|grep ${_tomcat_path} | awk '{print $2}'`
+  	sleep 1
+  	echo -n .
+  	if [[ -z $_pid ]];then
+    	    echo " `hostname -s` ${_tomcat} shutdown OK! (in $i sec)"
+    	exit 0
+  	fi
+    done
+
+    if [[ $i -ge $_max ]];then
+  	echo "Tomcat shutdown failed. Force kill engaged."
+  	kill -9 $_pid
+	sleep 2
+    fi
+
+    #if ${_tomcat} pid not killed, echo error message.
+    if ps aux|grep java|grep ${_tomcat_path} ;then
+  	echo "`hostname -s` ${_tomcat} shutdown failed! Please retry."
+    else
+  	echo "`hostname -s` ${_tomcat} shutdown OK!"
+    fi
+
+}
+
+fun_ps () {
+    _psinfo=`ps aux | grep ${_tomcat_path} | grep -v grep`
+    _netstat=`netstat -lntp | grep java`
+    echo "${_tomcat} processes & Listening ports:"
+    echo
+    for x in $_psinfo; do
+	_psline=${x// -/'\n' -}
+    	_psline=`echo -e "$_psline" | sed 's/ root /\nroot /g'`
+    	_pid=`echo $x|awk '{print $2}'`
+    	echo -e "$_psline" | egrep -w 'java|/java'
+    	echo -e "$_psline" | egrep '.base|classPath|-jar'
+    	echo "$_netstat"   | grep "$_pid/java" | sort
+    	echo
+    done
+
+}
+
+fun_accesslog_roll () {
+tail -f /opt/logs/localhost_access_log.${_thedate}.txt 2>/dev/null
+}
+
+fun_accesslog () {
+less /opt/logs/localhost_access_log.${_thedate}.txt  2>/dev/null
+}
+
+fun_catalina_roll () {
+tail -f /opt/logs/catalina.${_thedate}.log 2>/dev/null
+}
+
+fun_catalina () {
+less /opt/logs/catalina.${_thedate}.log 2>/dev/null
+}
+
+
+
+#Main
+hostname -s
+case $_flag in 
+up)
+    fun_start
+    ;;
+down)
+    fun_shut
+    ;;
+ps)
+    fun_ps
+    ;;
+log)
+    fun_catalina
+    ;;
+logr)
+    fun_catalina_roll
+    ;;
+loga)
+    fun_accesslog
+    ;;
+logar)
+    fun_accesslog_roll
+    ;;
+*)
+    echo -en "\033[34m"
+    echo "Usage:"
+    echo "tomcat up [N]	Start tomcat. N: no log trace."
+    echo "tomcat down	Shutdown tomcat."
+    echo "tomcat ps	Show tomcat process & ports."
+    echo "tomcat log	Show catalina log."
+    echo "tomcat logr	Roll catalina log."
+    echo "tomcat loga	Show access log."
+    echo "tomcat logar	Roll access log."
+    echo -en "\033[0m"
+    ;;
+esac

@@ -1,3 +1,0 @@
-netstat -lntup
-echo
-iptables -nL
