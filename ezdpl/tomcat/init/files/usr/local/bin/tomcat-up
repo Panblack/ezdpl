@@ -1,21 +1,30 @@
 #!/bin/bash
 #Used for multi tomcat running in the same server.
+#/bin/bash
+_roll=$1
+
+set -u
 _path=`pwd`
-if ps aux|grep java|grep -v grep|grep "Dcatalina.base=$_path " &>/dev/null ;then
+if ps aux|grep java|grep "Dcatalina.base=$_path " &>/dev/null ;then
   echo
   echo "$_path already started."
   echo
   exit 1
 fi
-rm -rf ./work/Catalina/*
-rm -rf ./temp/*
-mv ./logs/catalina.out ./logs/catalina.out.`date +%s`
-if [[ $1 = N ]];then
-  ./bin/startup.sh 2>/dev/null
+if [[ -d "./logs" ]] && [[ -d "./work" ]] && [[ -d "./temp" ]] && [[ -d "./bin" ]]; then
+    mv ./logs/catalina.out ./logs/catalina.out.`date +%F_%T`
+    touch ./logs/catalina.out
+    rm -rf ./work/Catalina/*
+    rm -rf ./temp/*
+
+    if [[ $_roll = N ]];then
+  	./bin/startup.sh 
+    else
+  	./bin/startup.sh 
+   	tail -f ./logs/catalina.out
+    fi
 else
-  ./bin/startup.sh 2>/dev/null && tail -f ./logs/catalina.out 2>/dev/null
+    echo "Check your path."
 fi
-if [[ $? != 0 ]];then
-  echo "Check your path."
-fi
+
 
