@@ -18,8 +18,8 @@ set -e
 set -u
 
 if [[ -z $_backend_server ]] || [[ -z $_oper ]]; then
-    echo "backend-switch <server_name> <on>	Switch On"
-    echo "backend-switch <server_name> <off>	Switch Off"
+    echo "backend-switch <server_name> <on>  Switch On"
+    echo "backend-switch <server_name> <off> Switch Off"
     echo 
     echo "Backend servers:"
     sed 's/\t/ /g' $_cfg_file|grep -E "^ *server|^ *# *server"

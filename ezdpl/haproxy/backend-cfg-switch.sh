@@ -13,35 +13,35 @@ _oper=$2
 _match=`grep -w "server.*$_backend_server" $_cfg_file`
 set -e
 set -u
-echo -en "$_time\tCFG\t$_backend_server\t$_oper" >> $_log_file
-
+echo -en "$_time\tCFG\t$_backend_server\t$_oper\t" >> -a  $_log_file
+sed -i 's/\t/ /g' $_cfg_file
 /bin/cp $_cfg_file /opt/haproxy_switch_log/haproxy.cfg.$_time
 case $_oper in
 off)
     if echo "$_match"|grep -v "#" ; then
-	sed -i "/server.*$_backend_server/s/^/#/g" $_cfg_file && \
+	sed -i "/server.*$_backend_server /s/^/#/g" $_cfg_file && \
 	service haproxy reload 
-	echo -e  "\tOK" >> $_log_file
+	echo -e  "OK" |tee -a  $_log_file
     else
-	echo -e  "\tNO-OP" >> $_log_file
+	echo -e  "NO-OP" |tee -a  $_log_file
     fi
     ;;
 
 on)
     if echo "$_match"|grep "#" ; then
-	sed -i "/server.*$_backend_server/s/#//g" $_cfg_file && \
+	sed -i "/server.*$_backend_server /s/#//g" $_cfg_file && \
 	service haproxy reload 
-	echo -e  "\tOK" >> $_log_file
+	echo -e  "OK" |tee -a  $_log_file
     else
-	echo -e  "\tNO-OP" >> $_log_file
+	echo -e  "NO-OP" |tee -a  $_log_file
     fi
     ;;
 *)
-    echo "backend-cfg-switch <server_name> <on>	Switch On"
-    echo "backend-cfg-switch <server_name> <off>	Switch Off"
+    echo "backend-cfg-switch <server_name> <on>  Switch On"
+    echo "backend-cfg-switch <server_name> <off> Switch Off"
     echo 
     echo "Backend servers:"
-    sed 's/\t/ /g' $_cfg_file|grep -E "^ *server|^ *# *server"
+    grep -E "^ *server|^ *# *server" $_cfg_file
     ;;
 esac
 
