@@ -12,7 +12,7 @@ _oper=$2
 _match=`grep "server.*$_backend_server" $_cfg_file`
 set -e
 set -u
-echo -en "$_time\t$_backend_server\t$_oper" >> $_log_file
+echo -en "$_time\tCFG\t$_backend_server\t$_oper" >> $_log_file
 
 /bin/cp $_cfg_file /opt/haproxy_switch_log/haproxy.cfg.$_time
 case $_oper in
