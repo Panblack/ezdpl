@@ -1,5 +1,4 @@
 #!/bin/bash
-# Backup haproxy.cfg
 # find matched server ip and port
 # iptables -A OUTPUT -d <ip> -p tcp --dport <port> -j DORP
 # OR 
@@ -25,7 +24,7 @@ if [[ -z $_backend_server ]] || [[ -z $_oper ]]; then
     exit 0
 fi
     
-echo -en "$_time\t$_backend_server\t$_oper\t" >> $_log_file
+echo -en "$_time\tNET\t$_backend_server\t$_oper\t" >> $_log_file
 _match=`grep "server.*$_backend_server" $_cfg_file|awk '{print $3}'`
 if [[ -z $_match ]]; then
    echo "backend server does not exist." | tee -a $_log_file
