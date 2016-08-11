@@ -1,4 +1,5 @@
 #!/bin/bash
+# backend server names in haproxy.cfg must be unique.
 # Backup haproxy.cfg
 # Comment/Uncomment specific server-name in backend section
 # Reload haproxy service.
@@ -9,10 +10,10 @@ _cfg_file="/etc/haproxy/haproxy.cfg"
 _log_file="/opt/haproxy_switch_log/switch.log"
 _backend_server=$1
 _oper=$2
-_match=`grep "server.*$_backend_server" $_cfg_file`
+_match=`grep -w "server.*$_backend_server" $_cfg_file`
 set -e
 set -u
-echo -en "$_time\t$_backend_server\t$_oper" >> $_log_file
+echo -en "$_time\tCFG\t$_backend_server\t$_oper" >> $_log_file
 
 /bin/cp $_cfg_file /opt/haproxy_switch_log/haproxy.cfg.$_time
 case $_oper in
