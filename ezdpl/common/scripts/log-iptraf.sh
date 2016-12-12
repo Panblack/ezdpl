@@ -1,7 +1,7 @@
 #!/bin/bash
 _oper=$1
 _interface=$2
-_date=`date +%F_%T`
+_date=`date +%F_%H%M`
 _log_path="/var/log/iptraf"
 
 case $_oper in
@@ -21,7 +21,7 @@ case $_oper in
     	done
 	;;
     stop)
-	killall -9 iptraf
+	killall iptraf
 	;; 
     start)
 	if [[ -z $_interface ]]; then
