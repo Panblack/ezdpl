@@ -25,7 +25,7 @@ case $_oper in
 	;; 
     start)
 	if [[ -z $_interface ]]; then
-	    echo "Network interface missing."
+	    echo "iface needed."
 	    exit 1
 	fi
 	if ps aux|grep "iptraf -i $_interface -B -L"|grep -v grep  ;then
