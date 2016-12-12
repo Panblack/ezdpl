@@ -1,7 +1,7 @@
 #!/bin/bash
 _oper=$1
 _interface=$2
-_date=`date +%F`
+_date=`date +%F_%T`
 _log_path="/var/log/iptraf"
 
 case $_oper in
@@ -9,15 +9,15 @@ case $_oper in
 	ps aux|grep "iptraf -i" | grep -v grep | grep -v $0
 	;;
     stat)
-    	/usr/bin/du -hx --max-depth=1 ${_log_path}
-    	echo
+#    	_du=`/usr/bin/du -hx --max-depth=1 ${_log_path}|tr -d "${_log_path}"`
+	echo -e "Size\tVRRP\tICMP\tTCP\tUDP\tLogFile"
     	for x in ${_log_path}/ip_traffic-*.log ; do
-            echo "$x"
-            echo "VRRP `grep VRRP $x|wc -l` "
-            echo "ICMP `grep ICMP $x|wc -l` " 
-            echo "TCP  `grep TCP  $x|wc -l` " 
-            echo "UDP  `grep UDP  $x|wc -l` " 
-            echo
+	    _du=`du -h $x|awk '{print $1}'`
+	    _vrrp=`grep VRRP $x|wc -l`
+	    _icmp=`grep ICMP $x|wc -l`
+	    _tcp=` grep TCP  $x|wc -l`
+	    _udp=` grep UDP  $x|wc -l`
+            echo -e "${_du}\t${_vrrp}\t${_icmp}\t${_tcp}\t${_udp}\t${x}"
     	done
 	;;
     stop)
@@ -25,7 +25,7 @@ case $_oper in
 	;; 
     start)
 	if [[ -z $_interface ]]; then
-	    echo "iface needed."
+	    echo "Network interface missing."
 	    exit 1
 	fi
 	if ps aux|grep "iptraf -i $_interface -B -L"|grep -v grep  ;then
