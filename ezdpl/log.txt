@@ -1,3 +1,0 @@
-2015-12-23_17:54:58 # ./ezdpl Y 192.168.56.101 common/ban_ssh N root
-2015-12-23_19:38:21 # ./ezdpl Y 192.168.56.102 common/ban_ssh N root
-2015-12-23_22:40:50 # ./ezdpl Y 192.168.56.102 tomcat/init N root 

@@ -1,3 +1,0 @@
-#!/bin/bash
-#Used for multi tomcat running in the same server.
-tail -f ./logs/catalina.out
