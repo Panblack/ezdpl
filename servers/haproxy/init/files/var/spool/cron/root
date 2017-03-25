@@ -1,0 +1,7 @@
+*/15 * * * * /usr/sbin/ntpdate 0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org
+*/10 * * * * /usr/local/bin/ban_ssh.sh
+0    1 * * * /etc/init.d/sendmail restart &>/dev/null
+0    * * * * /usr/local/bin/hpstat.sh
+*/1  * * * * /usr/local/bin/haproxy-backend-change.sh
+0  */1 * * * /usr/local/bin/chk-404.sh
+*/1  * * * * /usr/local/bin/lvsrs.sh start

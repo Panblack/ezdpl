@@ -1,0 +1,54 @@
+#!/bin/bash
+# Remotely execute commands, upload or download files/dirs, by panblack@126.com
+
+if [ -z "$1" ]; then
+    echo "Usage: scon <hostname> "
+    echo "Usage: scon <hostname> e  'command'"
+    echo "Usage: scon <hostname> d  'src_file' 'dst_path' 	Download file(s)."
+    echo "Usage: scon <hostname> u  'src_file' 'dst_path' 	Upload   file(s)."
+    echo "Usage: scon <hostname> dp 'src_path' 'dst_path' 	Download dir(s)."
+    echo "Usage: scon <hostname> up 'src_path' 'dst_path' 	Upload   dir(s)."
+    exit 1
+fi
+_host=$1
+_SQL="SELECT ip , port FROM srv WHERE name='$_host'"
+_srv=`/opt/ezdpl/bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'port'`
+if [ -z "$_srv" ]; then
+    echo "hostname not found!"
+    exit 1
+fi
+_ip=`  echo $_srv|awk '{print $1}'`
+_port=`echo $_srv|awk '{print $2}'`
+_op=$2
+_source=$3
+_cmd=$3
+_target=$4
+_user="root"
+
+set -e 
+set -u
+
+if [ -z "$_target" ]; then
+    _target="."
+fi
+
+case $_op in 
+    d)
+	scp -p  -P$_port $_user@$_ip:"$_source" "$_target"
+	;;
+    dp)
+	scp -rp -P$_port $_user@$_ip:"$_source" "$_target"
+	;;
+    u)
+	scp -p  -P$_port $_source $_user@$_ip:$_target
+	;;
+    up)
+	scp -rp -P$_port "$_source" $_user@$_ip:"$_target"
+	;;
+    e)
+	ssh -p$_port $_user@$_ip "$_cmd"
+	;;
+    *)
+	ssh -p$_port $_user@$_ip
+	;;
+esac

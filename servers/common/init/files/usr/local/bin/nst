@@ -1,0 +1,28 @@
+#!/bin/bash
+_type=$1
+_proto=$2
+case $_type in
+    a)
+	netstat -antp$_proto
+	;;
+    e)
+	netstat -antp$_proto|grep ESTABLISHED
+	;;
+    l)
+	netstat -lntp$_proto
+	;;
+    li)
+	netstat -lntp$_proto
+	echo;echo;
+	iptables -nL
+	echo
+	;;
+    *)
+	echo "
+$0 a  [u]	netstat -antp[u]
+$0 e  [u]	netstat -antp[u] ESTAB
+$0 l  [u]	netstat -lntp[u]
+$0 li [u]	netstat -antp[u] ; iptables -nL
+"
+
+esac

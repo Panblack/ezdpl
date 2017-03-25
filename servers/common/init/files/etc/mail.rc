@@ -1,0 +1,2 @@
+set from=alert@example.com smtp=smtp.example.com
+set smtp-auth-user=alert@example.com smtp-auth-password=Password smtp-auth=login

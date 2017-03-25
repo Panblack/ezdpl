@@ -1,0 +1,40 @@
+#!/bin/bash
+if [[ -n $1 ]]; then
+    _ip=$1
+else
+    _ip=`ip a|grep "inet "|egrep -v ' 127.0.0.1| inet 10.| 172.1[6-9]| 172.2[0-9]| 172.3[0-1]| 192.168'|awk '{print $2}'|awk -F/ '{print $1}'`
+    echo "External IP: $_ip "
+fi
+
+echo "Query ip138.com"
+if [[ -n $_ip ]]; then
+    curl -sL http://m.ip138.com/ip.asp?ip=$_ip | sed 's/</\n/g' | sed 's/>/\n/g' | grep -E '您查询的IP|主数据|参考数据' 
+else
+    curl -sL http://www.1356789.com/ | grep -E 'IP|来自' 
+fi
+echo
+
+echo "Query ip.cn"
+if [ -n $_ip ]; then
+    curl -s http://ip.cn?ip=$_ip |grep -E -v '<|>'
+else
+    curl -s http://ip.cn |grep -E -v '<|>'
+fi
+echo
+
+echo "Query ipip.net"
+if [[ -n $_ip ]]; then
+    curl -sL http://freeapi.ipip.net/$_ip
+fi
+echo 
+
+#
+#curl -sL http://freeapi.ipip.net/$_ip
+#
+#if [ -z $1 ]; then
+#    curl -s http://ip.cn
+#else
+#    curl -s http://ip.cn?ip=$1
+#fi
+#
+# iconv -f GB2312 -t utf-8

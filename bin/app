@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#Main
+_hint="
+Usage:
+app p <host>	check tomcat processes on <host>.
+app l <host> 	show tomcat apps & processes on <host>.
+" 
+_op=$1
+_app_server=$2
+
+case $_op in 
+p)
+    /opt/ezdpl/bin/scon $_app_server e 'psj'
+    ;;
+l)
+    /opt/ezdpl/bin/scon $_app_server e 'ls -lhtr --time-style=long-iso /opt/webs/*/webapps ;echo;mount|grep nfs4'
+    ;;
+*)
+    echo "$_hint"
+    ;;
+esac
+

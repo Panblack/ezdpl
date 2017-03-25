@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<Context crossContext="true">
+
+    <!-- Default set of monitored resources. If one of these changes, the    -->
+    <!-- web application will be reloaded.                                   -->
+    <WatchedResource>${catalina.base}/webapps/ROOT/WEB-INF/classes/logback.xml</WatchedResource>
+    <WatchedResource>${catalina.base}/webapps/ROOT/WEB-INF/classes/application.properties</WatchedResource>
+
+    <!-- Uncomment this to disable session persistence across Tomcat restarts -->
+    <!--
+    <Manager pathname="" />
+    -->
+    <Manager className="de.javakaffee.web.msm.MemcachedBackupSessionManager"
+             memcachedNodes="redis://x.x.x.x:6379"
+             storageKeyPrefix="static:portal,context"
+             sticky="false"
+             sessionBackupAsync="false"
+             lockingMode="auto"
+	     requestUriIgnorePattern=".*\.(ico|png|gif|jpg|jpeg|css|js|pdf|doc|docx|xls|xlsx|ppt|pptx|exe|zip)$"
+             transcoderFactoryClass="de.javakaffee.web.msm.JavaSerializationTranscoderFactory"  />
+
+    <!-- Uncomment this to enable Comet connection tacking (provides events
+         on session expiration as well as webapp lifecycle) -->
+    <!--
+    <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
+    -->
+</Context>
+

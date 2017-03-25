@@ -1,0 +1,69 @@
+#!/bin/bash
+# backend server names in haproxy.cfg must be unique.
+# find matched server ip and port
+#    server appserver012 10.0.1.75:80 check
+#    server webserver028 10.0.1.93:8080 check
+# iptables -A OUTPUT -d <ip> -p tcp --dport <port> -j DORP
+# OR 
+# iptables -D OUTPUT -d <ip> -p tcp --dport <port> -j DORP
+# Write log file.
+
+fun_showbackends () {
+    echo
+    echo "Backend servers:"
+    sed 's/\t/ /g' $_cfg_file|grep -E "^ *server|^ *# *server"
+    echo
+    iptables -nvL OUTPUT
+    echo
+}
+
+_time=`date +%F_%H%M%S`
+_cfg_file="/etc/haproxy/haproxy.cfg"
+_log_file="/opt/haproxy.log/switch.log"
+_backend_server=$1
+_oper=$2
+
+set -e
+set -u
+
+if [[ -z $_backend_server ]] || [[ -z $_oper ]]; then
+    echo "backend-switch <ip:port> <on>		:Switch On"
+    echo "backend-switch <ip:port> <off>	:Switch Off"
+    echo 
+    fun_showbackends
+    exit 0
+fi
+    
+echo -en "$_time\tNET\t$_backend_server\t$_oper\t" >> $_log_file
+if ! grep -w "$_backend_server" $_cfg_file > /dev/null ; then
+    echo "backend server ($_backend_server) does not exist." | tee -a $_log_file
+    exit 1
+fi
+
+_ip=`echo   $_backend_server | awk -F: '{print $1}'`
+_port=`echo $_backend_server | awk -F: '{print $2}'`
+
+case $_oper in
+    on)
+        if iptables -nvL OUTPUT |grep $_ip|grep $_port|grep DROP &>/dev/null; then
+            iptables -D OUTPUT -d $_ip -p tcp --dport $_port -j DROP
+	    echo -e  "OK" | tee -a $_log_file
+ 	else
+	    echo -e  "Already ON" | tee -a $_log_file
+        fi
+        ;;
+    off)
+        if ! iptables -nvL OUTPUT |grep $_ip|grep $_port|grep DROP &>/dev/null; then
+            iptables -A OUTPUT -d $_ip -p tcp --dport $_port -j DROP
+	    echo -e  "OK" | tee -a $_log_file
+ 	else
+	    echo -e  "Already OFF" | tee -a $_log_file
+        fi
+        ;;
+    *)
+        echo "Only on/off is valid." | tee -a $_log_file
+        exit 1
+        ;;
+esac
+fun_showbackends | tee -a $_log_file
+

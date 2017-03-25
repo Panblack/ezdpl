@@ -1,0 +1,287 @@
+#!/bin/bash
+# Universal tomcat instance management script. 
+# by panblack@126.com 2017-01-16
+# See bottom for detailed instructions 
+#if ! id|grep "uid=500(dpl)" ; then
+#    echo "please 'su - dpl'. " ; exit 1
+#fi
+
+# Critical Env variables:
+_BASES_DIR="/opt/webs"
+_HOME_DIR="/opt/app/tomcat"
+_max_shutdown_retry=15
+
+
+# Functions 
+fun_usage() {
+echo "Usage: tmc <base> <oper> [roll output y/n]
+<oper> : 
+up	Start
+down	Shutdown
+rs	Restart
+ps	Show tomcat process & ports & threads.
+log	Show catalina.out/catalina.<date>.log
+loga	Show access log
+
+Availible bases in $_BASES_DIR:"
+echo "$_array_bases"
+echo
+}
+
+fun_up() {
+set -u
+if ps aux|grep java|grep "Dcatalina.base=$CATALINA_BASE" &>/dev/null ;then
+  echo
+  echo "$_host $CATALINA_BASE already started."
+  echo
+  exit 1
+fi
+if [[ -f ./logs/catalina.out ]] ; then
+    mv ./logs/catalina.out ./logs/catalina.out.`date +%F_%H%M%S`
+    touch ./logs/catalina.out
+fi
+rm -rf ./work/*
+rm -rf ./temp/*
+$CATALINA_HOME/bin/catalina.sh start
+if [[ $1 = y ]];then
+    sleep 1
+    fun_log c y
+fi
+set +u
+
+}
+
+fun_down() {
+if ps aux|grep java|grep "Dcatalina.base=$CATALINA_BASE" &>/dev/null ;then
+    $CATALINA_HOME/bin/catalina.sh stop 5 2>/dev/null 
+    echo -n "Call tomcat to stop "
+else
+    echo "$_Base_Info not running."
+    return 1
+fi
+
+for ((i=1;i<=${_max_shutdown_retry};i++));do
+    local lc_pid=`ps aux|grep java|grep "Dcatalina.base=$CATALINA_BASE" | awk '{print $2}' 2>/dev/null`
+    sleep 1
+    echo -n .
+    if [[ -z $lc_pid ]];then
+        echo -e " ( within $i seconds )\n"
+    break
+    fi
+done
+
+if [[ $i -ge $_max_shutdown_retry ]];then
+    echo "$_Base_Info force kill engaged."
+    kill -9 $lc_pid
+    sleep 2
+fi
+
+#if ${_tomcat_path} pid not killed, echo error message.
+if ps aux|grep java|grep "Dcatalina.base=$CATALINA_BASE" ;then
+    echo "$_Base_Info shutdown failed! Please retry."
+else
+    echo "$_Base_Info shutdown OK!"
+fi
+}
+
+fun_rs() {
+fun_down
+for ((i=1;i<=5;i++)); do sleep 1 ; echo -n . ; done ; echo
+fun_up $1
+}
+
+fun_ps() {
+IFS="
+"
+local lc_psinfo=`ps aux | grep $CATALINA_BASE | grep -v grep`
+local lc_netstat=`netstat -lntp | grep java`
+for x in $lc_psinfo; do
+    local lc_psline=${x// -/'\n' -}
+    local lc_psline=`echo -e "$lc_psline" | sed 's/ root /\nroot /g'`
+    local lc_pid=`echo $x|awk '{print $2}'`
+    echo -e "$lc_psline" | egrep -w 'java|/java'
+    echo -e "$lc_psline" | egrep '\.home|\.base|classPath|-jar'
+    echo "$lc_netstat"   | grep "$lc_pid/java" | sort
+    echo
+done
+echo -n "Thread: "
+ps -efL|grep java|grep $CATALINA_BASE |head -1|awk '{print $6}'
+echo -n "Uptime:"
+uptime
+
+}
+
+fun_log() {
+local lc_log_type=$1
+local lc_roll=$2
+if [[ $lc_roll = y ]]; then
+    local lc_cmd="tail -f "
+else
+    local lc_cmd="less "
+fi
+case $lc_log_type in
+    c)
+      if [[ -f $CATALINA_BASE/logs/catalina.out ]]; then
+          $lc_cmd $CATALINA_BASE/logs/catalina.out 2>/dev/null
+      else
+          $lc_cmd $CATALINA_BASE/logs/catalina.${_thedate}.log 2>/dev/null
+      fi
+      ;;
+    a)
+      $lc_cmd $CATALINA_BASE/logs/localhost_access_log.${_thedate}.txt 2>/dev/null
+      ;;
+esac
+
+}
+
+
+
+
+# =============================================================================
+# Main
+_host=`hostname -s`
+_thedate=`date +%F`
+_array_bases=`ls $_BASES_DIR`
+_base=$1
+_oper=$2
+_roll=$3
+
+if [[ -z $_base ]] ; then
+    fun_usage
+    exit 1
+fi
+
+if ! echo $_array_bases | grep $_base &>/dev/null ; then
+    if [[ $_base != all ]] ;then
+       echo "Base '$_base' does not exist. Available bases:"
+       echo
+       fun_usage
+       exit 1
+    fi
+fi
+if [[ -z $_roll ]]; then
+    _roll=n
+fi
+
+for x in ${_array_bases[@]}; do 
+    if [[ $_base != all ]] && [[ $_base != $x ]]; then
+	continue
+    fi
+
+    echo
+    _cur_dir="$_BASES_DIR/$x"
+    cd $_cur_dir
+    if [[ ! -d ./conf ]] || [[ ! -d ./temp ]] || [[ ! -d ./work ]] || [[ ! -d logs ]] || [[ ! -d webapps ]] ; then
+	echo "[$_host] $_cur_dir Not a tomcat base dir!"
+	continue
+    fi
+
+    if _home_def=`head -1 $_cur_dir/home.def 2>/dev/null` ;then
+      if [[ -n $_home_def ]] && [[ -d $_home_def/bin ]] && [[ -d $_home_def/lib ]];then
+    	_Home=$_home_def
+      fi
+    else
+    	_Home=$_HOME_DIR
+    fi
+
+    source /etc/profile
+    export CATALINA_HOME=$_Home
+    export CATALINA_BASE=$_cur_dir
+    export LANG=zh_CN.UTF-8
+    export LC_ALL=zh_CN.UTF-8
+
+    _Base_Info="[$_host] $CATALINA_BASE"
+    echo "CATALINA_HOME=$CATALINA_HOME -> `readlink -f $CATALINA_HOME`"
+    echo "LANG=$LANG"
+    echo "LC_ALL=$LC_ALL"
+
+    case $_oper in 
+	up)
+	    fun_up $_roll
+	    ;;
+	down)
+	    fun_down
+	    ;;
+	rs)
+	    fun_rs $_roll
+	    ;;
+	ps)
+            echo "[$_host] processes & Listening ports:"
+	    fun_ps
+	    ;;
+	log)
+	    fun_log c $_roll
+	    ;;
+	loga)
+	    fun_log a $_roll
+	    ;;
+	*)
+	    fun_usage
+	    ;;
+    esac
+done
+#End
+# =============================================================================
+
+# Suitable for one tomcat instance or multi instances even with DIFFERENT tomcat versions.
+# $_BASES_DIR is critical , $_HOME_DIR is only used to provide a default value.
+#
+# In case of one instance:
+# $_BASES_DIR should not contain any other files/dirs but $_HOME_DIR.
+# e.g.
+# tomcat default:
+# $_BASES_DIR /opt/app
+# $_HOME_DIR  /opt/app/apache-tomcat-8.0.39
+# /opt/app/apache-tomcat-8.0.39/
+# ├── bin
+# ├── conf
+# ├── lib
+# ├── logs
+# ├── temp
+# ├── webapps
+# └── work
+#
+# Seperated catalina.home & catalina.base:
+# $_BASES_DIR /opt/app/webs 
+# $_HOME_DIR  /opt/app/apache-tomcat-8.0.39 
+# /opt/app/apache-tomcat-8.0.39/
+# ├── bin
+# └── lib
+# 
+# /opt/app/webs
+# └── yourweb
+#     ├── conf
+#     ├── logs
+#     ├── temp
+#     ├── webapps
+#     └── work
+#
+# 
+#
+# In case of multi instances:
+# $_HOME_DIR should only contain 'bin/ lib/' of tomcat
+# Subdirs in $_BASES_DIR should only contain 'conf/ webapps/ logs/ temp/ work/' of tomcat, and conf/server.xml defines the listening port of the instance
+# e.g.
+# $_BASES_DIR /opt/app  ( Apps are /opt/app/webs/yourweb1 , /opt/app/webs/yourweb2 ...)
+# $_HOME_DIR  /opt/app/apache-tomcat-8.0.39
+# /opt/app/apache-tomcat-8.0.39/
+# ├── bin
+# └── lib
+# 
+# /opt/app/webs
+# ├── yourweb1
+# │   ├── conf
+# │   ├── logs
+# │   ├── temp
+# │   ├── webapps
+# │   └── work
+# └── yourweb2
+#     ├── conf
+#     ├── logs
+#     ├── temp
+#     ├── webapps
+#     └── work
+#
+# If certain webapp requires different tomcat version, write tomcat home path(e.g. '/opt/apache-tomcat-8.0.39') in the file '$_BASES_DIR/$_base/home.def'
+# $_HOME_DIR and $_BASES_DIR can be a symbolic link or a real dir
+# 

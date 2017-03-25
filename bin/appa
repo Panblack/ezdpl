@@ -1,0 +1,25 @@
+#!/bin/bash
+_hint="
+Usage:
+appa p  <host>    check all tomcat processes.
+appa l  <host>    list  all tomcat apps & mounted nfs.
+"
+
+if [[ -z $1 ]];then
+  echo "$_hint"
+  exit 1
+else
+  _op=$1
+fi
+
+IFS="
+"
+_servers=`/opt/ezdpl/bin/sqlezdpl "SELECT distinct srvname, port FROM v_srvweb ORDER BY srvname" | grep -v name`
+for x in $_servers;do
+  _host=`echo $x|awk -F'\t' '{print $1}'`
+  _port=`echo $x|awk -F'\t' '{print $2}'`
+  echo [ $_host:$_port ]
+  /opt/ezdpl/bin/app $_op $_host
+  echo
+done
+

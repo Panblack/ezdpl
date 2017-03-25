@@ -1,0 +1,18 @@
+# Blocking wo.com.cn 
+#for x in `seq 1 9`; do nslookup lndnserror$x.wo.com.cn;done|grep "Address: "|sort|uniq|sed 's/Address: //g'
+#for x in `seq 1 9`; do nslookup jldnserror$x.wo.com.cn;done|grep "Address: "|sort|uniq|sed 's/Address: //g'
+-A ufw-before-output -p tcp -d 202.98.24.121 --dport 8080 -j REJECT 
+-A ufw-before-output -p tcp -d 202.98.24.122 --dport 8080 -j REJECT 
+-A ufw-before-output -p tcp -d 202.98.24.123 --dport 8080 -j REJECT 
+-A ufw-before-output -p tcp -d 202.98.24.124 --dport 8080 -j REJECT 
+-A ufw-before-output -p tcp -d 202.98.24.125 --dport 8080 -j REJECT 
+-A ufw-before-output -p tcp -d 60.19.29.21 --dport 8080   -j REJECT   
+-A ufw-before-output -p tcp -d 60.19.29.22 --dport 8080   -j REJECT   
+-A ufw-before-output -p tcp -d 60.19.29.23 --dport 8080   -j REJECT   
+-A ufw-before-output -p tcp -d 60.19.29.24 --dport 8080   -j REJECT   
+-A ufw-before-output -p tcp -d 60.19.29.25 --dport 8080   -j REJECT   
+-A ufw-before-output -p tcp -d 118.212.138.106 --dport 80 -j REJECT  
+-A ufw-before-output -p tcp -d 118.212.138.107 --dport 80 -j REJECT 
+-A ufw-before-output -p tcp -d 118.212.138.108 --dport 80 -j REJECT 
+-A ufw-before-output -p tcp -d 122.143.13.35 --dport 80   -j REJECT   
+

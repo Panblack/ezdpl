@@ -1,0 +1,22 @@
+#!/bin/bash
+_oper=$1
+source /etc/profile
+case $_oper in 
+up)
+    /opt/activemq/bin/activemq start
+    ;;
+down)
+    /opt/activemq/bin/activemq stop
+    ;;
+r)
+    /opt/activemq/bin/activemq stop
+    for ((i=1;i<=5;i++)); do echo -n . ;sleep 1; done; echo
+    /opt/activemq/bin/activemq start
+    ;;
+d)
+    /opt/activemq/bin/activemq dstat
+    ;;
+*)
+    echo -e "Usage: \namq up\t\tStart\namq down\tStop\namq d\tDstat"
+esac
+

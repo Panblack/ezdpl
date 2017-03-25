@@ -1,0 +1,24 @@
+#!/bin/bash
+case $1 in
+c)
+    ipvsadm -lcn
+    ;;
+s)
+    ipvsadm -ln --stats
+    ;;
+r)
+    ipvsadm -ln --rate
+    ;;
+l)  
+    ipvsadm -ln
+    ;;
+*)
+    echo "
+Usage:
+lvss l	ipvsadm -ln
+lvss c	ipvsadm -lcn
+lvss s	ipvsadm -ln --stats
+lvss r	ipvsadm -ln --rate
+"
+    ;;
+esac

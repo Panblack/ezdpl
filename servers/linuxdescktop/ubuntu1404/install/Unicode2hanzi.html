@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<title>Unicode转码</title> 
+<style type="text/css"> 
+<!-- 
+.btn{ 
+font-family: Verdana, Arial, Helvetica, sans-serif; 
+font-size: 12px; 
+color: #666666; 
+text-align: left; 
+text-decoration: none; 
+display: block; 
+overflow: visible; 
+margin-right: 10px; 
+margin-left: 10px; 
+} 
+.btn a:hover { 
+background-color: #d8dfea; 
+border-top-width: 1px; 
+border-bottom-width: 1px; 
+border-top-style: solid; 
+border-bottom-style: solid; 
+border-top-color: #333366; 
+border-bottom-color: #333366; 
+} 
+.btn a { 
+display: block; 
+text-decoration: none; 
+color: #666666; 
+border-top-width: 1px; 
+border-bottom-width: 1px; 
+border-top-style: solid; 
+border-bottom-style: solid; 
+border-top-color: #CCCCCC; 
+border-bottom-color: #CCCCCC; 
+width: 100px; 
+padding-top: 5px; 
+padding-right: 10px; 
+padding-bottom: 5px; 
+padding-left: 30px; 
+overflow: visible; 
+float: left; 
+} 
+html { 
+font-family: Verdana, Arial, Helvetica, sans-serif; 
+font-size: 12px; 
+color: #333333; 
+line-height: 18px; 
+margin: 0px; 
+} 
+--> 
+body{ 
+margin:0px; 
+} 
+</style> 
+</head> 
+<body> 
+
+<textarea name="source" rows="12" id="source" style="width:99%"></textarea> 
+
+<div class="btn"> <a href="javascript:action('CONVERT_FMT1')"> Fmort &#xxxx </a></div> 
+<div class="btn"> <a href="javascript:action('CONVERT_FMT2')"> Fmort \uxxxx </a> </div> 
+<div class="btn"> <a href="javascript:action('RECONVERT')"> To 汉字</a> </div> 
+
+<div id="tt" style="display:none"></div> 
+<textarea name="show2" rows="28" id="show2" style="width:99%"></textarea> 
+
+</body> 
+</html> 
+<script language="javascript" type="text/javascript"> 
+var oSource = document.getElementById("source"); 
+var oShow2 = document.getElementById("show2"); 
+var oTt = document.getElementById("tt"); 
+function action(pChoice){ 
+switch(pChoice){ 
+case "CONVERT_FMT1": 
+oShow2.value = ascii(oSource.value); 
+break; 
+case "CONVERT_FMT2": 
+oShow2.value = unicode(oSource.value); 
+break; 
+case "RECONVERT": 
+oShow2.value = reconvert(oSource.value); 
+break; 
+} 
+} 
+function ascii(str){ 
+return str.replace(/[^\u0000-\u00FF]/g,function($0){return escape($0).replace(/(%u)(\w{4})/gi,"\&#x$2;")}); 
+} 
+function unicode(str){ 
+return str.replace(/[^\u0000-\u00FF]/g,function($0){return escape($0).replace(/(%u)(\w{4})/gi,"\\u$2")}); 
+} 
+function reconvert(str){ 
+str = str.replace(/(\\u)(\w{4})/gi,function($0){ 
+return (String.fromCharCode(parseInt((escape($0).replace(/(%5Cu)(\w{4})/g,"$2")),16))); 
+}); 
+
+str = str.replace(/(&#x)(\w{4});/gi,function($0){ 
+return String.fromCharCode(parseInt(escape($0).replace(/(%26%23x)(\w{4})(%3B)/g,"$2"),16)); 
+}); 
+return str; 
+} 
+</script>

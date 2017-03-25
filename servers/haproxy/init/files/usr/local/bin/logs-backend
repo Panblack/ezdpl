@@ -1,0 +1,7 @@
+#!/bin/bash
+for x in `grep '^backend' /etc/haproxy/haproxy.cfg|awk '{print $2}'`;do 
+    echo
+    cat /var/log/haproxy.log|grep $x|tail -1
+done
+echo
+

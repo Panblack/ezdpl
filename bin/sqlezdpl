@@ -1,0 +1,9 @@
+#!/bin/bash
+if [[ -z $1 ]];then
+    mysql -uezdpl -pezdplPassword ezdpl 2>/dev/null
+else
+    mysql -uezdpl -pezdplPassword ezdpl -e "$1" 2>/dev/null
+fi
+if [[ $2 = root ]];then
+    mysql -uroot -prootPassword ezdpl
+fi 

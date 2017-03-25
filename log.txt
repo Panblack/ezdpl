@@ -1,0 +1,44 @@
+
+2017-03-06_16:32:13 ./ezdpl Y app13:22 common/init N root OK 
+
+2017-03-06_16:34:10 ./ezdpl Y app13:22 common/zabbix N root OK 
+
+2017-03-06_16:35:40 ./ezdpl Y app13:22 appsrv/init N root OK 
+
+2017-03-06_16:38:28 ./ezdpl Y app13:22 appsrv/jmx N root OK 
+
+2017-03-23_10:44:56 ./ezdpl Y 192.168.31.142:22 common/init N root OK 
+
+2017-03-23_11:12:49 ./ezdpl Y 192.168.31.142:22 common/init N root OK 
+
+2017-03-23_11:55:17 ./ezdpl Y 192.168.31.142:22 common/init N root OK 
+
+2017-03-23_13:36:23 ./ezdpl Y 192.168.31.142:22 common/zabbix N root
+2017-03-23_13:39:05 ./ezdpl Y 192.168.31.142:22 common/zabbix N root OK 
+
+2017-03-23_13:48:46 ./ezdpl Y 192.168.31.142:22 appsrv/init Y root OK 
+
+2017-03-24_10:33:26 ./ezdpl Y 192.168.31.142:22 javasrv/init N root OK 
+
+2017-03-24_13:25:53 ./ezdpl Y 192.168.31.142:22 javasrv/init N root OK 
+
+2017-03-24_13:41:19 ./ezdpl Y 192.168.31.142:22 javasrv/jmx N root OK 
+
+2017-03-24_14:49:57 ./ezdpl Y 192.168.31.142:22 activemq/init N root OK 
+
+2017-03-24_15:11:59 ./ezdpl Y 192.168.31.142:22 activemq/init N root OK 
+
+2017-03-24_15:14:10 ./ezdpl Y 192.168.31.142:22 activemq/init N root OK 
+
+2017-03-24_15:18:16 ./ezdpl Y 192.168.31.142:22 activemq/init N root OK 
+
+2017-03-24_16:07:37 ./ezdpl Y 192.168.31.142:22 lvs/init N root OK 
+
+2017-03-24_16:44:17 ./ezdpl Y 192.168.31.142:22 common/init N root OK 
+
+2017-03-24_17:00:23 ./ezdpl Y 192.168.31.142:22 lvs/init N root
+2017-03-24_17:25:49 ./ezdpl Y 192.168.31.142:22 common/init N root OK 
+
+2017-03-24_17:44:19 ./ezdpl Y 192.168.31.142:22 lvs/init N root OK 
+
+2017-03-24_17:50:36 ./ezdpl Y 192.168.31.142:22 haproxy/init N root OK 

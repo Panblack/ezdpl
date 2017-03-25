@@ -1,5 +1,14 @@
 # ezdpl
 =====
+# Version 2.0
+
+* Server info stored in MySQL
+* More operations are done by scripts
+* Add some everyday tools scritps, like java web auto deployment tool
+* Add sample web application config files 
+
+Mar 24, 2017 
+
 #Version 1.2
 
 * Add logging feature.

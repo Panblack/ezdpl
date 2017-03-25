@@ -1,0 +1,58 @@
+#!/bin/bash
+# iptables
+if ! grep " 6\." /etc/redhat-release ; then
+    echo "This scripts only fits Centos/RHEL 6 running iptables"
+    exit 1
+fi
+
+if [[ -z $1 ]] || [[ -z $2 ]] ; then
+    echo "Usage: iptables-iport <a/d> <'port1 port2 port3'> [t/u (t-tcp)]"
+    exit 0
+fi
+_oper=$1
+_ports=$2
+
+if [[ $_oper != a ]] ;then
+    _oper=d
+fi
+if [[ $3 != u ]]; then
+    _proto=tcp
+else
+    _proto=udp
+fi
+
+_sshd_port=`ss -lntp|grep sshd|grep "::"|awk '{print $4}'|awk -F::: '{print $2}'`
+
+# Get prepared for ajusting iptables rules
+/etc/init.d/iptables reload
+_ORGIFS=$IFS
+_NEWIFS=$'x0A'
+for x in $_ports ; do 
+    # Protect sshd port
+    if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
+	echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
+	continue
+    fi
+
+    # Remove iptables entries if any
+    sed -i /"-p *${_proto}.*--dport *${x}.*-j *ACCEPT"/d /etc/sysconfig/iptables
+
+    # Add iptables rules
+    if [[ $_oper = a ]] && ! iptables -nL|egrep "^ACCEPT"|egrep -w "${_proto}"|egrep -w "dpt:${x}" ; then
+	iptables -A INPUT -p $_proto  -m state --state NEW -m $_proto --dport $x -j ACCEPT
+    fi
+done
+
+# Finalize
+if  [[ $_oper = a ]]  ; then
+    # Adjust the position of 'INPUT REJECT' rule
+    iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
+    iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
+    # Save iptables rules
+   /etc/init.d/iptables save
+else
+   /etc/init.d/iptables reload
+fi
+echo "REVIEW:"
+cat /etc/sysconfig/iptables
+echo
