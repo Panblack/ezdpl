@@ -36,8 +36,6 @@ echo $$ > $_pid_file
 
 # Job Ends ...
 
-read -p "Enter!"
-
 # Delete pidfile
 rm $_pid_file -f 2>/dev/null
 
