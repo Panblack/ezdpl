@@ -1,9 +1,14 @@
 #!/usr/bin/python
+
+#class SendMail via http://www.oschina.net/code/snippet_221343_49994
+#A few modifications: Add Cc support ; print -> return string.
+
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
 from email import Utils, Encoders
 import mimetypes, sys,smtplib,socket,getopt
+
 class SendMail:
     def __init__(self,smtp_server,from_addr,to_addr,cc_addr,user,passwd):
         self.mailserver=smtp_server
@@ -57,15 +62,18 @@ class SendMail:
             except smtplib.SMTPException,e:
                 print "Authentication failed:",e
                 sys.exit(1)
-	
-            to_addrs=self.to_addr+','+self.cc_addr
+	    if cc_addr:
+                to_addrs=self.to_addr+','+self.cc_addr
+            else:
+                to_addrs=self.to_addr
+
 	    s.sendmail(self.from_addr, to_addrs.split(','), self.msginfo(msg,subject,filename))
         except (socket.gaierror,socket.error,socket.herror,smtplib.SMTPException),e:
-            print "*** Your message may not have been sent!"
-            print e
-            sys.exit(2)
+            return "*** Your message may not have been sent!\n" + e            
         else:
-            print "Message successfully sent." 
+            return "OK"
+
+#Main
 if __name__=='__main__':
     def usage():
         print """Useage:%s [-h] -s <SMTP Server> -f <FROM_ADDRESS> -t <TO_ADDRESS> -u <USER_NAME> -p <PASSWORD> [-S <MAIL_SUBJECT> -m <MAIL_MESSAGE> -F <ATTACHMENT>]
@@ -120,7 +128,7 @@ if __name__=='__main__':
             filename=value
 if server and from_addr and to_addr and username and password:
     test=SendMail(server,from_addr,to_addr,cc_addr,username,password)
-    test.send(msg,subject,filename)
+    strResult=test.send(msg,subject,filename)
+    print strResult
 else:
     usage()
-

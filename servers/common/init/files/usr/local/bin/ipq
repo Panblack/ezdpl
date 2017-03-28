@@ -14,19 +14,21 @@ else
 fi
 echo
 
-echo "Query ip.cn"
-if [ -n $_ip ]; then
+if [[ $2 = f ]]; then
+  echo "Query ip.cn"
+  if [ -n $_ip ]; then
     curl -s http://ip.cn?ip=$_ip |grep -E -v '<|>'
-else
+  else
     curl -s http://ip.cn |grep -E -v '<|>'
-fi
-echo
-
-echo "Query ipip.net"
-if [[ -n $_ip ]]; then
+  fi
+  echo
+ 
+  echo "Query ipip.net"
+  if [[ -n $_ip ]]; then
     curl -sL http://freeapi.ipip.net/$_ip
+  fi
+  echo 
 fi
-echo 
 
 #
 #curl -sL http://freeapi.ipip.net/$_ip
