@@ -1,6 +1,5 @@
 #!/bin/bash
-# Everyday git operation, by panblack@126.com
-# presuming that remote is "origin" and current branch is "master".
+# Everyday git operation, presuming that remote is "origin" and current branch is "master".
 # upgit i       Initilize user info with login name and hostname, especially useful after you clone a repo.
 # upgit         Pull, Commit and Push
 
@@ -9,7 +8,7 @@ fun_commit() {
     _status=`git status`
     echo "$_status"
     if echo "$_status"|grep "nothing to commit" ; then
-    	return
+    	exit 0
     fi
     read -p "Commit Message:" _msg
     if [ -z "$_msg" ]; then
@@ -18,6 +17,7 @@ fun_commit() {
     fi
     git add .
     git commit -a -m "$_msg"
+    #"Please tell me who you are"
 }
 
 # Initilize
@@ -30,14 +30,15 @@ if [[ $1 = "i" ]];then
 fi
 
 # Pull
+echo "Pulling..."
 _pull_info=`git pull 2>&1`
 _pull_result=$?
-echo "Pulling..."
 echo "$_pull_info"
 if [[ $_pull_result = 0 ]]; then
     fun_commit
 else
     if echo "$_pull_info"|grep "commit your changes or stash them before you can merge" ; then
+	echo "Need to commit first."
     	fun_commit
 	git pull 
 	if [[ $? != 0 ]]; then
@@ -49,10 +50,16 @@ else
     	exit 1
     fi
 fi
+echo
 
 #Push
-git push origin master
-
+for i in `git remote`; do 
+    echo
+    echo "Push to Remote '$i' :"
+    while true; do 
+    	git push $i master && break
+    done
+done
 #End
 
 
