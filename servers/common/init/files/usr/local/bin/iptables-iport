@@ -1,6 +1,6 @@
 #!/bin/bash
 # iptables
-if ! grep " 6\." /etc/redhat-release ; then
+if ! grep " 6\." /etc/redhat-release > /dev/null ; then
     echo "This scripts only fits Centos/RHEL 6 running iptables"
     exit 1
 fi
@@ -24,9 +24,15 @@ fi
 _sshd_port=`ss -lntp|grep sshd|grep "::"|awk '{print $4}'|awk -F::: '{print $2}'`
 
 # Get prepared for ajusting iptables rules
+echo "iptables-iport: $_oper '$_ports' $_proto"
+echo "RUNTIME:"
+iptables -nL 
+echo
+echo "ORIGINAL:"
+cat /etc/sysconfig/iptables
+echo
+echo "Make changes..."
 /etc/init.d/iptables reload
-_ORGIFS=$IFS
-_NEWIFS=$'x0A'
 for x in $_ports ; do 
     # Protect sshd port
     if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
@@ -38,7 +44,7 @@ for x in $_ports ; do
     sed -i /"-p *${_proto}.*--dport *${x}.*-j *ACCEPT"/d /etc/sysconfig/iptables
 
     # Add iptables rules
-    if [[ $_oper = a ]] && ! iptables -nL|egrep "^ACCEPT"|egrep -w "${_proto}"|egrep -w "dpt:${x}" ; then
+    if [[ $_oper = a ]] && ! iptables -nL|egrep "^ACCEPT"|egrep -w "${_proto}"|egrep -w "dpt:${x}" > /dev/null  ; then
 	iptables -A INPUT -p $_proto  -m state --state NEW -m $_proto --dport $x -j ACCEPT
     fi
 done
@@ -53,6 +59,7 @@ if  [[ $_oper = a ]]  ; then
 else
    /etc/init.d/iptables reload
 fi
+echo
 echo "REVIEW:"
 cat /etc/sysconfig/iptables
 echo
