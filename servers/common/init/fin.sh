@@ -45,7 +45,7 @@ service iptables6 stop
 service iptables start
 
 #selinux
-sed -i '/s/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
 # crontab 
@@ -60,8 +60,7 @@ echo "$_cron" >> /var/spool/cron/root
 chmod 600 /var/spool/cron/root
 chkconfig crond on
 service crond start
-chkconfig sendmail on
-service sendmail start
+chkconfig sendmail off
 
 # Consider change sshd port to 2222.
 iptables-iport a 2222
