@@ -1,6 +1,11 @@
 #!/bin/bash
 # Initial script for ubuntu 14.04 fresh installation, by panblack@126.com
+#
+# ** Replace 'PANBLACK' with your username **
+#
+
 _pwd=`pwd`
+echo "Upgrade & install necessary packages"
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y gnome-tweak-tool unity-tweak-tool sysv-rc-conf dconf-editor \
@@ -12,15 +17,19 @@ rdesktop virt-manager virt-viewer wireshark lua5.2 lua-bitop \
 chromium-browser libqt4-opengl \
 docker.io apache2 php5 apache2-utils python-pip \
 openvpn network-manager-openvpn network-manager-openvpn-gnome 
+echo 
 
 # python pip & tools
+echo "pip install memcached-cli, httpie"
 sudo pip install --upgrade pip
 sudo pip install memcached-cli
 sudo pip install httpie
+echo
 
 # app dir
+echo "/home/app/iso/packages"
 sudo mkdir -p /home/app/iso/packages
-sudo chown -R panblack:panblack /home/app
+sudo chown -R PANBLACK:PANBLACK /home/app
 
 # node.js , whistle
 #sudo curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
@@ -29,7 +38,7 @@ sudo chown -R panblack:panblack /home/app
 #sudo cnpm install -g whistle
 echo "nodejs & wps,virtualbox (2017-03)"
 cd /home/app/iso/packages
-wget https://atom-installer.github.com/v1.15.0/atom-amd64.deb?s=1489019656&ext=.deb
+wget https://atom-installer.github.com/v1.15.0/atom-amd64.deb
 wget https://nodejs.org/dist/v6.10.0/node-v6.10.0-linux-x64.tar.xz
 wget http://kdl.cc.ksosoft.com/wps-community/download/a21/wps-office_10.1.0.5672~a21_amd64.deb
 wget http://download.virtualbox.org/virtualbox/5.1.16/virtualbox-5.1_5.1.16-113841~Ubuntu~trusty_amd64.deb
@@ -37,28 +46,32 @@ wget http://download.virtualbox.org/virtualbox/5.1.16/Oracle_VM_VirtualBox_Exten
 
 cd /home/app
 tar Jxvf /home/app/iso/packages/node-v6.10.0-linux-x64.tar.xz && ln -sf /home/app/node-v6.10.0-linux-x64 /home/app/node
-
+echo 
 
 echo "Local Configuration"
 cd $_pwd
-/bin/cp ./packages/*.deb /home/app/iso/packages/ 2>/dev/null
+/bin/cp -p ./packages/*.deb /home/app/iso/packages/ 2>/dev/null
+echo 
 
 echo "Modifying ~/.bashrc"
-/bin/cp ~/.bashrc ~/.bashrc.bak.`date +%F_%H%M`
+/bin/cp -p ~/.bashrc ~/.bashrc.bak.`date +%F_%H%M`
 sed -i /'alias ll'/d ~/.bashrc
 sed -i 's/]:/] \\t /g' ~/.bashrc
 sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/g' ~/.bashrc
 /bin/cp vimrc ~/.vimrc
+echo 
 
 echo "Modifying /etc/skel/.bashrc"
-sudo /bin/cp /etc/skel/.bashrc /etc/skel/.bashrc.bak.`date +%F_%H%M`
+sudo /bin/cp -p /etc/skel/.bashrc /etc/skel/.bashrc.bak.`date +%F_%H%M`
 sudo sed -i /alias ll/d /etc/skel/.bashrc
 sudo sed -i 's/]:/] \\t /g' /etc/skel/.bashrc
 sudo sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/g' /etc/skel/.bashrc
+echo 
 
 echo "zz_custom_env.sh to /etc/profile.d/"
 sudo /bin/cp zz_custom_env.sh /etc/profile.d/
 source /etc/profile
+echo 
 
 # ufw settings
 echo "ufw"
@@ -67,18 +80,21 @@ sudo ufw default deny
 sudo ufw allow 80/tcp
 sudo ufw allow 8080/tcp
 sudo ufw allow 1080/tcp
-sudo ufw allow 3306/tcp
-sudo ufw allow 443/tcp
-sudo ufw allow 10001/tcp
-sudo ufw allow 10002/tcp
-sudo ufw allow 8686/tcp
+#sudo ufw allow 443/tcp
+#sudo ufw allow 3306/tcp
+#sudo ufw allow 10001/tcp
+#sudo ufw allow 10002/tcp
+echo
 
 echo "Blocking wo.com.cn"
+sudo /bin/cp -p /etc/ufw/before.rules /etc/ufw/before.rules.`date +%F_%H%M`
 sudo sed -i "/End required lines/r blocking.wo.com.cn" /etc/ufw/before.rules
+echo 
 
 echo "Installing node packages"
 sudo npm install -g whistle
 sudo npm install -g anyproxy
+echo 
 
 # Install deb packages
 cd /home/app/iso/packages/
@@ -91,7 +107,7 @@ echo "Make wireshark able to capture packets with non-root user."
 sudo chmod u+s /usr/bin/dumpcap
 
 echo "Make virtualbox VM's able to connect USB devices."
-sudo usermod -aG vboxusers ezdpl
+sudo usermod -aG vboxusers PANBLACK
 
 echo "Disable Embed preedit text ..."
 ibus-setup
@@ -100,8 +116,9 @@ echo "Modify org.gnome.gnome-screenshot"
 dconf-editor
 
 # Theme tweak
-echo "vim /usr/share/themes/Ambiance/gtk-3.0/gtk-widgets.css"
-echo ":1212	background-color: shade (@selected_bg_color, 1.02);"
+sudo /bin/cp -p /usr/share/themes/Ambiance/gtk-3.0/gtk-widgets.css /usr/share/themes/Ambiance/gtk-3.0/gtk-widgets.css.bak
+sudo sed  '1212s/bg_color,/selected_bg_color,/' /usr/share/themes/Ambiance/gtk-3.0/gtk-widgets.css
+#":1212	background-color: shade (@bg_color, 1.02);"
 
 cd
 
