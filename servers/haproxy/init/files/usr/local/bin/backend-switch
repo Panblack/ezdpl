@@ -45,7 +45,7 @@ _port=`echo $_backend_server | awk -F: '{print $2}'`
 
 case $_oper in
     on)
-        if iptables -nvL OUTPUT |grep $_ip|grep $_port|grep DROP &>/dev/null; then
+        if iptables -nvL OUTPUT |grep $_ip|grep -w $_port|grep DROP &>/dev/null; then
             iptables -D OUTPUT -d $_ip -p tcp --dport $_port -j DROP
 	    echo -e  "OK" | tee -a $_log_file
  	else
@@ -53,7 +53,7 @@ case $_oper in
         fi
         ;;
     off)
-        if ! iptables -nvL OUTPUT |grep $_ip|grep $_port|grep DROP &>/dev/null; then
+        if ! iptables -nvL OUTPUT |grep $_ip|grep -w $_port|grep DROP &>/dev/null; then
             iptables -A OUTPUT -d $_ip -p tcp --dport $_port -j DROP
 	    echo -e  "OK" | tee -a $_log_file
  	else
