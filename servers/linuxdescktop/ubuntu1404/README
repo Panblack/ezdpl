@@ -1,4 +1,7 @@
 Copy install/ dir (follow symbolic links) to some place, like: `cp -Lrp install/ /tmp/ `. This is to ensure scripts files are included.
 Copy /tmp/install/ dir to the newly installed ubuntu 14.04, i.e. ~/ .
-Logon to the newly installed ubuntu 14.04 and run `cd ~/install ; sh install.sh`
+
+Logon to the newly installed ubuntu 14.04 and run:
+sed -i 's/PANBLACK/YourUserName/g' ~/install.sh	
+./install.sh
 
