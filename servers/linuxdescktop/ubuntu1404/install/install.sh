@@ -1,18 +1,16 @@
 #!/bin/bash
 # Initial script for ubuntu 14.04 fresh installation, by panblack@126.com
 #
-# ** Replace 'PANBLACK' with your username **
-#
+read -p "Your username:" _user_name
 
 echo "Upgrade & install necessary packages"
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y -m gnome-tweak-tool unity-tweak-tool sysv-rc-conf dconf-editor \
 leafpad tree p7zip-full p7zip-rar telnet ssh vim nmap lynx iftop iptraf convmv enca sysstat dstat curl httping xclip \
-git meld subversion chromium-browser libsdl1.2debian libqt4-opengl python-pip \
+git meld subversion chromium-browser libsdl1.2debian libqt4-opengl python-pip wireshark \
 smplayer vlc vlc-* gstreamer1.0-plugins* openshot gimp gthumb graphicsmagick kazam gaupol ttf-wqy-microhei \
-psensor indicator-cpufreq \
-rdesktop virt-manager virt-viewer wireshark lua5.2 lua-bitop \
+psensor indicator-cpufreq rdesktop virt-manager virt-viewer lua5.2 lua-bitop \
 docker.io apache2 php5 apache2-utils cgroup-bin \
 openvpn network-manager-openvpn network-manager-openvpn-gnome 
 if [[ $? != 0 ]];then
@@ -24,8 +22,8 @@ echo
 _pwd=$(dirname `readlink -f $0`)
 echo $_pwd
 echo "Local Configuration"
-sudo bin/cp -p ./scripts/* /usr/local/bin/ 2>/dev/null
-/bin/cp     -p ./deb/*.deb /home/app/iso/packages/ 2>/dev/null
+sudo bin/cp -p ./scripts/* /usr/local/bin/ 
+/bin/cp -p ./deb/*.deb /home/app/iso/packages/ 
 echo 
 
 echo "Modifying /etc/skel/.bashrc"
@@ -48,6 +46,18 @@ sudo /bin/cp -p /usr/share/themes/Ambiance/gtk-3.0/gtk-widgets.css /usr/share/th
 sudo sed -i '1212s/bg_color,/selected_bg_color,/' /usr/share/themes/Ambiance/gtk-3.0/gtk-widgets.css
 #":1212	background-color: shade (@bg_color, 1.02);"
 
+echo "Blocking wo.com.cn"
+sudo /bin/cp -p /etc/ufw/before.rules /etc/ufw/before.rules.`date +%F_%H%M`
+_IFS=$IFS
+IFS="
+"
+for x in `cat blocking.wo.com.cn`; do
+    sudo sed -i /"$x"/d /etc/ufw/before.rules
+done
+sudo sed -i "/End required lines/r blocking.wo.com.cn" /etc/ufw/before.rules
+IFS=$_IFS
+echo 
+
 # ufw settings
 echo "ufw"
 sudo ufw enable
@@ -61,18 +71,6 @@ sudo ufw allow 1080/tcp
 #sudo ufw allow 10002/tcp
 echo
 
-echo "Blocking wo.com.cn"
-sudo /bin/cp -p /etc/ufw/before.rules /etc/ufw/before.rules.`date +%F_%H%M`
-_IFS=$IFS
-IFS="
-"
-for x in `cat blocking.wo.com.cn`; do
-    sudo sed -i /"$x"/d /etc/ufw/before.rules
-done
-sudo sed -i "/End required lines/r blocking.wo.com.cn" /etc/ufw/before.rules
-IFS=$_IFS
-echo 
-
 echo "Modifying ~/.bashrc"
 /bin/cp -p ~/.bashrc ~/.bashrc.bak.`date +%F_%H%M`
 sed -i /'alias ll'/d ~/.bashrc
@@ -82,7 +80,7 @@ echo
 
 echo "App dir: /home/app"
 sudo mkdir -p /home/app/iso/packages
-sudo chown -R PANBLACK:PANBLACK /home/app
+sudo chown -R $_user_name:$_user_name /home/app
 
 
 echo "vimrc.local"
@@ -128,7 +126,7 @@ sudo chmod u+s /usr/bin/dumpcap
 echo
 
 echo "Make virtualbox VM's able to connect USB devices."
-sudo usermod -aG vboxusers PANBLACK
+sudo usermod -aG vboxusers $_user_name
 echo 
 
 echo "Disable dash"
