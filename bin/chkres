@@ -1,0 +1,65 @@
+#!/bin/bash
+set -u
+_time_start=`date +%F_%T`
+_log_file="/data/oper/report/mon/log.txt"
+echo $_time_start >> $_log_file
+
+_servers=`/data/oper/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv" | egrep -v 'name.*port' `
+_mem_limit=80
+IFS="
+"
+date +%F_%T
+echo -e "Host\tCPUs\tCPU_load\t\tMem%\tDisk"
+    for x in $_servers;do
+    	_host=`echo $x|awk -F'\t' '{print $1}'`
+    	_port=`echo $x|awk -F'\t' '{print $2}'`
+#	echo "[$_host:$_port]"
+#	continue
+  	_str=`ssh root@$_host -p $_port "\
+	cat /proc/cpuinfo|grep processor|wc -l;\
+	echo -n '|';\
+	uptime|grep 'load average';\
+	echo -n '|';\
+      	free -tm |grep "buffers/cache" ;\
+	echo -n '|';\
+	df -hTPl |egrep '(8.%|9.%|100%)' ;\
+	echo -n '|';\
+	mount|grep warning;"`
+
+	#Original string
+#	_mon_file="/data/oper/report/mon/all.mon.log"
+#	echo -e "\n${_time_start}" >> $_mon_file
+
+	#Extract data
+	_cpu_count=`echo $_str|awk -F'|' '{print $1}'`
+	#((_cpu_count=$_cpu_count-1 ))
+	_cpu_load=`echo $_str|awk -F'|' '{print $2}'|awk -F': ' '{print $2}'`
+	_load_1=`echo $_cpu_load|awk -F', ' '{print $1}'`
+	_load_5=`echo $_cpu_load|awk -F', ' '{print $2}'`
+	_load_15=`echo $_cpu_load|awk -F', ' '{print $3}'`
+
+	_mem_info=`echo $_str|awk -F'|' '{print $3}'`
+	_mem_used=`echo $_mem_info |awk '{print $3}'`
+	_mem_free=`echo $_mem_info |awk '{print $4}'`
+	_mem_total=`echo $_mem_used + $_mem_free|bc`
+	_mem_percent=`echo "scale=2;ibase=10;obase=10;$_mem_used/$_mem_total*100"|bc|tr -d .00`
+	if [[ $_mem_percent -gt $_mem_limit ]]; then
+	    _mem_percent="\033[31m$_mem_percent\033[0m"
+	fi
+
+	_df=`echo $_str|awk -F'|' '{print $4}'|awk '{print $6" "$7}'`
+	_mount_err=`echo $_str|awk -F'|' '{print $5}'`
+
+	echo -e "${_host}\t${_cpu_count}\t${_cpu_load}\t${_mem_percent}%\t${_df}"
+
+    done
+
+_time_end=`date +%F_%T`
+exit 0
+
+#             total       used       free     shared    buffers     cached
+#Mem:         31981       4934      27046          0        146        298
+#	     -/+ buffers/cache:       4489      27491
+#	     Swap:          991          0        991
+#	     Total:       32973       4934      28038
+
