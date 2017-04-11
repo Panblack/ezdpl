@@ -1,0 +1,22 @@
+# Shared env variables and pre-requirement checks for script japp
+export JAVA_HOME=/opt/jdk
+export JRE_HOME=$JAVA_HOME/jre
+export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
+export LANG=zh_CN.UTF-8
+export LC_ALL=zh_CN.UTF-8
+
+_BASES_DIR="/opt/webs"
+_HOME_DIR="/opt/app/tomcat"
+_max_shutdown_retry=15
+
+_MAX_TRY=3
+_MAX_WAIT=5
+_APP_PATH=""
+_JAVA_OPTS=""
+_LOG_PATH=""
+
+# Run under specific user 
+if ! id|grep "uid=1000(dpl)" > /dev/null ; then
+    echo "please 'su - dpl'. "
+    exit 1
+fi

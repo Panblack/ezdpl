@@ -30,7 +30,7 @@ done
 
 _setenv='
 JAVA_OPTS="-server -Xms1024m -Xmx1024m -XX:+UseG1GC"
-#CATALINA_OPTS=" -Djava.security.egd=file:/dev/urandom"
+CATALINA_OPTS=" -Djava.security.egd=file:/dev/urandom"
 UMASK="0022"
 CATALINA_OUT=/dev/null'
 
@@ -42,6 +42,8 @@ for tm in apache-tomcat-*/ ; do
     echo "$_setenv" > ./bin/setenv.sh
     rm ./webapps/* -rf
     sed -i 's/%s %b/%s %b %D %S %{X-Forwarded-For}i %{Referer}i/g' ./conf/server.xml
+#    sed -i /host-manager/d ./conf/logging.properties
+#    sed -i /manager/d      ./conf/logging.properties
     ls -l
     _webdir="/opt/webs/app-`echo $tm|sed 's/apache-tomcat-//g'`"
     mkdir -p $_webdir
@@ -59,8 +61,17 @@ ln -sf $_tomcat ./tomcat
 
 # Get nginx ready
 yum install nginx -y
-chkconfig nginx off
-service nginx stop
+systemctl disable nginx
 
-iptables-iport a "80 443 8009 8080 8081 8082 8083"
+# firewalld 
+if ! systemctl status firewalld|egrep '(could not be found|disabled;)'; then
+    firewall-cmd --add-port 80/tcp --permanent
+    firewall-cmd --add-port 443/tcp --permanent
+    firewall-cmd --add-port 8009/tcp --permanent
+    firewall-cmd --add-port 8080/tcp --permanent
+    firewall-cmd --add-port 8081/tcp --permanent
+    firewall-cmd --add-port 8082/tcp --permanent
+    firewall-cmd --add-port 8083/tcp --permanent
+    firewall-cmd --reload
+fi
 

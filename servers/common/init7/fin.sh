@@ -12,7 +12,7 @@ fi
 
 killall -9 yum
 yum clean all
-yum -y install telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx sendmail lynx &&  echo "Packages installed..."
+yum -y install telnet net-tools dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx lynx &&  echo "Packages installed..."
 
 # Install rpms
 cd /opt/packages
@@ -40,11 +40,11 @@ nnoremap Q :q!
 "
 echo "$_vimrc" > /root/.vimrc
 
-#iptables
-chkconfig iptables on
-chkconfig iptables6 off
-service iptables6 stop
-service iptables start
+#firewalld
+systemctl enable firewalld
+firewall-cmd --add-port 22/tcp --permanent
+firewall-cmd --add-port 2222/tcp --permanent
+firewall-cmd --reload
 
 #selinux
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
@@ -60,10 +60,5 @@ sed -i /"ban_ssh"/d /var/spool/cron/root
 sed -i /"ntpdate"/d /var/spool/cron/root
 echo "$_cron" >> /var/spool/cron/root
 chmod 600 /var/spool/cron/root
-chkconfig crond on
-service crond start
-chkconfig sendmail off
 
-# Consider change sshd port to 2222.
-iptables-iport a 2222
 

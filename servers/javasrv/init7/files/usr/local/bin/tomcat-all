@@ -1,0 +1,15 @@
+#!/bin/bash
+cd /opt/
+case $1 in
+up)
+    for x in  tomcat* ; do cd $x ;tomcat-up N ; cd ../; done
+    ;;
+down)
+    for x in  tomcat* ; do cd $x ;tomcat-down ; cd ../; done
+    ;;
+*)
+    echo "tomcat-all up/down "
+    ;;
+esac
+
+

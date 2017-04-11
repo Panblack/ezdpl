@@ -1,0 +1,17 @@
+#!/bin/bash
+# Encode/Decode url, by panblack@126.com
+_oper=$1
+_str=$2
+
+case $_oper in 
+e)
+    python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])" $_str
+    ;;
+d)
+    python -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])" $_str
+    ;;
+*)
+    echo -e "Usage: \nurlcode e\turl encode\nurlcode d\turl decode"
+    ;;
+esac
+

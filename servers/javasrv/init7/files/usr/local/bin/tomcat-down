@@ -1,0 +1,27 @@
+#!/bin/bash
+_path=`pwd`
+_max=12
+./bin/shutdown.sh 2>/dev/null
+if [[ $? != 0 ]];then
+  echo "Check your path."
+  exit 1
+fi
+echo -n "please wait"
+
+for ((i=1;i<=${_max};i++));do
+  _pid=`ps aux |grep java|grep "Dcatalina.base=$_path " | awk '{print $2}'`
+  sleep 1
+  echo -n .
+  if [[ -z $_pid ]];then
+    echo "Tomcat shutdown OK! ($i)"
+    break
+  fi
+done
+
+echo
+
+if [[ $i -ge $_max ]];then
+  echo "Tomcat shutdown failed. Force kill engaged."
+  kill -9 $_pid
+fi
+
