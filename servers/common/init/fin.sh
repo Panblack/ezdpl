@@ -55,7 +55,7 @@ if [[ ! -f /var/spool/cron/root ]]; then
     touch /var/spool/cron/root
 fi
 _cron="*/10 * * * * /usr/local/bin/ban_ssh.sh
-*/10 * * * * /usr/sbin/ntpdate 0.asia.pool.ntp.org 1.asia.pool.ntp.org 2.asia.pool.ntp.org 3.asia.pool.ntp.org"
+*/10 * * * * /usr/sbin/ntpdate 0.centos.pool.ntp.org 1.centos.pool.ntp.org 2.centos.pool.ntp.org 3.centos.pool.ntp.org"
 sed -i /"ban_ssh"/d /var/spool/cron/root
 sed -i /"ntpdate"/d /var/spool/cron/root
 echo "$_cron" >> /var/spool/cron/root

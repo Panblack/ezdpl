@@ -42,8 +42,6 @@ for tm in apache-tomcat-*/ ; do
     echo "$_setenv" > ./bin/setenv.sh
     rm ./webapps/* -rf
     sed -i 's/%s %b/%s %b %D %S %{X-Forwarded-For}i %{Referer}i/g' ./conf/server.xml
-#    sed -i /host-manager/d ./conf/logging.properties
-#    sed -i /manager/d      ./conf/logging.properties
     ls -l
     _webdir="/opt/webs/app-`echo $tm|sed 's/apache-tomcat-//g'`"
     mkdir -p $_webdir

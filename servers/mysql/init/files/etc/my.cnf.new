@@ -1,0 +1,71 @@
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
+
+[mysqld]
+#
+user = mysql
+default-storage-engine = InnoDB
+# Remove leading # and set to the amount of RAM for the most important data
+# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+innodb_buffer_pool_size = 1024M
+innodb_file_per_table =1
+innodb_data_file_path = ibdata1:32M:autoextend
+innodb_log_file_size = 128M
+innodb_log_files_in_group = 2
+
+innodb_flush_log_at_trx_commit = 1
+sync_binlog = 1
+long_query_time = 0.10
+
+max_connections = 1000
+max_connect_errors=100000
+open_files_limit = 10000
+innodb_open_files = 10000
+table_open_cache = 10000
+table_definition_cache = 10000
+
+#
+# Remove leading # to turn on a very important data integrity option: logging
+# changes to the binary log between backups.
+log_bin = logbin
+binlog_format = mixed
+server-id = 1
+slave_skip_errors = all
+log_slave_updates = 1
+auto_increment_increment = 2
+auto_increment_offset = 1
+replicate_wild_ignore_table=mysql.%
+replicate_wild_ignore_table=information_schema.%
+
+
+#
+# Remove leading # to set options mainly useful for reporting servers.
+# The server defaults are faster for transactions and fast SELECTs.
+# Adjust sizes as needed, experiment to find the optimal values.
+join_buffer_size = 128M
+sort_buffer_size = 2M
+read_rnd_buffer_size = 2M
+read_buffer_size = 32M
+key_buffer_size = 32M
+query_cache_size = 0
+query_cache_type = 0
+
+#datadir=/var/lib/mysql
+datadir = /data/mysql
+socket = /var/lib/mysql/mysql.sock
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links = 0
+character-set-server = utf8
+lower_case_table_names=1
+
+log-error = /var/log/mysqld.log
+pid-file = /var/run/mysqld/mysqld.pid
+
+skip-name-resolve
+#validate_password=off
+
+[mysql]
+default_character_set = utf8
+prompt = '\u@\h(\R:\m)\d> '
+
