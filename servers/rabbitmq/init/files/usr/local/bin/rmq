@@ -1,0 +1,5 @@
+#!/bin/bash
+ps aux|grep rabbit|sed 's/ -/\n -/g'
+echo
+netstat -lntp |egrep "beam|epmd"
+

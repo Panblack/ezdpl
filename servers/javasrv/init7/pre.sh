@@ -15,18 +15,18 @@ cd /opt/ && rm app/* webs/* -rf
 killall -9 yum
 yum clean all
 yum -y install nfs-utils bash openssh openssl openssl-devel 
-chkconfig nfs off
-chkconfig nfslock off
-chkconfig rpcbind off
-chkconfig rpcgssd off
-chkconfig rpcidmapd off
-chkconfig rpcsvcgssd off
-service nfs stop
-service nfslock stop
-service rpcbind stop
-service rpcgssd stop
-service rpcidmapd stop 
-service rpcsvcgssd stop
+systemctl disable nfs.service
+systemctl disable nfslock.service
+systemctl disable rpcbind.service
+systemctl disable rpcgssd.service
+systemctl disable rpcidmapd.service
+systemctl disable rpcsvcgssd.service
+systemctl stop  nfs.service
+systemctl stop  nfslock.service
+systemctl stop  rpcbind.service
+systemctl stop  rpcgssd.service
+systemctl stop  rpcidmapd.service
+systemctl stop  rpcsvcgssd.service
 
 echo 
 echo "nfs-utils (client) configured."

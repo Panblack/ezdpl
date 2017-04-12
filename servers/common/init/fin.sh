@@ -1,5 +1,32 @@
 #!/bin/bash
 
+#iptables
+chkconfig iptables on
+chkconfig iptables6 off
+service iptables6 stop
+service iptables start
+
+#selinux
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+setenforce 0
+
+# crontab 
+if [[ ! -f /var/spool/cron/root ]]; then
+    touch /var/spool/cron/root
+fi
+_cron="*/10 * * * * /usr/local/bin/ban_ssh.sh
+*/10 * * * * /usr/sbin/ntpdate 0.centos.pool.ntp.org 1.centos.pool.ntp.org 2.centos.pool.ntp.org 3.centos.pool.ntp.org"
+sed -i /"ban_ssh"/d /var/spool/cron/root
+sed -i /"ntpdate"/d /var/spool/cron/root
+echo "$_cron" >> /var/spool/cron/root
+chmod 600 /var/spool/cron/root
+chkconfig crond on
+service crond start
+chkconfig sendmail off
+
+# Consider change sshd port to 2222.
+iptables-iport a 2222
+
 # Install epel
 if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
   if grep " 6." /etc/redhat-release ; then
@@ -39,31 +66,4 @@ nnoremap q :q
 nnoremap Q :q!
 "
 echo "$_vimrc" > /root/.vimrc
-
-#iptables
-chkconfig iptables on
-chkconfig iptables6 off
-service iptables6 stop
-service iptables start
-
-#selinux
-sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-setenforce 0
-
-# crontab 
-if [[ ! -f /var/spool/cron/root ]]; then
-    touch /var/spool/cron/root
-fi
-_cron="*/10 * * * * /usr/local/bin/ban_ssh.sh
-*/10 * * * * /usr/sbin/ntpdate 0.centos.pool.ntp.org 1.centos.pool.ntp.org 2.centos.pool.ntp.org 3.centos.pool.ntp.org"
-sed -i /"ban_ssh"/d /var/spool/cron/root
-sed -i /"ntpdate"/d /var/spool/cron/root
-echo "$_cron" >> /var/spool/cron/root
-chmod 600 /var/spool/cron/root
-chkconfig crond on
-service crond start
-chkconfig sendmail off
-
-# Consider change sshd port to 2222.
-iptables-iport a 2222
 
