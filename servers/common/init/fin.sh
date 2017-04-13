@@ -27,6 +27,12 @@ chkconfig sendmail off
 # Consider change sshd port to 2222.
 iptables-iport a 2222
 
+# aliyun 
+if  grep "mirrors.cloud.aliyuncs.com" yum.repos.d/CentOS-Base.repo ; then
+    cp -p /etc/yum.conf /etc/yum.conf.bak
+    echo -e "exclude=kernel*\nexclude=centos-release*" >> /etc/yum.conf
+fi 
+
 # Install epel
 if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
   if grep " 6." /etc/redhat-release ; then

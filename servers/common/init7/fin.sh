@@ -21,6 +21,12 @@ firewall-cmd --reload
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
+# aliyun 
+if  grep "mirrors.cloud.aliyuncs.com" yum.repos.d/CentOS-Base.repo ; then
+    cp -p /etc/yum.conf /etc/yum.conf.bak
+    echo -e "exclude=kernel*\nexclude=centos-release*" >> /etc/yum.conf
+fi 
+
 # Install epel
 if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
   if grep " 6." /etc/redhat-release ; then
