@@ -7,15 +7,25 @@ mkdir -p /opt/webs
 
 # jdk and symbolic link
 cd /opt
-echo "Extracts jdks"
+echo "Extracts jdk"
 for j in ./packages/jdk*.tar.gz ; do
     tar zxf $j 
 done
-
 # Make the latest version default
 _jdk=`find -type d -name "jdk1.*"|sort -V|tail -1`
 echo "$_jdk is default jdk"
 ln -sf $_jdk ./jdk
+
+# Maven
+cd /opt
+echo "Extracts maven"
+for m in ./packages/apache-maven*.tar.gz ; do
+    tar zxf $m
+done
+# Make the latest version default
+_maven=`find -type d -name apache-maven*|sort -V|tail -1`
+echo "$_maven is default maven"
+ln -sf $_maven ./maven
 
 # Configure tomcats app/webs
 cd /opt/app

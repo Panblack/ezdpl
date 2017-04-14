@@ -15,7 +15,7 @@ if [[ ! -f /var/spool/cron/root ]]; then
     touch /var/spool/cron/root
 fi
 _cron="*/10 * * * * /usr/local/bin/ban_ssh.sh
-*/10 * * * * /usr/sbin/ntpdate 0.centos.pool.ntp.org 1.centos.pool.ntp.org 2.centos.pool.ntp.org 3.centos.pool.ntp.org"
+*/10 * * * * /usr/sbin/ntpdate 0.cn.pool.ntp.org 1.cn.pool.ntp.org 2.cn.pool.ntp.org 3.cn.pool.ntp.org"
 sed -i /"ban_ssh"/d /var/spool/cron/root
 sed -i /"ntpdate"/d /var/spool/cron/root
 echo "$_cron" >> /var/spool/cron/root
@@ -45,7 +45,7 @@ fi
 
 killall -9 yum
 yum clean all
-yum -y install telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx sendmail lynx &&  echo "Packages installed..."
+yum -y install telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx sendmail lynx git &&  echo "Packages installed..."
 
 # Install rpms
 cd /opt/packages
@@ -53,13 +53,6 @@ for x in *.rpm ; do
     rpm -ivh $x 
 done
 
-# Download & extract lynis (security auditing tool)
-cd /opt/ && rm ./lynis -rf 2>/dev/null
-wget https://cisofy.com/download/lynis/ -O /dev/shm/lynix.html
-_lynis=`cat /dev/shm/lynix.html |sed 's/ /\n/g'|grep "cisofy.com/files"|grep -v asc|awk -F'"' '{print $2}'`
-echo $_lynis
-wget $_lynis
-tar zxvf ./lynis-*.tar.gz -C /opt/ > /dev/null && echo "lynis installed in /opt/lynis"
 
 # vim auto indent(Hit <F9> for proper pasting)
 # q command replaced with :q

@@ -1,3 +1,3 @@
 #!/bin/bash
-echo "Logon to remote server, edit /etc/yum.repos.d/mysql-community.repo and run: sh /tmp/mysql7.sh"
+echo "Logon to remote server, run : sh /tmp/mysql.sh"
 exit 0

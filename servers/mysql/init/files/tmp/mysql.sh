@@ -1,5 +1,4 @@
 #!/bin/bash
-yum install -y yum-utils
 if grep " 6." /etc/redhat-release ; then
     rpm -ivh https://repo.mysql.com//mysql57-community-release-el6-10.noarch.rpm
 fi
@@ -15,4 +14,4 @@ mv /etc/my.cnf files/etc/my.cnf.org
 mv /etc/my.cnf.new /etc/my.cnf
 systemctl enable mysqld.service
 systemctl start mysqld.service
-mql_secure_installation
+mysql_secure_installation

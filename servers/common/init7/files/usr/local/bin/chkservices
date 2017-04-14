@@ -1,3 +1,3 @@
 #!/bin/bash
-netstat -lntp |egrep 'memcached|redis|mysqld|mongod|openvpn|nginx|httpd|php_fpm|java|activemq|svnserve|git'
+netstat -lntp |egrep 'memcached|redis|mysqld|mongod|openvpn|nginx|httpd|php_fpm|java|activemq|svnserve|git|beam|epmd'
 
