@@ -24,7 +24,7 @@ setenforce 0
 # aliyun 
 if  grep "mirrors.cloud.aliyuncs.com" yum.repos.d/CentOS-Base.repo ; then
     cp -p /etc/yum.conf /etc/yum.conf.bak
-    echo -e "exclude=kernel*\nexclude=centos-release*" >> /etc/yum.conf
+    echo "exclude=kernel* centos-release*" >> /etc/yum.conf
 fi 
 
 # Install epel

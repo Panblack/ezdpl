@@ -14,7 +14,7 @@ for x in mysql ; do
 done
 
 # Move logbin files.
-_yesterday=`date -s yesterday +%F`
+_yesterday=`date -d yesterday +%F`
 cd /data/mysql/
 for z in logbin.0* ;do 
     _logbin_date=`stat -c %y $z|awk '{print $1}'`

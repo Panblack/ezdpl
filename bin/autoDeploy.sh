@@ -67,7 +67,7 @@ echo -e "\nPid:$$ \nWars:$_wars \nSource:$_remote_server:$_remote_path"  | tee -
 ssh  root@$_remote_server "ls -ltr --time-style=long-iso $_remote_path/*.war " | tee -a $_log_file
 echo | tee -a $_log_file
 
-/opt/ezdpl/bin/deployWeb "$_wars" | tee -a $_log_file
+/opt/ezdpl/bin/deployWeb "$_wars" $_remote_server | tee -a $_log_file
 
 _datetime=`date +%F_%T`
 echo -e "======== Production autoDeploy Finished  $_datetime =========\n\n" | tee -a $_log_file

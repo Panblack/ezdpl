@@ -3,33 +3,38 @@
 # Requires: sqlezdpl, scon, JDK
 # For home-base-seperated tomcat deployment, or tomcats in /opt/webs/someWebName/<tomcat files & dirs>
 # webs, servers, wars info are stored in mysql DB or sqlite
-
 if [[ -z $1 ]] ; then
-   echo -e "Usage: deployWeb <'war1 war2 ...'> [L]"
-   echo -e "with    L 	deploy wars in local dir /opt/wars/todepoly"
-   echo -e "without L   deploy wars downloaded from testsrv.example.com:/opt/wars/prod"
-   echo -e "Example:  deployWeb 'portal weixin'"
+   echo -e "Usage: deployWeb <'war1 war2 ...'> <RemoteServer>"
+   echo -e "RemoteServer=L              deploy wars in local dir /opt/wars/todepoly"
+   echo -e "RemoteServer=Hostname       deploy wars downloaded from Hostname:/opt/wars/prod"
+   echo -e "Example:  deployWeb 'dealers bmc wxv2' t123"
    exit 0
 fi
 if [[ -z $2 ]]; then
-    _local=""
+    echo "RemoteServer required!"
+    exit 1
 else
-    _local="L"
+    _src=$2
 fi
 array_wars=($1)
 
 set -u 
 # Base variables
-if [[ $_local = L ]] ;then
+if [[ $_src = L ]] ;then
     _remote_server="deploy.example.com"
     _remote_path="/opt/wars/todeploy"
 else
-    _remote_server="testsrv.example.com"
+    _remote_server=$_src
     _remote_path="/opt/wars/prod"
+    if ! /opt/ezdpl/bin/scon $_remote_server e "ls $_remote_path/*.war" ; then
+        echo "RemoteServer is NOT configured with war files."
+        exit 1
+    fi
 fi
 _oper_path="/opt/wars"
 _cook_path="$_oper_path/cook"
 _backup_path="$_oper_path/archive/`date +%F_%H%M`"
+
 
 # Let's roll ! 
 mkdir -p $_backup_path
