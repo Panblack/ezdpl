@@ -161,3 +161,5 @@ exit 0
 # Blocking wo.com.cn 
 #for x in `seq 1 9`; do nslookup lndnserror$x.wo.com.cn|grep "Address: "|sort|uniq|sed 's/Address: //g'; done
 #for x in `seq 1 9`; do nslookup jldnserror$x.wo.com.cn|grep "Address: "|sort|uniq|sed 's/Address: //g'; done
+
+# atom packages: atom-beautify convert-to-utf8 escape-utils

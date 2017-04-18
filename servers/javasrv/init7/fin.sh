@@ -51,6 +51,7 @@ for tm in apache-tomcat-*/ ; do
     chmod +x ./bin/*.sh
     echo "$_setenv" > ./bin/setenv.sh
     rm ./webapps/* -rf
+    sed -i '/<Context>/a\    <Resources allowLinking="true" cachingAllowed="true" cacheMaxSize="102400" \/>' ./conf/context.xml
     sed -i 's/%s %b/%s %b %D %S %{X-Forwarded-For}i %{Referer}i/g' ./conf/server.xml
     ls -l
     _webdir="/opt/webs/app-`echo $tm|sed 's/apache-tomcat-//g'`"
@@ -69,7 +70,7 @@ ln -sf $_tomcat ./tomcat
 
 # Get nginx ready
 yum install nginx -y
-systemctl disable nginx
+systemctl enable nginx
 
 # firewalld 
 if ! systemctl status firewalld|egrep '(could not be found|disabled;)'; then
