@@ -11,7 +11,7 @@ for i in `cat  /var/log/black.list`; do
   IP=`echo $i |awk '{print $2}'`
   # if length of $NUM is greater than 1 
   if [ ${#NUM} -gt 1 ]; then
-    if ! grep $IP /etc/hosts.deny > /dev/null ; then
+    if ! grep -w $IP /etc/hosts.deny > /dev/null ; then
       echo "sshd:$IP:deny" >> /etc/hosts.deny
     fi
   fi
