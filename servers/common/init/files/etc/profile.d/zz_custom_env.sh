@@ -19,3 +19,4 @@ else
     PS1='[\u@\h \t \w]$ '
 fi
 
+export HISTTIMEFORMAT="%F %T `whoami` "
