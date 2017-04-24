@@ -13,8 +13,10 @@ case $_type in
 	;;
     li)
 	netstat -lntp$_proto
-	echo;echo;
-	iptables -nL
+	echo;
+	firewall-cmd --list-ports
+	firewall-cmd --list-rich-rules
+	#iptables -nL
 	echo
 	;;
     *)
