@@ -40,7 +40,7 @@ done
 
 _setenv='
 JAVA_OPTS="-server -Xms1024m -Xmx1024m -XX:+UseG1GC"
-CATALINA_OPTS=" -Djava.security.egd=file:/dev/urandom"
+CATALINA_OPTS=" -Djava.security.egd=/dev/urandom"
 UMASK="0022"
 CATALINA_OUT=/dev/null'
 

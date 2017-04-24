@@ -8,7 +8,7 @@ if [[ -z $_file ]] || [[ -z $_start ]] || [[ -z $_end ]]; then
     exit 1
 fi
 
-_file_length=`wc -l 1.txt |awk '{print $1}'`
+_file_length=`wc -l $_file |awk '{print $1}'`
 
 if [[ $_end -gt $_file_length ]]; then
     _end=$_file_length

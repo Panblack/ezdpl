@@ -3,14 +3,14 @@ export JAVA_HOME=/opt/jdk
 export JRE_HOME=$JAVA_HOME/jre
 export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
 
-_MAX_TRY=3
-_MAX_WAIT=5
-_APP_PATH=""
+_MAX_TRY=5
+_MAX_WAIT=10
+_APP_PATH="/opt/javaapp"
 _JAVA_OPTS=""
-_LOG_PATH=""
+_LOG_PATH="/opt/javaapp/logs"
 
 # Run under specific user 
-#if ! id|grep "uid=500(ezdpl)" > /dev/null ; then
+#if ! id|grep "uid=1000(ezdpl)" > /dev/null ; then
 #    echo "please 'su - ezdpl'. "
 #    exit 1
 #fi
