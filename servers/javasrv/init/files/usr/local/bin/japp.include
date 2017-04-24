@@ -1,16 +1,26 @@
-# Shared env variables and pre-requirement checks for script japp
+# Shared env variables and pre-requirement checks for script japp/deployweb/tmc
 export JAVA_HOME=/opt/jdk
 export JRE_HOME=$JAVA_HOME/jre
 export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
+export LANG=zh_CN.UTF-8
+export LC_ALL=zh_CN.UTF-8
+
+_WORK_USER="ezdpl"
+_SSH_PORT="22"
+_BASES_DIR="/opt/webs"
+_HOME_DIR="/opt/app/tomcat"
+_OPER_PATH="/opt/wars"
+_max_shutdown_retry=15
 
 _MAX_TRY=5
 _MAX_WAIT=10
-_APP_PATH="/opt/javaapp"
+_APP_PATH=""
 _JAVA_OPTS=""
-_LOG_PATH="/opt/javaapp/logs"
+_LOG_PATH=""
 
 # Run under specific user 
-#if ! id|grep "uid=1000(ezdpl)" > /dev/null ; then
-#    echo "please 'su - ezdpl'. "
-#    exit 1
-#fi
+if [[ `whoami` != $_WORK_USER ]] ; then
+    echo "please 'su - $_WORK_USER' "
+    exit 1
+fi
+
