@@ -7,9 +7,9 @@ _mysqlpass=""
 echo "Start full backup $_thedate" >> $_logfile
 for x in mysql ; do
   if [[ $x = db_with_blob_field ]]; then
-    mysqldump -u root -p ${_mysqlpass} --default-character-set=utf8 --opt --hex_blob  db_with_blob_field 2>>$_logfile |gzip > ${_backuppath}/db_with_blob_field_${_thedate}.sql.gz
+    mysqldump -u root -p ${_mysqlpass} --flush-logs --default-character-set=utf8 --opt --hex_blob  db_with_blob_field 2>>$_logfile |gzip > ${_backuppath}/db_with_blob_field_${_thedate}.sql.gz
   else
-    mysqldump -u root -p ${_mysqlpass} --default-character-set=utf8 --opt $x 2>>$_logfile |gzip > ${_backuppath}/${x}_${_thedate}.sql.gz
+    mysqldump -u root -p ${_mysqlpass} --flush-logs --default-character-set=utf8 --opt $x 2>>$_logfile |gzip > ${_backuppath}/${x}_${_thedate}.sql.gz
   fi
 done
 
