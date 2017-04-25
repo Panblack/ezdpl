@@ -1,5 +1,5 @@
 #!/bin/bash
-source release.include
+source /tmp/release.include
 
 if ! umount -af -t nfs4 ;then
   echo 

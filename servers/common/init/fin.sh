@@ -1,5 +1,5 @@
 #!/bin/bash
-source release.include
+source /tmp/release.include
 
 # crontab 
 if [[ ! -f /var/spool/cron/root ]]; then
@@ -33,6 +33,7 @@ case $_RELEASE in
     CENTOS7)
 	# firewall
 	systemctl enable firewalld
+	systemctl start  firewalld
 	firewall-cmd --add-port 22/tcp --permanent
 	firewall-cmd --add-port 2222/tcp --permanent
 	firewall-cmd --reload
@@ -86,7 +87,4 @@ fi
 
 # Install rpms
 cd /opt/packages
-for x in *.rpm ; do 
-    rpm -ivh $x 
-done
-
+yum localinstall *.rpm
