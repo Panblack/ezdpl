@@ -121,6 +121,7 @@ _tomcat=`find -type d -name "apache-tomcat-*"|sort -V|tail -1`
 ln -sf $_tomcat ./tomcat
 
 # Get nginx ready
+yum clean all
 yum install nginx -y
 systemctl enable nginx
 systemctl start nginx
