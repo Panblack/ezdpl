@@ -9,3 +9,4 @@ yum install -y rabbitmq-server-3.6.9-1.el7.noarch.rpm
 systemctl enable rabbitmq-server.service
 systemctl start rabbitmq-server.service
 
+echo "`date +%F_%T` rabbitmq/init " >> /tmp/ezdpl.log

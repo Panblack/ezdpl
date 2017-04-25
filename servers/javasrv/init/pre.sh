@@ -1,6 +1,8 @@
 #!/bin/bash
 source /tmp/release.include
+echo $_RELEASE
 
+#  umount nfs
 if ! umount -af -t nfs4 ;then
   echo 
   echo "Failed to 'umount -af -t nfs4'. EXIT!"
@@ -30,13 +32,6 @@ case $_RELEASE in
 	service rpcgssd stop
 	service rpcidmapd stop 
 	service rpcsvcgssd stop
-	_nginx_repo="
-[nginx]
-name=nginx repo
-baseurl=http://nginx.org/packages/centos/6/$basearch/
-gpgcheck=0
-enabled=1
-"
 	;;
     CENTOS7)
 	systemctl disable nfs.service
@@ -51,13 +46,6 @@ enabled=1
 	systemctl stop  rpcgssd.service
 	systemctl stop  rpcidmapd.service
 	systemctl stop  rpcsvcgssd.service
-	_nginx_repo="
-[nginx]
-name=nginx repo
-baseurl=http://nginx.org/packages/centos/7/$basearch/
-gpgcheck=0
-enabled=1
-"
 	;;
     UBUNTU)
 	;;

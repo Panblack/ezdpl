@@ -11,3 +11,5 @@ sed -i "s/admin:admin/admin:adminPassword/g" /opt/activemq/conf/jetty-realm.prop
 sed -i "s/user:user/user:userPassword/g" /opt/activemq/conf/jetty-realm.properties
 
 iptables-iport a "8161 61616"
+
+echo "`date +%F_%T` activemq/init " >> /tmp/ezdpl.log

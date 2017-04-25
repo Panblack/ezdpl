@@ -1,5 +1,6 @@
 #!/bin/bash
 source /tmp/release.include
+echo $_RELEASE
 
 # firewalld 
 case $_RELEASE in
@@ -18,6 +19,8 @@ case $_RELEASE in
         iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8083 -j ACCEPT
         iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
         /etc/init.d/iptables save
+	# nginx repo
+	sed -i 's/X/6/g' /etc/yum.repos.d/nginx.repo
         ;;
     CENTOS7)
         # firewall
@@ -31,6 +34,8 @@ case $_RELEASE in
 	firewall-cmd --add-port 8082/tcp --permanent
 	firewall-cmd --add-port 8083/tcp --permanent
         firewall-cmd --reload
+	# nginx repo
+	sed -i 's/X/7/g' /etc/yum.repos.d/nginx.repo
         ;;
     UBUNTU)
         # firewall
@@ -46,8 +51,6 @@ case $_RELEASE in
         ;;
 esac
 
-if ! systemctl status firewalld|egrep '(could not be found|disabled;)'; then
-fi
 
 # Get dirs ready
 mkdir -p /opt/logs
@@ -126,3 +129,4 @@ systemctl start nginx
 cd /opt/packages
 yum localinstall *.rpm
 
+echo "`date +%F_%T` javasrv/init " >> /tmp/ezdpl.log

@@ -29,3 +29,5 @@ cd /opt/app/
 for t in *; do 
    echo "$_setenv_append" >> /opt/app/${t}/bin/setenv.sh
 done
+
+echo "`date +%F_%T` javasrv/jmx " >> /tmp/ezdpl.log

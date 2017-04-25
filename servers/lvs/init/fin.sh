@@ -41,3 +41,5 @@ iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
 /etc/init.d/keepalived start
 /etc/init.d/sendmail start
+
+echo "`date +%F_%T` lvs/init " >> /tmp/ezdpl.log

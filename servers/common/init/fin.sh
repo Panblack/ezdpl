@@ -1,5 +1,6 @@
 #!/bin/bash
 source /tmp/release.include
+echo $_RELEASE
 
 # crontab 
 if [[ ! -f /var/spool/cron/root ]]; then
@@ -88,3 +89,5 @@ fi
 # Install rpms
 cd /opt/packages
 yum localinstall *.rpm
+
+echo "`date +%F_%T` common/init " >> /tmp/ezdpl.log

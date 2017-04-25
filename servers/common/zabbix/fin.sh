@@ -28,3 +28,5 @@ fi
 
 chkconfig zabbix-agent on
 service zabbix-agent start
+
+echo "`date +%F_%T` common/zabbix " >> /tmp/ezdpl.log
