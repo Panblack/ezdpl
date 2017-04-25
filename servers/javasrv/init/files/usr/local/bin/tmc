@@ -1,16 +1,10 @@
 #!/bin/bash
 # Universal tomcat instance management script. 
-# by panblack@126.com 2017-01-16
+# by panblack@126.com 2017-04-11
 # See bottom for detailed instructions 
-#if ! id|grep "uid=500(dpl)" ; then
-#    echo "please 'su - dpl'. " ; exit 1
-#fi
 
 # Critical Env variables:
-_BASES_DIR="/opt/webs"
-_HOME_DIR="/opt/app/tomcat"
-_max_shutdown_retry=15
-
+source /usr/local/bin/japp.include
 
 # Functions 
 fun_usage() {
@@ -139,6 +133,7 @@ esac
 
 # =============================================================================
 # Main
+
 _host=`hostname -s`
 _thedate=`date +%F`
 _array_bases=`ls $_BASES_DIR`
@@ -184,11 +179,8 @@ for x in ${_array_bases[@]}; do
     	_Home=$_HOME_DIR
     fi
 
-    source /etc/profile
     export CATALINA_HOME=$_Home
     export CATALINA_BASE=$_cur_dir
-    export LANG=zh_CN.UTF-8
-    export LC_ALL=zh_CN.UTF-8
 
     _Base_Info="[$_host] $CATALINA_BASE"
     echo "CATALINA_HOME=$CATALINA_HOME -> `readlink -f $CATALINA_HOME`"

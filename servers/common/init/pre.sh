@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 if [[ -f /etc/security/limits.conf ]]; then
     /bin/cp -p /etc/security/limits.conf /etc/security/limits.conf.bak.`date +%F`
 fi

@@ -1,4 +1,0 @@
-#!/bin/bash
-# Search dict.bing.com for words.
-curl -sL http://cn.bing.com/dict/search?q=$1 | sed 's/\/>/\n/g'|grep '<meta name="description" content="' | sed 's/<meta name="description" content="//g' | sed 's/，/ /g' | sed 's/ /\n/g' | tr -d '"' 
-

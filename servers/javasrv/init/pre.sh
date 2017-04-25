@@ -1,6 +1,5 @@
 #!/bin/bash
-
-killall -9 java
+source release.include
 
 if ! umount -af -t nfs4 ;then
   echo 
@@ -12,21 +11,57 @@ fi
 cd /opt/ && rm jdk* logs* libs*  -rf 
 cd /opt/ && rm app/* webs/* -rf 
 
+killall -9 java
 killall -9 yum
 yum clean all
-yum -y install nfs-utils bash openssh openssl openssl-devel 
-chkconfig nfs off
-chkconfig nfslock off
-chkconfig rpcbind off
-chkconfig rpcgssd off
-chkconfig rpcidmapd off
-chkconfig rpcsvcgssd off
-service nfs stop
-service nfslock stop
-service rpcbind stop
-service rpcgssd stop
-service rpcidmapd stop 
-service rpcsvcgssd stop
+yum -y install nfs-utils gcc bash openssh openssl openssl-devel 
+
+case $_RELEASE in
+    CENTOS6)
+	chkconfig nfs off
+	chkconfig nfslock off
+	chkconfig rpcbind off
+	chkconfig rpcgssd off
+	chkconfig rpcidmapd off
+	chkconfig rpcsvcgssd off
+	service nfs stop
+	service nfslock stop
+	service rpcbind stop
+	service rpcgssd stop
+	service rpcidmapd stop 
+	service rpcsvcgssd stop
+	_nginx_repo="
+[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/centos/6/$basearch/
+gpgcheck=0
+enabled=1
+"
+	;;
+    CENTOS7)
+	systemctl disable nfs.service
+	systemctl disable nfslock.service
+	systemctl disable rpcbind.service
+	systemctl disable rpcgssd.service
+	systemctl disable rpcidmapd.service
+	systemctl disable rpcsvcgssd.service
+	systemctl stop  nfs.service
+	systemctl stop  nfslock.service
+	systemctl stop  rpcbind.service
+	systemctl stop  rpcgssd.service
+	systemctl stop  rpcidmapd.service
+	systemctl stop  rpcsvcgssd.service
+	_nginx_repo="
+[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/centos/7/$basearch/
+gpgcheck=0
+enabled=1
+"
+	;;
+    UBUNTU)
+	;;
+esac
 
 echo 
 echo "nfs-utils (client) configured."

@@ -1,4 +1,14 @@
 #!/bin/bash
+if grep " 6\." /etc/redhat-release &>/dev/null; then
+    _RELEASE="CENTOS6"
+fi
+if grep " 7\." /etc/redhat-release &>/dev/null; then
+    _RELEASE="CENTOS7"
+fi
+if cat /etc/*-release|grep -i ubuntu &>/dev/null; then
+    _RELEASE="UBUNTU"
+fi
+
 _type=$1
 _proto=$2
 case $_type in
@@ -13,8 +23,19 @@ case $_type in
 	;;
     li)
 	netstat -lntp$_proto
-	echo;echo;
-	iptables -nL
+	echo;
+	case $_RELEASE in
+	    CENTOS6)
+	        iptables -nvL
+		;;
+	    CENTOS7)
+	        firewall-cmd --list-ports
+	        firewall-cmd --list-rich-rules
+		;;
+	    UBUNTU)
+		sudo ufw status | grep -v "(v6)"
+		;;
+	esac
 	echo
 	;;
     *)
@@ -24,5 +45,4 @@ $0 e  [u]	netstat -antp[u] ESTAB
 $0 l  [u]	netstat -lntp[u]
 $0 li [u]	netstat -antp[u] ; iptables -nL
 "
-
 esac
