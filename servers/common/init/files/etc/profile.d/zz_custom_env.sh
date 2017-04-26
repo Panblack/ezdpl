@@ -10,6 +10,11 @@ alias mysql='mysql --default-character-set=utf8'
 alias tless='less `ls -tr1|tail -1`'
 alias ttail='tail -f `ls -tr1|tail -1`'
 alias grep='grep --color=auto'
+alias stl='systemctl'
+alias stlu='systemctl start'
+alias stld='systemctl stop'
+alias stlr='systemctl restart'
+alias fwd='firewall-cmd'
 
 unset MAILCHECK
 
