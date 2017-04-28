@@ -20,7 +20,7 @@ alias stll='systemctl list-unit-files'
 alias fwd='firewall-cmd'
 alias fwdsv='firewall-cmd --runtime-to-permanent'
 alias fwdrl='firewall-cmd --reload'
-alias fwdlt='firewall-cmd --list-ports'
+alias fwdlt='firewall-cmd --list-ports; firewall-cmd --list-rich-rules'
 
 unset MAILCHECK
 

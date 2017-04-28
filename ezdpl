@@ -89,7 +89,7 @@ echo >> log.txt
 echo "`date +%Y-%m-%d_%H:%M:%S` ./ezdpl $_silent $_ipaddress:$_port $_app_version $_reboot $_username" >> log.txt
 
 # Upload release.include 
-/usr/bin/scp -q -P$_port ./servers/release.include $_username@$_ipaddress:/tmp/
+/usr/bin/scp -q -P$_port ./release.include $_username@$_ipaddress:/tmp/
 
 # Run pre.sh on the target server
 if [ -f "./servers/$_app_version/pre.sh" ]; then
