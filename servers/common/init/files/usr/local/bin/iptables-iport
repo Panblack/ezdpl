@@ -1,9 +1,6 @@
 #!/bin/bash
-# iptables
-if ! grep " 6\." /etc/redhat-release > /dev/null ; then
-    echo "This scripts only fits Centos/RHEL 6 running iptables"
-    exit 1
-fi
+source /usr/local/bin/release.include
+echo $_RELEASE
 
 if [[ -z $1 ]] || [[ -z $2 ]] ; then
     echo "Usage: iptables-iport <a/d> <'port1 port2 port3'> [t/u (t-tcp)]"
@@ -25,41 +22,107 @@ _sshd_port=`ss -lntp|grep sshd|grep "::"|awk '{print $4}'|awk -F::: '{print $2}'
 
 # Get prepared for ajusting iptables rules
 echo "iptables-iport: $_oper '$_ports' $_proto"
-echo "RUNTIME:"
-iptables -nL 
-echo
-echo "ORIGINAL:"
-cat /etc/sysconfig/iptables
-echo
-echo "Make changes..."
-/etc/init.d/iptables reload
-for x in $_ports ; do 
-    # Protect sshd port
-    if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
-	echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
-	continue
-    fi
+echo 
 
-    # Remove iptables entries if any
-    sed -i /"-p *${_proto}.*--dport *${x}.*-j *ACCEPT"/d /etc/sysconfig/iptables
+case $_RELEASE in
+    CENTOS6)
+	echo "RUNTIME:"
+	iptables -nL 
+	echo
+	echo "PERMANENT:"
+	cat /etc/sysconfig/iptables
+	echo
+	echo "Make changes..."
+	/etc/init.d/iptables reload
+	for x in $_ports ; do 
+    	    # Protect sshd port
+	    if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
+		echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
+		continue
+    	    fi
 
-    # Add iptables rules
-    if [[ $_oper = a ]] && ! iptables -nL|egrep "^ACCEPT"|egrep -w "${_proto}"|egrep -w "dpt:${x}" > /dev/null  ; then
-	iptables -A INPUT -p $_proto  -m state --state NEW -m $_proto --dport $x -j ACCEPT
-    fi
-done
+    	    # Remove iptables entries if any
+    	    sed -i /"-p *${_proto}.*--dport *${x}.*-j *ACCEPT"/d /etc/sysconfig/iptables
 
-# Finalize
-if  [[ $_oper = a ]]  ; then
-    # Adjust the position of 'INPUT REJECT' rule
-    iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
-    iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
-    # Save iptables rules
-   /etc/init.d/iptables save
-else
-   /etc/init.d/iptables reload
-fi
-echo
-echo "REVIEW:"
-cat /etc/sysconfig/iptables
-echo
+    	    # Add iptables rules
+    	    if [[ $_oper = a ]] && ! iptables -nL|egrep "^ACCEPT"|egrep -w "${_proto}"|egrep -w "dpt:${x}" > /dev/null  ; then
+		iptables -A INPUT -p $_proto  -m state --state NEW -m $_proto --dport $x -j ACCEPT
+    	    fi
+	done
+
+	# Finalize
+	if  [[ $_oper = a ]]  ; then
+    	    # Adjust the position of 'INPUT REJECT' rule
+    	    iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
+    	    iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
+    	    # Save iptables rules
+   	    /etc/init.d/iptables save
+	else
+   	    /etc/init.d/iptables reload
+	fi
+	echo
+	echo "REVIEW:"
+	cat /etc/sysconfig/iptables
+	echo
+	;;
+    CENTOS7)
+        echo "RUNTIME:"
+	firewall-cmd --list-ports; firewall-cmd --list-rich-rules
+        echo
+        echo "PERMANENT:"
+	firewall-cmd --permanent --list-ports ; firewall-cmd --permanent --list-rich-rules
+        echo
+        echo "Make changes..."
+	for x in $_ports ; do 
+    	    # Protect sshd port
+	    if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
+		echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
+		continue
+    	    fi
+
+    	    # Remove port/proto
+	    if [[ $_oper = d ]]; then
+		firewall-cmd --permanent --remove-port ${x}/${_proto}
+	    fi
+
+    	    # Add port/proto
+    	    if [[ $_oper = a ]] ; then
+		firewall-cmd --permanent --add-port ${x}/${_proto}
+    	    fi
+	done
+
+	# Finalize
+	echo "Reload & Review:"
+	firewall-cmd --reload
+	firewall-cmd --list-ports; firewall-cmd --list-rich-rules
+	;;
+    UBUNTU)
+        echo "RUNTIME:"
+	sudo ufw status
+        echo
+        echo "Make changes..."
+	for x in $_ports ; do 
+    	    # Protect sshd port
+	    if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
+		echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
+		continue
+    	    fi
+
+    	    # Remove port/proto
+	    if [[ $_oper = d ]]; then
+		sudo ufw disable ${x}/${_proto}
+	    fi
+
+    	    # Add port/proto
+    	    if [[ $_oper = a ]] ; then
+		sudo ufw enable ${x}/${_proto}
+    	    fi
+	done
+
+	# Finalize
+	echo "REVIEW:"
+	sudo ufw status
+
+	;;
+esac
+

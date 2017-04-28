@@ -1,5 +1,5 @@
 #!/bin/bash
-source /tmp/release.include
+source /usr/local/bin/release.include
 echo $_RELEASE
 
 #  umount nfs
