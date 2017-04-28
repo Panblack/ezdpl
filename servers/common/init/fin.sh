@@ -27,9 +27,9 @@ case $_RELEASE in
 	chkconfig crond on
 	service crond start
 	# install epel
-	if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
-	    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
-	fi
+	#if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
+	#    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+	#fi
 	;;
     CENTOS7)
 	# firewall
@@ -42,9 +42,9 @@ case $_RELEASE in
 	systemctl enable crond.service
 	systemctl start crond.service
 	# install epel
-	if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
-	    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-	fi
+	#if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
+	#    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+	#fi
 	;;
     UBUNTU)
 	# firewall
@@ -82,8 +82,11 @@ for x in `ps aux|egrep -i 'yum.*install' |grep -v grep|awk '{print $2}'`; do
 done
 
 yum clean all
+yum install -y epel-release
 yum update -y
-yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc &&  echo "Packages installed..."
+yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter && echo "Packages installed..."
+
+rkhunter --propupd
 
 if [[ -f /usr/sbin/iptraf-ng ]] ; then 
     ln -sf /usr/sbin/iptraf-ng  /usr/sbin/iptraf
