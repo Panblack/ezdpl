@@ -27,12 +27,14 @@ table_definition_cache = 10000
 #
 # Remove leading # to turn on a very important data integrity option: logging
 # changes to the binary log between backups.
+# Note: auto_increment_increment = 2 for Master-Master Replication
+# 
 log_bin = logbin
 binlog_format = mixed
 server-id = 1
 slave_skip_errors = all
 log_slave_updates = 1
-auto_increment_increment = 2
+auto_increment_increment = 1
 auto_increment_offset = 1
 replicate_wild_ignore_table=mysql.%
 replicate_wild_ignore_table=information_schema.%
