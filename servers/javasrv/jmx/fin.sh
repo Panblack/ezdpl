@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /opt/webs
-_ip=` ip a show eth0|grep -v inet6 |grep inet|awk '{print $2}'|awk -F/ '{print $1}'`
+_ip=`ip a|grep -w inet |grep -v '127.0.0.1'|awk '{print $2}'|awk -F/ '{print $1}'`
 _port1=10001
 _port2=20001
 for x in * ; do 
