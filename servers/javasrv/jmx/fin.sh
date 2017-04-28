@@ -1,13 +1,13 @@
 #!/bin/bash
 
 cd /opt/webs
-_ip=`ip a|grep -w inet |grep -v '127.0.0.1'|awk '{print $2}'|awk -F/ '{print $1}'`
+# _ip=`ip a|grep -w inet |grep -v '127.0.0.1'|awk '{print $2}'|awk -F/ '{print $1}'`
 _port1=10001
 _port2=20001
 for x in * ; do 
     # Add <Listener> element to <Server> ( sed is not perfect, consider replace it with xmlstarlet) 
     sed -i /"org.apache.catalina.mbeans.JmxRemoteLifecycleListener"/d $x/conf/server.xml
-    sed -i /'Server port=".*" shutdown="SHUTDOWN"'/a\ "<Listener className='org.apache.catalina.mbeans.JmxRemoteLifecycleListener' rmiBindAddress='$_ip' useLocalPorts='false' rmiRegistryPortPlatform='$_port1' rmiServerPortPlatform='$_port2' />" $x/conf/server.xml
+    sed -i /'Server port=".*" shutdown="SHUTDOWN"'/a\ "<Listener className='org.apache.catalina.mbeans.JmxRemoteLifecycleListener' rmiBindAddress='0.0.0.0' useLocalPorts='false' rmiRegistryPortPlatform='$_port1' rmiServerPortPlatform='$_port2' />" $x/conf/server.xml
     dos2unix $x/conf/server.xml
 
     echo -e "reader readerPassword\nwriter writerPassword" > $x/conf/jmxremote.password
