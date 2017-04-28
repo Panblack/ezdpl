@@ -59,7 +59,7 @@ sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
 # aliyun 
-if  grep "mirrors.cloud.aliyuncs.com" yum.repos.d/CentOS-Base.repo ; then
+if  grep "mirrors.cloud.aliyuncs.com" yum.repos.d/CentOS-Base.repo &>/dev/null ; then
     cp -p /etc/yum.conf /etc/yum.conf.bak
     echo "exclude=kernel* centos-release*" >> /etc/yum.conf
 fi
@@ -77,9 +77,13 @@ nnoremap Q :q!
 echo "$_vimrc" > /root/.vimrc
 
 # install packages
-killall -9 yum
+for x in `ps aux|egrep -i 'yum.*install' |grep -v grep|awk '{print $2}'`; do
+    kill -9 $x
+done
+
 yum clean all
-yum -y install telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx lynx git net-tools yum-utils &&  echo "Packages installed..."
+yum update -y
+yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc &&  echo "Packages installed..."
 
 if [[ -f /usr/sbin/iptraf-ng ]] ; then 
     ln -sf /usr/sbin/iptraf-ng  /usr/sbin/iptraf
