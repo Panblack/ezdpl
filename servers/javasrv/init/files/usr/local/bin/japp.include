@@ -24,10 +24,7 @@ if [[ ! -d $_OPER_PATH ]] ; then
 fi
 
 mkdir -p $_OPER_PATH/archive $_OPER_PATH/_config $_OPER_PATH/cook $_OPER_PATH/todeploy $_OPER_PATH/prod
-
-if [[ `stat -c %U:%G $_OPER_PATH` != $_WORK_USER:$_WORK_USER ]];then
-    chown -R $_WORK_USER:$_WORK_USER $_OPER_PATH
-fi
+chown -R $_WORK_USER:$_WORK_USER $_OPER_PATH
 
 if [[ ! -f $_OPER_PATH/wars.lst ]]; then
     echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort" > $_OPER_PATH/wars.lst
