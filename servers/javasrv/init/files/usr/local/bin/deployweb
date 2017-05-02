@@ -1,7 +1,7 @@
 #!/bin/bash
 # War/ webApp deploying script
 # For home-base-seperated tomcat deployment, or tomcats in $_BASES_DIR/someWebName/<tomcat files & dirs>
-# webs, servers, wars info stored in /opt/wars/wars.conf, no mysql db required(compare script `deployWeb` ). 
+# webs, servers, wars info stored in /opt/wars/wars.lst, no mysql db required(compare script `deployWeb` ). 
 # requires script `tmc` on the remote servers.
 # Working dirs:
 # /opt
@@ -19,7 +19,7 @@
 # │   │                 └── jdbc.properties
 # │   ├── cook					place for repacking war files
 # │   ├── todeploy				war files to be deployed
-# │   └── wars.conf				webs servers wars info
+# │   └── wars.lst				webs servers wars info
 # └── webs
 #     ├── yourweb1				CATALINA_BASE
 #     └── yourweb2				CATALINA_BASE
@@ -34,9 +34,9 @@ source /usr/local/bin/japp.include
 _cook_path="$_OPER_PATH/cook"
 _backup_path="$_OPER_PATH/archive/`date +%F_%H%M`"
 
-mkdir -p $_OPER_PATH/archive $_OPER_PATH/_config $_OPER_PATH/cook $_OPER_PATH/todeploy;
-if [[ ! -f $_OPER_PATH/wars.conf ]]; then
-    echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort" > $_OPER_PATH/wars.conf
+mkdir -p $_OPER_PATH/archive $_OPER_PATH/_config $_OPER_PATH/cook $_OPER_PATH/todeploy $_OPER_PATH/prod ;
+if [[ ! -f $_OPER_PATH/wars.lst ]]; then
+    echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort" > $_OPER_PATH/wars.lst
 fi
 
 if [[ -z $1 ]] ; then
@@ -53,17 +53,17 @@ else
 fi
 array_wars=($1)
 
-_wars_conf=`grep -v ^# $_OPER_PATH/wars.conf 2>/dev/null`
-if [[ -z $_wars_conf ]]; then
-    echo "$_OPER_PATH/wars.conf is not properly configured or does not exist." 
+_wars.lst=`grep -v ^# $_OPER_PATH/wars.lst 2>/dev/null`
+if [[ -z $_wars.lst ]]; then
+    echo "$_OPER_PATH/wars.lst is not properly configured or does not exist." 
     echo "This file should be like:"
     echo:"#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort"
     echo:"warname:newname:N:localhost:user:webname:22:8080"
     exit 1
 fi
-echo "wars.conf:"
+echo "wars.lst:"
 echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort"
-echo "$_wars_conf"
+echo "$_wars.lst"
 echo
 set -u 
 # Base variables
@@ -95,7 +95,7 @@ for x in ${array_wars[@]} ; do
     echo "`date +%F_%T`------------ START ------------- $x"
 
     echo "Download , repack ${x} ..."
-    if scp -P ${_remote_port} -p ${_remote_user}@${_remote_server}:${_remote_path}/${x}.war . > /dev/null ; then
+    if scp -P ${_remote_port} -p ${_remote_user}@${_remote_server}:${_remote_path}/${x}.war . ; then
 	_upload=${x}.war
         $JAVA_HOME/bin/jar -uf ${x}.war -C ${_OPER_PATH}/_config/${x}/ . 
     else
@@ -107,7 +107,7 @@ for x in ${array_wars[@]} ; do
     /bin/cp -rp $_upload $_backup_path/
 
     echo "-------------------------- "
-    _war_info=`echo "$_wars_conf"|egrep ^${x}` 
+    _war_info=`echo "$_wars.lst"|egrep ^${x}` 
     for s in "$_war_info"; do
         _warname=`   echo $_war_info | awk -F: '{print $1}'`
         _warnewname=`echo $_war_info | awk -F: '{print $2}'`
