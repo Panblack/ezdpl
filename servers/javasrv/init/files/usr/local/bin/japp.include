@@ -1,4 +1,9 @@
 # Shared env variables and pre-requirement checks for script tmc/deployweb/japp
+# `sh thisscript` to initialize dirs & files.
+ 
+# Global
+_WORK_USER="ezdpl"
+
 # for jdk
 export JAVA_HOME=/opt/jdk
 export JRE_HOME=$JAVA_HOME/jre
@@ -17,8 +22,15 @@ _OPER_PATH="/opt/wars"
 if [[ ! -d $_OPER_PATH ]] ; then
     mkdir -p $_OPER_PATH
 fi
+
+mkdir -p $_OPER_PATH/archive $_OPER_PATH/_config $_OPER_PATH/cook $_OPER_PATH/todeploy $_OPER_PATH/prod
+
 if [[ `stat -c %U:%G $_OPER_PATH` != $_WORK_USER:$_WORK_USER ]];then
-    chown -R $_WORK_USER:$_WORK_USER  $_OPER_PATH
+    chown -R $_WORK_USER:$_WORK_USER $_OPER_PATH
+fi
+
+if [[ ! -f $_OPER_PATH/wars.lst ]]; then
+    echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort" > $_OPER_PATH/wars.lst
 fi
 
 # for jar apps
@@ -29,7 +41,6 @@ _LOG_PATH="$_APP_PATH/logs"
 _JAVA_OPTS=""
 
 # Run under specific user 
-_WORK_USER="ezdpl"
 if [[ -z $_WORK_USER ]]; then
     _WORK_USER=root
 fi

@@ -34,11 +34,6 @@ source /usr/local/bin/japp.include
 _cook_path="$_OPER_PATH/cook"
 _backup_path="$_OPER_PATH/archive/`date +%F_%H%M`"
 
-mkdir -p $_OPER_PATH/archive $_OPER_PATH/_config $_OPER_PATH/cook $_OPER_PATH/todeploy $_OPER_PATH/prod ;
-if [[ ! -f $_OPER_PATH/wars.lst ]]; then
-    echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort" > $_OPER_PATH/wars.lst
-fi
-
 if [[ -z $1 ]] ; then
    echo -e "Usage: deployWeb <'war1 war2 ...'> <RemoteServer>"
    echo -e "RemoteServer=L 		  deploy wars in local dir $_OPER_PATH/todepoly"
