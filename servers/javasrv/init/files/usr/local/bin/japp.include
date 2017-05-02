@@ -38,9 +38,6 @@ _LOG_PATH="$_APP_PATH/logs"
 _JAVA_OPTS=""
 
 # Run under specific user 
-if [[ -z $_WORK_USER ]]; then
-    _WORK_USER=root
-fi
 if [[ `whoami` != $_WORK_USER ]] ; then
     echo "please 'su - $_WORK_USER' " ; exit 1
 fi
