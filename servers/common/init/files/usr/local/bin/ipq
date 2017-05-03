@@ -26,6 +26,7 @@ if [[ -n $_ip ]]; then
   echo "Query ipip.net"
   curl -sL http://freeapi.ipip.net/$_ip
 fi
+echo 
 
 #
 #curl -sL http://freeapi.ipip.net/$_ip
