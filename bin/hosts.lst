@@ -1,0 +1,4 @@
+#ip address	#host	#user	#port
+192.168.1.11	c11	root	22
+192.168.1.22	c22	root	2222
+192.168.1.33	c33	root	222

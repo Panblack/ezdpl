@@ -1,5 +1,7 @@
 #!/bin/bash
-# Remotely execute commands, upload or download files/dirs, by panblack@126.com
+# SSH login, remotely execute commands, upload or download files/dirs, by panblack@126.com
+# Requires MySQL db(ezdpl), Script sqlezdpl
+# Will not work if a host is not found in db ezdpl
 
 if [ -z "$1" ]; then
     echo "Usage: scon <hostname> "
