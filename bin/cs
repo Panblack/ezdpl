@@ -1,18 +1,17 @@
 #!/bin/bash
 # SSH login, remotely execute commands, upload or download files/dirs, by panblack@126.com
-# Requires no MySQL db
-# Can read hosts.lst file in the same dir for predefined IP's, usernames, hostnames and ssh ports.
-# Sample hosts.lst
-##ip address	#host	#user	#port
-#192.168.1.11	root	c11	22
-#192.168.1.22	root	c22	2222
-#192.168.1.33	root	c33	222
-
+# Requires no MySQL db, unlike script 'scon'
 # username, host/ip address and port can be explicitly specified as 'Usage' describes.
+# Can read hosts.lst file in the same dir for predefined IP's, usernames, hostnames and ssh ports. Best for a lazy sysadmin like me ;)
+# Sample hosts.lst
+#  #ip address	#host	#user	#port
+#  192.168.1.11	c11	root	22
+#  192.168.1.22	c22	root	2222
+#  192.168.1.33	c33	root	222
 
 _self=`readlink -f $0`
 _path=`dirname $_self`
-_hosts_port=`grep -v '^#' ${_path}/hosts.lst`
+_hosts_port=`egrep -v '^ *#' ${_path}/hosts.lst`
 if [[ -z $1 ]]; then
     echo "
 Usage:
@@ -23,7 +22,7 @@ cs [user@]<hostname>[:port] dp 'remote_src_path' 'local_dst_path' 	Download dir(
 cs [user@]<hostname>[:port] u  'local_src_file'  'remote_dst_path' 	Upload   file(s)
 cs [user@]<hostname>[:port] up 'local_src_path'  'remote_dst_path' 	Upload   dir(s)
 
-If 'local_dst_path' is omitted, '.' will apply.
+If 'local_dst_path' is omitted, ' . ' will apply.
 
 Hosts & ports:
 $_hosts_port
@@ -31,23 +30,23 @@ $_hosts_port
     exit 0
 fi
 
-if echo $1|grep "@"; then
+if echo $1|grep "@" > /dev/null; then
     _user=`echo $1|awk -F@ '{print $1}'`
     _host=`echo $1|awk -F@ '{print $2}'`
-    _ip=$_host
 else
     _user="root"
     _host=$1
-    _ip=$_host
 fi
-if echo $1|grep ":"; then
-    _port=`echo $1|awk -F: '{print $2}'`
+if echo $_host|grep ":" > /dev/null; then
+    _ip=`  echo $_host|awk -F: '{print $1}'`
+    _port=`echo $_host|awk -F: '{print $2}'`
 else
+    _ip=$_host
     _port=22
 fi
 if echo "$_hosts_port" | grep $_host; then    
     _ip=`  echo "$_hosts_port" | grep $_host | awk '{print $1}'`
-    _user=`echo "$_hosts_port" | grep $_host | awk '{print $2}'`
+    _user=`echo "$_hosts_port" | grep $_host | awk '{print $3}'`
     _port=`echo "$_hosts_port" | grep $_host | awk '{print $4}'` 
 fi
 if [[ -n $4 ]]; then
@@ -56,7 +55,7 @@ else
     _dest="."
 fi
 
-echo "$_user@$_host:$_port ($_ip)"
+echo "$_user@$_ip:$_port"
 case $2 in 
     u)
         scp -P $_port -p  $3 ${_user}@${_ip}:${_dest}
