@@ -16,25 +16,21 @@ echo
 
 echo "Query ip.cn"
 if [ -n $_ip ]; then
-  curl -s http://ip.cn?ip=$_ip |grep -E -v '<|>'
+    curl -s http://ip.cn?ip=$_ip |grep -E -v '<|>'
 else
-  curl -s http://ip.cn |grep -E -v '<|>'
+    curl -s http://ip.cn |grep -E -v '<|>'
 fi
 echo
 
+echo "Query ipip.net"
 if [[ -n $_ip ]]; then
-  echo "Query ipip.net"
-  curl -sL http://freeapi.ipip.net/$_ip
+    _ipip=`curl -sL http://freeapi.ipip.net/$_ip`
+    if ! echo $_ipip|grep "401 Authorization Required" > /dev/null ;then
+	echo "$_ipip"
+    fi
 fi
 echo 
 
 #
-#curl -sL http://freeapi.ipip.net/$_ip
-#
-#if [ -z $1 ]; then
-#    curl -s http://ip.cn
-#else
-#    curl -s http://ip.cn?ip=$1
-#fi
-#
 # iconv -f GB2312 -t utf-8
+
