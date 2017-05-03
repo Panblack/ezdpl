@@ -15,12 +15,12 @@ _hosts_port=`egrep -v '^ *#' ${_path}/hosts.lst`
 if [[ -z $1 ]]; then
     echo "
 Usage:
-cs [user@]<hostname>[:port] 
-cs [user@]<hostname>[:port] 'command'
-cs [user@]<hostname>[:port] d  'remote_src_file' 'local_dst_path' 	Download file(s)
-cs [user@]<hostname>[:port] dp 'remote_src_path' 'local_dst_path' 	Download dir(s)
-cs [user@]<hostname>[:port] u  'local_src_file'  'remote_dst_path' 	Upload   file(s)
-cs [user@]<hostname>[:port] up 'local_src_path'  'remote_dst_path' 	Upload   dir(s)
+scs [user@]<hostname>[:port] 
+scs [user@]<hostname>[:port] 'command'
+scs [user@]<hostname>[:port] d  'remote_src_file' 'local_dst_path' 	Download file(s)
+scs [user@]<hostname>[:port] dp 'remote_src_path' 'local_dst_path' 	Download dir(s)
+scs [user@]<hostname>[:port] u  'local_src_file'  'remote_dst_path' 	Upload   file(s)
+scs [user@]<hostname>[:port] up 'local_src_path'  'remote_dst_path' 	Upload   dir(s)
 
 If 'local_dst_path' is omitted, ' . ' will apply.
 
