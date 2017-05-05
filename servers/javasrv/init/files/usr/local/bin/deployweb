@@ -48,8 +48,8 @@ else
 fi
 array_wars=($1)
 
-_wars.lst=`grep -v ^# $_OPER_PATH/wars.lst 2>/dev/null`
-if [[ -z $_wars.lst ]]; then
+_wars_lst=`grep -v ^# $_OPER_PATH/wars.lst 2>/dev/null`
+if [[ -z $_wars_lst ]]; then
     echo "$_OPER_PATH/wars.lst is not properly configured or does not exist." 
     echo "This file should be like:"
     echo:"#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort"
@@ -58,7 +58,7 @@ if [[ -z $_wars.lst ]]; then
 fi
 echo "wars.lst:"
 echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort"
-echo "$_wars.lst"
+echo "$_wars_lst"
 echo
 set -u 
 # Base variables
@@ -102,7 +102,7 @@ for x in ${array_wars[@]} ; do
     /bin/cp -rp $_upload $_backup_path/
 
     echo "-------------------------- "
-    _war_info=`echo "$_wars.lst"|egrep ^${x}` 
+    _war_info=`echo "$_wars_lst"|egrep ^${x}` 
     for s in "$_war_info"; do
         _warname=`   echo $_war_info | awk -F: '{print $1}'`
         _warnewname=`echo $_war_info | awk -F: '{print $2}'`
