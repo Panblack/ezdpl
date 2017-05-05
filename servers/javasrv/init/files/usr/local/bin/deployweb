@@ -1,8 +1,11 @@
 #!/bin/bash
-# War/ webApp deploying script
+# War/webApp deploying script to localhost or remote servers
 # For home-base-seperated tomcat deployment, or tomcats in $_BASES_DIR/someWebName/<tomcat files & dirs>
 # webs, servers, wars info stored in /opt/wars/wars.lst, no mysql db required(compare script `deployWeb` ). 
-# requires script `tmc` on the remote servers.
+# Requires script `tmc` on the remote servers.
+# Requires ssh login to localhost/remote servers via rsa key.
+# Requires /usr/local/bin/japp.include for shared variables.
+
 # Working dirs:
 # /opt
 # ├── app
@@ -17,64 +20,45 @@
 # │   │             └── classes
 # │   │                 ├── application.properties
 # │   │                 └── jdbc.properties
-# │   ├── cook					place for repacking war files
+# │   ├── prod					current production war files (collect with archive-wars script)
+# │   ├── cook					dir for repacking war files
 # │   ├── todeploy				war files to be deployed
 # │   └── wars.lst				webs servers wars info
 # └── webs
-#     ├── yourweb1				CATALINA_BASE
-#     └── yourweb2				CATALINA_BASE
+#     ├── yourweb1				CATALINA_BASE1
+#     └── yourweb2				CATALINA_BASE2
 
-# sample files in _config
 # Usage:
 #1. Upload war files to /opt/wars/todeploy
 #2. Run: deployweb 'webapp1 webapp2 webapp3'  ( Note: .war is not needed )
 #3. Repacked war files will be copied to /opt/wars/archive for later rollback.
 
+# Base variables
 source /usr/local/bin/japp.include
 _cook_path="$_OPER_PATH/cook"
 _backup_path="$_OPER_PATH/archive/`date +%F_%H%M`"
+_wars_path="$_OPER_PATH/todeploy"
 
 if [[ -z $1 ]] ; then
-   echo -e "Usage: deployWeb <'war1 war2 ...'> <RemoteServer>"
-   echo -e "RemoteServer=L 		  deploy wars in local dir $_OPER_PATH/todepoly"
-   echo -e "RemoteServer=hostName:sshPort deploy wars downloaded from Hostname:$_OPER_PATH/todeploy"
-   echo -e "Example:  deployWeb 'webapp1 webapp2 webapp3' app-server-hostname"
+   echo -e "Deploy wars in local dir $_OPER_PATH/todepoly"
+   echo -e "Usage: deployweb 'webapp1 webapp2 webapp3'  ( Note: .war is not needed )"
    exit 0
-fi
-if [[ -z $2 ]]; then
-    _src="L"
-else
-    _src=$2
 fi
 array_wars=($1)
 
 _wars_lst=`grep -v ^# $_OPER_PATH/wars.lst 2>/dev/null`
 if [[ -z $_wars_lst ]]; then
-    echo "$_OPER_PATH/wars.lst is not properly configured or does not exist." 
+    echo "$_OPER_PATH/wars.lst is not proper configured or does not exist." 
     echo "This file should be like:"
-    echo:"#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort"
-    echo:"warname:newname:N:localhost:user:webname:22:8080"
+    echo "$_WAR_LIST_HEADER"
+    echo "yourweb1:ROOT:N:localhost:username:22:yourweb1:8080"
     exit 1
 fi
 echo "wars.lst:"
-echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort"
+echo "$_WAR_LIST_HEADER"
 echo "$_wars_lst"
 echo
 set -u 
-# Base variables
-if [[ $_src = L ]] ;then
-    _remote_server="localhost"
-    _remote_port=$_SSH_PORT
-else
-    _remote_server=`echo $_src|awk -F: '{print $1}'`
-    _remote_port=`  echo $_src|awk -F: '{print $2}'`
-    if ! ssh -p ${_remote_port} ${_remote_user}@${_remote_server} "ls ${_remote_path}/*.war" ; then
-	echo "There are no war files on $_remote_server:$_remote_path."
-	exit 1
-    fi
-fi
-_remote_user="$_WORK_USER"
-_remote_path="$_OPER_PATH/todeploy"
 
 # Let's roll ! 
 mkdir -p $_backup_path
@@ -89,12 +73,11 @@ IFS="
 for x in ${array_wars[@]} ; do
     echo "`date +%F_%T`------------ START ------------- $x"
 
-    echo "Download , repack ${x} ..."
-    if scp -P ${_remote_port} -p ${_remote_user}@${_remote_server}:${_remote_path}/${x}.war . ; then
+    echo "Repack ${x} ..."
+    if /bin/cp ${_wars_path}/${x}.war ./ ; then
 	_upload=${x}.war
         $JAVA_HOME/bin/jar -uf ${x}.war -C ${_OPER_PATH}/_config/${x}/ . 
     else
-	echo "There is no ${_remote_user}@${_remote_server}:${_remote_path}/${x}.war (ssh port ${_remote_port})"
 	continue
     fi
 
@@ -109,44 +92,43 @@ for x in ${array_wars[@]} ; do
         _restart=`   echo $_war_info | awk -F: '{print $3}'`
         _srvname=`   echo $_war_info | awk -F: '{print $4}'`
         _srvuser=`   echo $_war_info | awk -F: '{print $5}'`
-        _webname=`   echo $_war_info | awk -F: '{print $6}'`
-        _port=`      echo $_war_info | awk -F: '{print $7}'`
+        _srvport=`   echo $_war_info | awk -F: '{print $6}'`
+        _webname=`   echo $_war_info | awk -F: '{print $7}'`
         _webport=`   echo $_war_info | awk -F: '{print $8}'`
         echo "warname: $_warname"
         echo "newname: $_warnewname"
         echo "restart: $_restart"
         echo "srvname: $_srvname"
 	echo "srvuser: $_srvuser"
-        echo "port:    $_port"
+        echo "srvport: $_srvport"
         echo "webname: $_webname"
         echo "webport: $_webport"
         echo
 	_wardirname=${_warnewname}
 	_warnewname=${_warnewname}.war
 
-
 	# Deploy
 	_dest_webapps_dir="$_BASES_DIR/$_webname/webapps"
 	echo "$_dest_webapps_dir"
-	ssh -p ${_port} ${_srvuser}@${_srvname} "ls -ltr $_dest_webapps_dir" 
+	ssh -p ${_srvport} ${_srvuser}@${_srvname} "ls -ltr $_dest_webapps_dir" 
 
 	if [[ $_restart = Y ]]; then
 	    echo "Stop tomcat $_webname on $_srvname & clear $_wardirname/$_warnewname ..."
-	    ssh -p ${_port} ${_srvuser}@${_srvname} "tmc ${_webname} down ; for ((i=1;i<=10;i++)); do sleep 1 ; echo -n . ; done ; echo; rm ${_dest_webapps_dir}/${_warnewname}/ -rf 2>/dev/null; rm ${_dest_webapps_dir}/${_wardirname} -rf 2>/dev/null "
+	    ssh -p ${_srvport} ${_srvuser}@${_srvname} "tmc ${_webname} down ; for ((i=1;i<=10;i++)); do sleep 1 ; echo -n . ; done ; echo; rm ${_dest_webapps_dir}/${_warnewname}/ -rf 2>/dev/null; rm ${_dest_webapps_dir}/${_wardirname} "
 
 	    echo "Upload $_upload to $_dest_webapps_dir/$_warnewname ..."
-	    scp -P ${_port} -p ${_upload} ${_srvuser}@${_srvname}:${_dest_webapps_dir}/${_warnewname} > /dev/null
+	    scp -P ${_srvport} -p ${_upload} ${_srvuser}@${_srvname}:${_dest_webapps_dir}/${_warnewname} > /dev/null
 
 	    echo "Start tomcat $_webname on $_srvname ..."
-	    ssh -p ${_port} ${_srvuser}@${_srvname} "tmc ${_webname} up" 
+	    ssh -p ${_srvport} ${_srvuser}@${_srvname} "tmc ${_webname} up" 
 
 	else
 	    echo "Upload $_upload to $_dest_webapps_dir/$_warnewname ..."
-	    scp -P ${_port} -p ${_upload} ${_srvuser}@${_srvname}:${_dest_webapps_dir}/${_warnewname} > /dev/null
+	    scp -P ${_srvport} -p ${_upload} ${_srvuser}@${_srvname}:${_dest_webapps_dir}/${_warnewname} > /dev/null
 	fi
 	for ((i=1;i<=10;i++)); do sleep 1 ; echo -n . ; done ; echo
 	echo "Updated:"
-        ssh -p ${_port} ${_srvuser}@${_srvname}  "ls -ltr $_dest_webapps_dir"
+        ssh -p ${_srvport} ${_srvuser}@${_srvname}  "ls -ltr $_dest_webapps_dir"
 	echo 
     done # servers
     echo "`date +%F_%T` ========== END =========== $x"

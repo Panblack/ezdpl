@@ -19,15 +19,15 @@ _max_shutdown_retry=15
 # for deployweb
 _SSH_PORT="22"
 _OPER_PATH="/opt/wars"
-if [[ ! -d $_OPER_PATH ]] ; then
-    mkdir -p $_OPER_PATH
-fi
+_WAR_LIST_HEADER="#warName:newName:needRestart:serverName:serverUser:serverPort:webName:webPort"
 
-mkdir -p $_OPER_PATH/archive $_OPER_PATH/_config $_OPER_PATH/cook $_OPER_PATH/todeploy $_OPER_PATH/prod
-chown -R $_WORK_USER:$_WORK_USER $_OPER_PATH
+if [[ `id -u` = 0 ]]; then
+    mkdir -p $_OPER_PATH $_OPER_PATH/archive $_OPER_PATH/_config $_OPER_PATH/cook $_OPER_PATH/todeploy $_OPER_PATH/prod
+    chown -R $_WORK_USER:$_WORK_USER $_OPER_PATH
+fi 
 
 if [[ ! -f $_OPER_PATH/wars.lst ]]; then
-    echo "#warName:newName:needRestart:serverName:serverUser:webName:serverPort:webPort" > $_OPER_PATH/wars.lst
+    echo "$_WAR_LIST_HEADER" > $_OPER_PATH/wars.lst
 fi
 
 # for jar apps
