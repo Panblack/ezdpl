@@ -11,7 +11,7 @@
 
 _self=`readlink -f $0`
 _path=`dirname $_self`
-_hosts_port=`egrep -v '^ *#' ${_path}/hosts.lst`
+_hosts_lst=`egrep -v '^ *#' ${_path}/hosts.lst`
 if [[ -z $1 ]]; then
     echo "
 Usage:
@@ -25,7 +25,7 @@ scs [user@]<hostname>[:port] up 'local_src_path'  'remote_dst_path' 	Upload   di
 If 'local_dst_path' is omitted, ' . ' will apply.
 
 Hosts & ports:
-$_hosts_port
+$_hosts_lst
 "
     exit 0
 fi
@@ -50,17 +50,20 @@ else
     _dest="."
 fi
 
-_host_info=`echo "$_hosts_port" | grep -w $_host`
+_host_info=`echo "$_hosts_lst" | grep -w $_ip`
 _host_info_line_count=`echo "$_host_info"|wc -l`
-if [[ $_host_info_line_count = 1 ]]; then    
-    _ip=`  echo "$_host_info" | grep $_host | awk '{print $1}'`
-    _user=`echo "$_host_info" | grep $_host | awk '{print $3}'`
-    _port=`echo "$_host_info" | grep $_host | awk '{print $4}'` 
-    echo "$_user@$_ip:$_port"
-else
-    echo "host not found or not unique."
-    echo "$_host_info"
-    exit 1
+
+if [[ -n $_host_info ]]; then
+    if [[ $_host_info_line_count = 1 ]]; then    
+    	_ip=`  echo "$_host_info" | grep $_host | awk '{print $1}'`
+    	_user=`echo "$_host_info" | grep $_host | awk '{print $3}'`
+    	_port=`echo "$_host_info" | grep $_host | awk '{print $4}'` 
+    	echo "$_user@$_ip:$_port"
+    else
+    	echo "$_ip is not unique is hosts.lst"
+    	echo "$_host_info"
+    	exit 1
+    fi
 fi
 
 case $2 in 
