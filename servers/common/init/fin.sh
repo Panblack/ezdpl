@@ -84,7 +84,7 @@ done
 yum clean all
 yum install -y epel-release
 yum update -y
-yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter && echo "Packages installed..."
+yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter tcptraceroute && echo "Packages installed..."
 
 rkhunter --propupd
 
