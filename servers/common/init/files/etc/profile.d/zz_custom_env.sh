@@ -1,6 +1,4 @@
 alias cp='/bin/cp -i --preserve=timestamps'
-alias mv='mv -i'
-alias rm='rm -i'
 alias df='/bin/df -hTP'
 alias du='/usr/bin/du -hx --max-depth=1'
 alias ll='/bin/ls -lh --color=auto --time-style=long-iso 2>/dev/null'

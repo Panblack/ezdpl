@@ -94,7 +94,7 @@ echo "`date +%Y-%m-%d_%H:%M:%S` ./ezdpl $_silent $_ipaddress:$_port $_app_versio
 # Run pre.sh on the target server
 if [ -f "./servers/$_app_version/pre.sh" ]; then
   /usr/bin/scp -q -P$_port ./servers/$_app_version/pre.sh $_username@$_ipaddress:/tmp/
-  ssh -p$_port $_username@$_ipaddress 'source /etc/profile; sh /tmp/pre.sh'
+  ssh -p$_port $_username@$_ipaddress 'source /etc/profile; bash -l /tmp/pre.sh'
   _pre=$?
   if [[ $_pre != 0 ]];then 
     echo "$_username@$_ipaddress:/tmp/pre.sh exit code $_pre . EXIT!!" | tee -a log.txt
@@ -118,7 +118,7 @@ fi
 # Run fin.sh on the target server
 if [ -f "./servers/$_app_version/fin.sh" ]; then
   /usr/bin/scp -q -P$_port ./servers/$_app_version/fin.sh $_username@$_ipaddress:/tmp/
-  ssh -p$_port $_username@$_ipaddress 'source /etc/profile; sh /tmp/fin.sh'
+  ssh -p$_port $_username@$_ipaddress 'source /etc/profile; bash -l /tmp/fin.sh'
   _fin=$?
   if [[ $_fin != 0 ]];then
     echo "$_username@$_ipaddress:/tmp/fin.sh exit code $_fin . EXIT!!" | tee -a log.txt
