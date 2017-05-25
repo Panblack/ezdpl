@@ -45,6 +45,8 @@ case $_RELEASE in
 	#if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
 	#    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 	#fi
+	# docker repo
+	wget -P /etc/yum.repos.d/ https://download.docker.com/linux/centos/docker-ce.repo
 	;;
     UBUNTU)
 	# firewall
@@ -96,5 +98,8 @@ fi
 # Install rpms
 cd /opt/packages
 yum localinstall *.rpm
+
+#yum install -y docker-ce
+#systemctl enable docker && systemctl start docker
 
 echo "`date +%F_%T` common/init " >> /tmp/ezdpl.log
