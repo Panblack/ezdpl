@@ -15,6 +15,8 @@ chmod 600 /var/spool/cron/root
 
 case $_RELEASE in
     CENTOS6)
+	# timezone
+	/bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 	# firewall
 	# Consider change sshd port to 2222 later.
 	chkconfig iptables on
@@ -32,6 +34,8 @@ case $_RELEASE in
 	#fi
 	;;
     CENTOS7)
+	# timezone
+	timedatectl set-timezone Asia/Shanghai
 	# firewall
 	systemctl enable firewalld
 	systemctl start  firewalld
