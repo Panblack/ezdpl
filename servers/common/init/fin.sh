@@ -64,8 +64,8 @@ esac
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
-# aliyun 
-if  grep "mirrors.cloud.aliyuncs.com" yum.repos.d/CentOS-Base.repo &>/dev/null ; then
+# aliyun (exclude kernel centos-release when `yum update`) 
+if egrep "(mirrors.aliyuncs.com|mirrors.aliyun.com)" /etc/yum.repos.d/CentOS-Base.repo &>/dev/null ; then
     cp -p /etc/yum.conf /etc/yum.conf.bak
     echo "exclude=kernel* centos-release*" >> /etc/yum.conf
 fi
