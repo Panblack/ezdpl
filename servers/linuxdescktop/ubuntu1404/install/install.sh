@@ -8,7 +8,7 @@ sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y -m gnome-tweak-tool unity-tweak-tool sysv-rc-conf dconf-editor \
 leafpad tree p7zip-full p7zip-rar telnet ssh vim nmap lynx iftop iptraf convmv enca sysstat dstat curl httping xclip \
-git meld subversion chromium-browser libsdl1.2debian libqt4-opengl python-pip wireshark \
+git meld subversion chromium-browser libsdl1.2debian libqt4-opengl python-pip wireshark rkhunter \
 smplayer vlc vlc-* gstreamer1.0-plugins* openshot gimp gthumb graphicsmagick kazam gaupol ttf-wqy-microhei \
 psensor indicator-cpufreq rdesktop virt-manager virt-viewer lua5.2 lua-bitop \
 docker.io apache2 php5 apache2-utils cgroup-bin \
@@ -89,8 +89,7 @@ sudo /bin/cp vimrc /etc/vim/vimrc.local
 # python pip & tools
 echo "pip install memcached-cli, httpie"
 sudo pip install --upgrade pip
-sudo pip install memcached-cli
-sudo pip install httpie
+sudo pip install memcached-cli httpie mycli
 echo
 
 # node.js , whistle
@@ -120,6 +119,9 @@ echo "Installing deb packages"
 cd /home/app/iso/packages/
 for x in *.deb; do sudo dpkg -i $x; done
 echo 
+
+# Update the entire file properties database
+rkhunter --propupd
 
 echo "Make wireshark able to capture packets with non-root user."
 sudo chmod u+s /usr/bin/dumpcap
