@@ -25,13 +25,10 @@ case $_RELEASE in
 	iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 2222 -j ACCEPT
     	iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 	/etc/init.d/iptables save
-	# crond
-	chkconfig crond on
-	service crond start
 	# install epel
-	#if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
-	#    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
-	#fi
+	if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
+	    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+	fi
 	;;
     CENTOS7)
 	# timezone
@@ -42,15 +39,6 @@ case $_RELEASE in
 	firewall-cmd --add-port 22/tcp --permanent
 	firewall-cmd --add-port 2222/tcp --permanent
 	firewall-cmd --reload
-	# crond
-	systemctl enable crond.service
-	systemctl start crond.service
-	# install epel
-	#if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
-	#    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-	#fi
-	# docker repo
-	wget -P /etc/yum.repos.d/ https://download.docker.com/linux/centos/docker-ce.repo
 	;;
     UBUNTU)
 	# firewall
@@ -98,8 +86,8 @@ echo
 
 # python pip & tools
 echo "pip install memcached-cli, httpie"
-sudo pip install --upgrade pip
-sudo pip install memcached-cli httpie mycli
+pip install --upgrade pip
+pip install memcached-cli httpie
 echo
 
 if [[ -f /usr/sbin/iptraf-ng ]] ; then 
@@ -110,8 +98,5 @@ fi
 # Install rpms
 cd /opt/packages
 yum localinstall *.rpm
-
-#yum install -y docker-ce
-#systemctl enable docker && systemctl start docker
 
 echo "`date +%F_%T` common/init " >> /tmp/ezdpl.log
