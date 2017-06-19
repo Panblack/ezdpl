@@ -1,0 +1,8 @@
+#!/bin/bash
+# Show or Kill sleeping mysql processes
+echo "Sleeping processes: `mysql -uroot -pYourPassword -e "show processlist" 2>/dev/null|grep YourDB|grep Sleep|wc -l`"
+if [[ $1 = y ]]; then
+  for x in `mysql -uroot -pYourPassword -e "show processlist" 2>/dev/null |grep YourDB|grep Sleep |awk '{print $1}'` ; do 
+    mysql -uroot -pYourPassword -e "kill $x"  2>/dev/null
+  done
+fi
