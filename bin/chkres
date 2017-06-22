@@ -1,16 +1,13 @@
 #!/bin/bash
 set -u
 _time_start=`date +%F_%T`
-_log_file="/data/oper/report/mon/log.txt"
-echo $_time_start >> $_log_file
-
-_servers=`/data/oper/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv" | egrep -v 'name.*port' `
+echo $_time_start
+_where=" WHERE name<>'huxijia'"
+_servers=`/opt/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv $_where" | egrep -v 'name.*port' `
 _mem_limit=80
-IFS="
-"
-date +%F_%T
-echo -e "Host\tCPUs\tCPU_load\t\tMem%\tDisk"
-    for x in $_servers;do
+IFS=$'\n'
+echo -e "Host\tCPUs\tCPU_load\tMem%\tDisk"
+for x in $_servers;do
     	_host=`echo $x|awk -F'\t' '{print $1}'`
     	_port=`echo $x|awk -F'\t' '{print $2}'`
 #	echo "[$_host:$_port]"
@@ -52,11 +49,11 @@ echo -e "Host\tCPUs\tCPU_load\t\tMem%\tDisk"
 
 	echo -e "${_host}\t${_cpu_count}\t${_cpu_load}\t${_mem_percent}%\t${_df}"
 
-    done
+done
+_time_end=`date +%F_%T` 
+echo $_time_end
 
-_time_end=`date +%F_%T`
-exit 0
-
+#free -tm
 #             total       used       free     shared    buffers     cached
 #Mem:         31981       4934      27046          0        146        298
 #	     -/+ buffers/cache:       4489      27491

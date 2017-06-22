@@ -36,8 +36,7 @@ fi
 
 _SQL="SELECT srvname , webname  FROM v_srvweb "
 _servers=`/opt/ezdpl/bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'srvname'`
-IFS="
-"
+IFS=$'\n'
 for x in $_servers ;do
   _srv=`echo $x|awk -F'\t' '{print $1}'`
   _web=`echo $x|awk -F'\t' '{print $2}'`

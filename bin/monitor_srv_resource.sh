@@ -10,9 +10,8 @@ echo $_time_start >> $_log_file
 
 _servers=`/opt/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv" | egrep -v 'name.*port' `
 _mem_limit="95"
-IFS="
-"
-    for x in $_servers;do
+IFS=$'\n'
+for x in $_servers;do
     	_host=`echo $x|awk -F'\t' '{print $1}'`
     	_port=`echo $x|awk -F'\t' '{print $2}'`
   	_str=$(ssh root@$_host -p $_port "\
@@ -71,7 +70,7 @@ IFS="
 	    echo -e "$_message" >> $_log_file
 	    echo -e "$_message" | mailx -s "$_host Resource Warning" $_mail_recever
 	fi
-    done
+done
 
 _time_end=`date +%F_%T`
 echo -e "${_time_end}\n\n" >> $_log_file

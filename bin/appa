@@ -12,8 +12,7 @@ else
   _op=$1
 fi
 
-IFS="
-"
+IFS=$'\n'
 _servers=`/opt/ezdpl/bin/sqlezdpl "SELECT distinct srvname, port FROM v_srvweb ORDER BY srvname" | grep -v name`
 for x in $_servers;do
   _host=`echo $x|awk -F'\t' '{print $1}'`

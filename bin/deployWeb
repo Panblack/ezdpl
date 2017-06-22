@@ -43,10 +43,6 @@ echo "Cook dir:"
 pwd 
 rm ./* -rf 2>/dev/null
 
-# Important to MySQL query results!
-IFS="
-"
-
 for x in ${array_wars[@]} ; do
     echo "`date +%F_%T`-------------------------- $x"
     _sql_war="SELECT name,newname,needrestart FROM war WHERE name='${x}'"
