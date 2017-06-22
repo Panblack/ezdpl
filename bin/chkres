@@ -1,62 +1,98 @@
 #!/bin/bash
-set -u
+_target=$1
+set -u 
 _time_start=`date +%F_%T`
 echo $_time_start
-_where=" WHERE name<>'huxijia'"
-_servers=`/opt/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv $_where" | egrep -v 'name.*port' `
+if [[ -n $_target ]]; then
+	_servers="$_target"
+else
+	_where=" WHERE name<>'huxijia'"
+	_servers=`/opt/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv $_where" | egrep -v 'name.*port' `
+fi
 _mem_limit=80
 IFS=$'\n'
-echo -e "Host\tCPUs\tCPU_load\tMem%\tDisk"
+echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMem%\tDisk"
 for x in $_servers;do
-    	_host=`echo $x|awk -F'\t' '{print $1}'`
-    	_port=`echo $x|awk -F'\t' '{print $2}'`
-#	echo "[$_host:$_port]"
-#	continue
+    	_centos6=""
+	_centos7=""
+	_os=""
+    	_host=`echo $x|awk '{print $1}'`
+    	_port=`echo $x|awk '{print $2}'`
+	if [[ -z $_host ]] || [[ -z $_port ]]; then
+	    echo "Host/Port missing"
+	    continue
+	fi
+	_raw_df=`ssh root@$_host -p $_port "df -hTPl |egrep '(7.%|8.%|9.%|100%)'" 2>/dev/null`
   	_str=`ssh root@$_host -p $_port "\
-	cat /proc/cpuinfo|grep processor|wc -l;\
-	echo -n '|';\
-	uptime|grep 'load average';\
-	echo -n '|';\
-      	free -tm |grep "buffers/cache" ;\
-	echo -n '|';\
-	df -hTPl |egrep '(8.%|9.%|100%)' ;\
-	echo -n '|';\
-	mount|grep warning;"`
-
-	#Original string
-#	_mon_file="/data/oper/report/mon/all.mon.log"
-#	echo -e "\n${_time_start}" >> $_mon_file
+	cat /proc/cpuinfo|grep processor|wc -l ;\
+	echo '|' ;\
+	uptime|grep 'load average' ;\
+	echo '|' ;\
+	egrep ' 6\.' /etc/redhat-release ;\
+	echo '|' ;\
+	egrep ' 7\.' /etc/redhat-release ;\
+	echo '|' ;\
+      	free -tm |grep "Mem:" ;\
+	" 2>/dev/null`
 
 	#Extract data
 	_cpu_count=`echo $_str|awk -F'|' '{print $1}'`
-	#((_cpu_count=$_cpu_count-1 ))
-	_cpu_load=`echo $_str|awk -F'|' '{print $2}'|awk -F': ' '{print $2}'`
+	_cpu_load=` echo $_str|awk -F'|' '{print $2}'|awk -F': ' '{print $2}'`
+	_centos6=`  echo $_str|awk -F'|' '{print $3}'`
+	_centos7=`  echo $_str|awk -F'|' '{print $4}'`
+	_mem_info=` echo $_str|awk -F'|' '{print $5}'`
+
 	_load_1=`echo $_cpu_load|awk -F', ' '{print $1}'`
 	_load_5=`echo $_cpu_load|awk -F', ' '{print $2}'`
 	_load_15=`echo $_cpu_load|awk -F', ' '{print $3}'`
+	_mem_total=`echo $_mem_info|awk '{print $2}'`
+	_mem_used_raw=`echo $_mem_info |awk '{print $3}'`
 
-	_mem_info=`echo $_str|awk -F'|' '{print $3}'`
-	_mem_used=`echo $_mem_info |awk '{print $3}'`
-	_mem_free=`echo $_mem_info |awk '{print $4}'`
-	_mem_total=`echo $_mem_used + $_mem_free|bc`
+	if [[ -n $_centos6 ]]; then
+	    _os=c6
+	    _mem_buffers=`echo $_mem_info |awk '{print $6}'`
+	    _mem_cached=` echo $_mem_info |awk '{print $7}'` 
+	    _mem_used=`echo "$_mem_used_raw - $_mem_buffers - $_mem_cached"|bc`
+	elif [[ -n $_centos7 ]]; then
+	    _os=c7
+	    _mem_used=$_mem_used_raw
+	fi
 	_mem_percent=`echo "scale=2;ibase=10;obase=10;$_mem_used/$_mem_total*100"|bc|tr -d .00`
+
 	if [[ $_mem_percent -gt $_mem_limit ]]; then
 	    _mem_percent="\033[31m$_mem_percent\033[0m"
 	fi
 
-	_df=`echo $_str|awk -F'|' '{print $4}'|awk '{print $6" "$7}'`
-	_mount_err=`echo $_str|awk -F'|' '{print $5}'`
+	_df=`echo "$_raw_df"|awk '{print $7" "$6"  "}'|tr -d ['\n']`
+	echo -e "${_host}\t${_os}\t${_cpu_count}\t${_cpu_load}\t${_mem_total}\t${_mem_percent}%\t${_df}"
 
-	echo -e "${_host}\t${_cpu_count}\t${_cpu_load}\t${_mem_percent}%\t${_df}"
+	if [[ -n $_target ]]; then
+	    echo
+	    echo "RAW:"
+	    echo "$_str"
+	    echo "$_raw_df"
+	    echo
+	fi
 
 done
 _time_end=`date +%F_%T` 
 echo $_time_end
 
-#free -tm
+#6
+# free -tm
+#1		2	  3	     4	      5	         6	    7
 #             total       used       free     shared    buffers     cached
-#Mem:         31981       4934      27046          0        146        298
-#	     -/+ buffers/cache:       4489      27491
-#	     Swap:          991          0        991
-#	     Total:       32973       4934      28038
+#Mem:         15888      15796         91          0        309       5380
+#-/+ buffers/cache:      10106       5781
+#Swap:          991        773        218
+#Total:       16880      16569        310
+
+
+#7
+# free -tm
+#1		2	     3	        4	   5	         6	    7
+#              total        used        free      shared  buff/cache   available
+#Mem:          15940        4439         908         361       10592       10830
+#Swap:          9767          18        9749
+#Total:        25708        4457       10658
 

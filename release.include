@@ -1,7 +1,7 @@
-if grep " 6\." /etc/redhat-release &>/dev/null; then
+if grep ' 6\.' /etc/redhat-release &>/dev/null; then
     _RELEASE="CENTOS6"
 fi
-if grep " 7\." /etc/redhat-release &>/dev/null; then
+if grep ' 7\.' /etc/redhat-release &>/dev/null; then
     _RELEASE="CENTOS7"
 fi
 if cat /etc/*-release|grep -i ubuntu &>/dev/null; then

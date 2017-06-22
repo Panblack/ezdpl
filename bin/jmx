@@ -1,6 +1,4 @@
 #!/bin/bash
-# script for cmdline-jmxclient, by panblack@126.com
-
 _cred=$1
 _server=$2
 _bean=$3
@@ -12,7 +10,7 @@ else
     _server=$1
 fi
 if [[ -z $_server ]]; then
-    echo "Usage: jmx user:pass ip:port bean"
+    echo "Usage: jmx [user:pass] <ip:port> [Bean] "
     exit 0
 fi
 
