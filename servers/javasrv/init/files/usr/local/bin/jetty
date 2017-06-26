@@ -1,0 +1,18 @@
+#!/bin/bash
+# jetty managing script, ver 0.1
+if [[ -z $1 ]]; then
+    echo "Usage: In a jetty dir, Run"
+    echo "jetty [-d] {start|stop|run|restart|check|supervise} [ CONFIGS ... ]"
+    exit 0
+fi
+if [[ -f ./start.jar ]] && [[ -f ./bin/jetty.sh ]] && ls ./lib/jetty-* &>/dev/null; then 
+    export JETTY_HOME=`pwd`
+    if [[ $1 = start ]] && ps aux|grep java|grep "$JETTY_HOME/" ; then
+    	echo "$JETTY_HOME already started."
+    	exit 1
+    fi
+    export JETTY_RUN=$JETTY_HOME
+    ./bin/jetty.sh $@
+else
+    echo "Not a jetty dir."
+fi
