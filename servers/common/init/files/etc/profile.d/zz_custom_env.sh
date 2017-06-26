@@ -1,3 +1,6 @@
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
 alias cp='/bin/cp -i --preserve=timestamps'
 alias df='/bin/df -hTP'
 alias du='/usr/bin/du -hx --max-depth=1'
