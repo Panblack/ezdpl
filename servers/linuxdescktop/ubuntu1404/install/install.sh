@@ -26,19 +26,25 @@ sudo bin/cp -p ./scripts/* /usr/local/bin/
 /bin/cp -p ./deb/*.deb /home/app/iso/packages/ 
 echo 
 
+echo "/etc/bash.bashrc Custom aliases"
+sudo /bin/cp /etc/bash.bashrc /etc/bash.bashrc.bak
+sudo cat ./bash.bashrc >> /etc/bash.bashrc
+
 echo "Modifying /etc/skel/.bashrc"
-cp ~/.bash_aliases ~/.bash_aliases.`date +%F_%H%M`
-/bin/cp bash_aliases ~/.bash_aliases
-sudo /bin/cp bash_aliases /etc/skel/.bash_aliases
 sudo /bin/cp -p /etc/skel/.bashrc /etc/skel/.bashrc.bak.`date +%F_%H%M`
 sudo sed -i /"alias ll"/d /etc/skel/.bashrc
 sudo sed -i 's/]:/] \\t /g' /etc/skel/.bashrc
 sudo sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/g' /etc/skel/.bashrc
 echo 
 
+echo "vimrc.local"
+sudo /bin/cp ./vimrc.local /etc/vim/
+
 echo "zz_custom_env.sh to /etc/profile.d/"
 sudo /bin/cp zz_custom_env.sh /etc/profile.d/
 source /etc/profile
+source /etc/bash.bashrc
+source ~/.bashrc
 echo 
 
 echo "Theme tweak"
@@ -49,8 +55,7 @@ sudo sed -i '1212s/bg_color,/selected_bg_color,/' /usr/share/themes/Ambiance/gtk
 echo "Blocking wo.com.cn"
 sudo /bin/cp -p /etc/ufw/before.rules /etc/ufw/before.rules.`date +%F_%H%M`
 _IFS=$IFS
-IFS="
-"
+IFS=$'\n'
 for x in `cat blocking.wo.com.cn`; do
     sudo sed -i /"$x"/d /etc/ufw/before.rules
 done
@@ -82,9 +87,7 @@ echo "App dir: /home/app"
 sudo mkdir -p /home/app/iso/packages
 sudo chown -R $_user_name:$_user_name /home/app
 
-
-echo "vimrc.local"
-sudo /bin/cp vimrc /etc/vim/vimrc.local
+/bin/cp ./Unicode2hanzi.html ~/
 
 # python pip & tools
 echo "pip install memcached-cli, httpie"

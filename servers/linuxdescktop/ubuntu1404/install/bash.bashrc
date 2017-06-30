@@ -1,3 +1,7 @@
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
 alias cp='/bin/cp -i --preserve=timestamps'
 alias mv='mv -i'
 alias rm='rm -i'
@@ -8,8 +12,8 @@ alias lt='/bin/ls -lhtr --color=auto --time-style=long-iso 2>/dev/null'
 alias mysql='mysql --default-character-set=utf8'
 alias tless='less `ls -tr1|tail -1`'
 alias ttail='tail -f `ls -tr1|tail -1`'
-alias xscp='/usr/bin/scp -P2222 '
-alias xssh='/usr/bin/ssh -p2222 '
+alias ftail='tail -f'
 alias ping='ping -i 0.2 '
 alias lynx='lynx -accept_all_cookies '
+alias busy='cat /dev/urandom | hexdump -C | grep "ca fe"'
 
