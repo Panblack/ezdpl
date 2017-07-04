@@ -9,7 +9,7 @@ sudo apt-get upgrade -y
 sudo apt-get install -y -m gnome-tweak-tool unity-tweak-tool sysv-rc-conf dconf-editor \
 leafpad tree p7zip-full p7zip-rar telnet ssh vim nmap lynx iftop iptraf convmv enca sysstat dstat curl httping xclip \
 git meld subversion chromium-browser libsdl1.2debian libqt4-opengl python-pip wireshark rkhunter \
-smplayer vlc vlc-* gstreamer1.0-plugins* openshot gimp gthumb graphicsmagick kazam gaupol ttf-wqy-microhei \
+smplayer vlc vlc-* ubuntu-restricted-extras gstreamer-plugins* openshot gimp gthumb graphicsmagick kazam gaupol ttf-wqy-microhei \
 psensor indicator-cpufreq rdesktop virt-manager virt-viewer lua5.2 lua-bitop \
 docker.io apache2 php5 apache2-utils cgroup-bin \
 openvpn network-manager-openvpn network-manager-openvpn-gnome 
