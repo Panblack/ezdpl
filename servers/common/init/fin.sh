@@ -78,7 +78,22 @@ done
 yum clean all
 yum install -y epel-release
 yum update -y
-yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter tcptraceroute python-pip && echo "Packages installed..."
+yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop geoip htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter tcptraceroute python-pip && echo "Packages installed..."
+
+# iftoprc
+_iftoprc="
+dns-resolution: yes
+port-resolution: no
+show-bars: yes
+promiscuous: yes
+port-display: on
+use-bytes: yes
+sort: source
+line-display: one-line-both
+show-totals: yes 
+log-scale: yes
+"
+echo "$_iftoprc" > ~/.iftoprc
 
 # Update the entire file properties database 
 rkhunter --propupd
