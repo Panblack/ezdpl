@@ -6,5 +6,8 @@ if grep ' 7\.' /etc/redhat-release &>/dev/null; then
 fi
 if cat /etc/*-release|grep -i ubuntu &>/dev/null; then
     _RELEASE="UBUNTU"
+    if [[ -f /etc/lsb-release ]]; then
+	_UBUNTU_VERSION=`grep DISTRIB_RELEASE /etc/lsb-release|awk -F= '{print $2}'`
+    fi
 fi
 
