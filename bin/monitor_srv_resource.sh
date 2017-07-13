@@ -2,19 +2,44 @@
 # Monitoring all server resources, by panblack@126.com
 # Requires: sqlezdpl, sendmail service
 
+# Determine ezdpl home
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME : ${EZDPL_HOME}"
+
 set -u
 _mail_recever="receive@example.com"
 _time_start=`date +%F_%T`
 _log_file="/opt/report/mon/log.txt"
 echo $_time_start >> $_log_file
 
-_servers=`/opt/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv" | egrep -v 'name.*port' `
+# Read servers
+if [[ -f ${EZDPL_HOME}/hosts.lst ]]; then
+    _servers=`egrep -v '(^#|^$)' ./hosts.lst`
+else
+    source ${EZDPL_HOME}/batch.where.sh
+    _SQL=" SELECT  ip , name , user , port , purpose FROM srv $_where "
+    _servers=`./bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'purpose'`
+fi
+
 _mem_limit="95"
 IFS=$'\n'
 for x in $_servers;do
-    	_host=`echo $x|awk -F'\t' '{print $1}'`
-    	_port=`echo $x|awk -F'\t' '{print $2}'`
-  	_str=$(ssh root@$_host -p $_port "\
+        _ip=`  echo $x|awk '{print $1}'`
+        _host=`echo $x|awk '{print $2}'`
+        _user=`echo $x|awk '{print $3}'`
+        _port=`echo $x|awk '{print $4}'`
+        _purpose=`echo $x|awk '{print $5}'`
+
+        if [[ -z $_ip ]] || [[ -z $_port ]]; then
+            continue
+        fi
+        [[ -z $_user ]] && _user=root
+
+  	_str=$(ssh -p $_port $_user@$_ip "\
 	cat /proc/cpuinfo|grep processor|wc -l;\
 	echo -n '|';\
 	uptime|grep 'load average';\

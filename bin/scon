@@ -3,6 +3,14 @@
 # Requires MySQL db(ezdpl), Script sqlezdpl
 # Will not work if a host is not found in db ezdpl
 
+# Determine ezdpl home
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME : ${EZDPL_HOME}"
+
 if [ -z "$1" ]; then
     echo "Usage: scon <hostname> "
     echo "Usage: scon <hostname> e  'command'"
@@ -14,7 +22,7 @@ if [ -z "$1" ]; then
 fi
 _host=$1
 _SQL="SELECT ip , port FROM srv WHERE name='$_host'"
-_srv=`/opt/ezdpl/bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'port'`
+_srv=`${EZDPL_HOME}/bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'port'`
 if [ -z "$_srv" ]; then
     echo "hostname not found!"
     exit 1

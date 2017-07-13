@@ -1,4 +1,12 @@
 #!/bin/bash
+# Determine ezdpl home
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME : ${EZDPL_HOME}"
+
 _hint="
 Usage:
 appa p  <host>    check all tomcat processes.
@@ -13,12 +21,12 @@ else
 fi
 
 IFS=$'\n'
-_servers=`/opt/ezdpl/bin/sqlezdpl "SELECT distinct srvname, port FROM v_srvweb ORDER BY srvname" | grep -v name`
+_servers=`${EZDPL_HOME}/bin/sqlezdpl "SELECT distinct srvname, port FROM v_srvweb ORDER BY srvname" | grep -v name`
 for x in $_servers;do
   _host=`echo $x|awk -F'\t' '{print $1}'`
   _port=`echo $x|awk -F'\t' '{print $2}'`
   echo [ $_host:$_port ]
-  /opt/ezdpl/bin/app $_op $_host
+  ${EZDPL_HOME}/bin/app $_op $_host
   echo
 done
 

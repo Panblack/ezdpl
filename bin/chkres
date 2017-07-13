@@ -1,29 +1,45 @@
 #!/bin/bash
-_target=$1
+# Determine ezdpl home
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME : ${EZDPL_HOME}"
+
 set -u 
 _time_start=`date +%F_%T`
 echo $_time_start
-if [[ -n $_target ]]; then
-	_servers="$_target"
+
+# Read servers
+if [[ -f ${EZDPL_HOME}/hosts.lst ]]; then
+    _servers=`egrep -v '(^#|^$)' ./hosts.lst`
 else
-	_where=" WHERE name<>'huxijia'"
-	_servers=`/opt/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv $_where" | egrep -v 'name.*port' `
+    source ${EZDPL_HOME}/batch.where.sh
+    _SQL=" SELECT  ip , name , user , port , purpose FROM srv $_where "
+    _servers=`./bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'purpose'`
 fi
+
 _mem_limit=80
 IFS=$'\n'
-echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMem%\tDisk"
+echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDisk"
 for x in $_servers;do
     	_centos6=""
 	_centos7=""
 	_os=""
-    	_host=`echo $x|awk '{print $1}'`
-    	_port=`echo $x|awk '{print $2}'`
-	if [[ -z $_host ]] || [[ -z $_port ]]; then
-	    echo "Host/Port missing"
+    	_ip=`  echo $x|awk '{print $1}'`
+    	_host=`echo $x|awk '{print $2}'`
+    	_user=`echo $x|awk '{print $3}'`
+    	_port=`echo $x|awk '{print $4}'`
+    	_purpose=`echo $x|awk '{print $5}'`
+
+	if [[ -z $_ip ]] || [[ -z $_port ]]; then
 	    continue
 	fi
-	_raw_df=`ssh root@$_host -p $_port "df -hTPl |egrep '(7.%|8.%|9.%|100%)'" 2>/dev/null`
-  	_str=`ssh root@$_host -p $_port "\
+        [[ -z $_user ]] && _user=root
+
+	_raw_df=`ssh -p $_port $_user@$_ip "df -hTPl |egrep '(7.%|8.%|9.%|100%)'" 2>/dev/null`
+  	_str=`ssh -p $_port $_user@$_ip "\
 	cat /proc/cpuinfo|grep processor|wc -l ;\
 	echo '|' ;\
 	uptime|grep 'load average' ;\
@@ -66,17 +82,10 @@ for x in $_servers;do
 	_df=`echo "$_raw_df"|awk '{print $7" "$6"  "}'|tr -d ['\n']`
 	echo -e "${_host}\t${_os}\t${_cpu_count}\t${_cpu_load}\t${_mem_total}\t${_mem_percent}%\t${_df}"
 
-	if [[ -n $_target ]]; then
-	    echo
-	    echo "RAW:"
-	    echo "$_str"
-	    echo "$_raw_df"
-	    echo
-	fi
-
 done
 _time_end=`date +%F_%T` 
 echo $_time_end
+exit 
 
 #6
 # free -tm

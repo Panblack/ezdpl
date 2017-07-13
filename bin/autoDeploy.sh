@@ -3,11 +3,19 @@
 # Requires: deployWeb scon 
 # Need to be configured as a cron job: */1 * * * * 
 
+# Determine ezdpl home
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME : ${EZDPL_HOME}"
+
 fun_restore() {
   # restore remote server's config file 
-  /opt/ezdpl/bin/scon $_remote_server e "mkdir -p $_remote_path"
-  /opt/ezdpl/bin/scon $_remote_server u "$_config_file" "$_remote_path"
-  /opt/ezdpl/bin/scon $_log_file      u "$_config_file" "$_remote_path"
+  ${EZDPL_HOME}/bin/scon $_remote_server e "mkdir -p $_remote_path"
+  ${EZDPL_HOME}/bin/scon $_remote_server u "$_config_file" "$_remote_path"
+  ${EZDPL_HOME}/bin/scon $_log_file      u "$_config_file" "$_remote_path"
 }
 
 # Main
@@ -30,7 +38,7 @@ set -u
 ## deploy=1
 ## prod=1
 ## wars=portal weixin
-_config=`/opt/ezdpl/bin/scon $_remote_server e "cat $_remote_path/config" `
+_config=`${EZDPL_HOME}/bin/scon $_remote_server e "cat $_remote_path/config" `
 if ! echo "$_config" | grep 'deploy=1' | grep -v '#' &>/dev/null ; then
     echo "Deploy disabled."
     exit 0
@@ -67,7 +75,7 @@ echo -e "\nPid:$$ \nWars:$_wars \nSource:$_remote_server:$_remote_path"  | tee -
 ssh  root@$_remote_server "ls -ltr --time-style=long-iso $_remote_path/*.war " | tee -a $_log_file
 echo | tee -a $_log_file
 
-/opt/ezdpl/bin/deployWeb "$_wars" $_remote_server | tee -a $_log_file
+${EZDPL_HOME}/bin/deployWeb "$_wars" $_remote_server | tee -a $_log_file
 
 _datetime=`date +%F_%T`
 echo -e "======== Production autoDeploy Finished  $_datetime =========\n\n" | tee -a $_log_file

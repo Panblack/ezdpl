@@ -10,7 +10,7 @@
 # Enjoy!
 # Wait, what if the script does not finish successfully, and the pidfile holds the job forever?
 # It is you who need to make sure the script finally finishes. Don't blame the pidfile ^_- 
-
+# Sample script: deployWeb
 
 # Keeping a log for a cron job is a good idea.
 _log_file="/tmp/$0.log"

@@ -16,6 +16,14 @@
 #2017-01-14      app07   31      1961    83      43
 #2017-01-14      app08   33      597     37      40
 
+# Determine ezdpl home
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME : ${EZDPL_HOME}"
+
 if [[ -n $1 ]]; then
     # Date format: yyyy-mm-dd
     _date=$1
@@ -35,7 +43,7 @@ fi
 #for x in `seq -f"app%02g" 1 8`;do
 
 _SQL="SELECT srvname , webname  FROM v_srvweb "
-_servers=`/opt/ezdpl/bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'srvname'`
+_servers=`${EZDPL_HOME}/bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'srvname'`
 IFS=$'\n'
 for x in $_servers ;do
   _srv=`echo $x|awk -F'\t' '{print $1}'`

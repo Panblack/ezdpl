@@ -2,7 +2,17 @@
 # War/webApp deploying script, by panblack@126.com
 # Requires: sqlezdpl, scon, JDK
 # For home-base-seperated tomcat deployment, or tomcats in /opt/webs/someWebName/<tomcat files & dirs>
-# webs, servers, wars info are stored in mysql DB or sqlite
+# webs, servers, wars info are stored in mysql DB 
+# Production config files are stored in ${EZDPL_HOME}/_config/
+
+# Determine ezdpl home
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME : ${EZDPL_HOME}"
+
 if [[ -z $1 ]] ; then
    echo -e "Usage: deployWeb <'war1 war2 ...'> <RemoteServer>"
    echo -e "RemoteServer=L              deploy wars in local dir /opt/wars/todepoly"
@@ -26,7 +36,7 @@ if [[ $_src = L ]] ;then
 else
     _remote_server=$_src
     _remote_path="/opt/wars/prod"
-    if ! /opt/ezdpl/bin/scon $_remote_server e "ls $_remote_path/*.war" ; then
+    if ! ${EZDPL_HOME}/bin/scon $_remote_server e "ls $_remote_path/*.war" ; then
         echo "RemoteServer is NOT configured with war files."
         exit 1
     fi
@@ -46,29 +56,29 @@ rm ./* -rf 2>/dev/null
 for x in ${array_wars[@]} ; do
     echo "`date +%F_%T`-------------------------- $x"
     _sql_war="SELECT name,newname,needrestart FROM war WHERE name='${x}'"
-    _war_info=`/opt/ezdpl/bin/sqlezdpl "$_sql_war" 2>/dev/null |grep -v name`
+    _war_info=`${EZDPL_HOME}/bin/sqlezdpl "$_sql_war" 2>/dev/null |grep -v name`
     _warname=`   echo $_war_info | awk -F'\t' '{print $1}'`
     _warnewname=`echo $_war_info | awk -F'\t' '{print $2}'`
     _restart=`   echo $_war_info | awk -F'\t' '{print $3}'`
 
     echo "Download & repack ${x} ..."
-    if /opt/ezdpl/bin/scon $_remote_server dp $_remote_path/${x}.war > /dev/null ; then
+    if ${EZDPL_HOME}/bin/scon $_remote_server dp $_remote_path/${x}.war > /dev/null ; then
 	_upload=${x}.war
 	_wardirname=${warnewname}
 	_warnewname=${warnewname}.war
-        /opt/jdk/bin/jar -uf ${x}.war -C /opt/ezdpl/_config_new/${x}/ . 
+        /opt/jdk/bin/jar -uf ${x}.war -C ${EZDPL_HOME}/_config/${x}/ . 
     else
 	_upload=${x}
 	_wardirname=${warnewname}
-	/opt/ezdpl/bin/scon $_remote_server dp $_remote_path/${x} > /dev/null
-	/bin/cp -rp /opt/ezdpl/_config_new/${x}/* $x/
+	${EZDPL_HOME}/bin/scon $_remote_server dp $_remote_path/${x} > /dev/null
+	/bin/cp -rp ${EZDPL_HOME}/_config/${x}/* $x/
     fi
     echo "backup ${_upload} to $_backup_path ..."
     /bin/cp -rp $_upload $_backup_path/
 
     # srvname , port , webname , webport , warname , warnewname , wariswar , needrestart
     _sql_srv="SELECT srvname , webname , port , webport FROM v_srvwar WHERE warname='$x'"
-    _servers=`/opt/ezdpl/bin/sqlezdpl "$_sql_srv" 2>/dev/null |grep -v srvname`
+    _servers=`${EZDPL_HOME}/bin/sqlezdpl "$_sql_srv" 2>/dev/null |grep -v srvname`
     echo "$_servers"
     echo "-------------------------- "
     for s in $_servers ; do
@@ -87,29 +97,29 @@ for x in ${array_wars[@]} ; do
 	# Deploy
 	_dest_webapps_dir="/opt/webs/$_webname/webapps"
 	echo "$_dest_webapps_dir"
-	/opt/ezdpl/bin/scon $_srvname e "ls -ltr $_dest_webapps_dir" 
+	${EZDPL_HOME}/bin/scon $_srvname e "ls -ltr $_dest_webapps_dir" 
 
 	if [[ $_restart = Y ]]; then
 	    echo "Stop tomcat $_webname on $_srvname & clear ${_wardirname}/${_warnewname} ..."
-	    /opt/ezdpl/bin/scon $_srvname e  "tmc $_webname down ; for ((i=1;i<=10;i++)); do sleep 1 ; echo -n . ; done ; echo; rm $_dest_webapps_dir/${_warnewname}/ -rf 2>/dev/null; rm $_dest_webapps_dir/${_wardirname} -rf 2>/dev/null "
+	    ${EZDPL_HOME}/bin/scon $_srvname e  "tmc $_webname down ; for ((i=1;i<=10;i++)); do sleep 1 ; echo -n . ; done ; echo; rm $_dest_webapps_dir/${_warnewname}/ -rf 2>/dev/null; rm $_dest_webapps_dir/${_wardirname} -rf 2>/dev/null "
 
 	    echo "Upload $_upload to $_dest_webapps_dir/$_warnewname ..."
-	    /opt/ezdpl/bin/scon $_srvname up $_upload $_dest_webapps_dir/$_warnewname > /dev/null
+	    ${EZDPL_HOME}/bin/scon $_srvname up $_upload $_dest_webapps_dir/$_warnewname > /dev/null
 
 	    echo "Start tomcat $_webname on $_srvname ..."
-	    /opt/ezdpl/bin/scon $_srvname e  "tmc $_webname up" 
+	    ${EZDPL_HOME}/bin/scon $_srvname e  "tmc $_webname up" 
 
 	else
 	    echo "Clear ${_wardirname}/${_warnewname} ..."
-	    /opt/ezdpl/bin/scon $_srvname e  "rm $_dest_webapps_dir/${_warnewname}/ -rf 2>/dev/null; rm $_dest_webapps_dir/${_wardirname} -rf 2>/dev/null " 
+	    ${EZDPL_HOME}/bin/scon $_srvname e  "rm $_dest_webapps_dir/${_warnewname}/ -rf 2>/dev/null; rm $_dest_webapps_dir/${_wardirname} -rf 2>/dev/null " 
             for ((i=1;i<=10;i++)); do sleep 1 ; echo -n . ; done ; echo
 	    echo "Upload $_upload to $_dest_webapps_dir/$_warnewname ..."
-	    /opt/ezdpl/bin/scon $_srvname up $_upload $_dest_webapps_dir/$_warnewname > /dev/null
+	    ${EZDPL_HOME}/bin/scon $_srvname up $_upload $_dest_webapps_dir/$_warnewname > /dev/null
 
 	fi
 	for ((i=1;i<=10;i++)); do sleep 1 ; echo -n . ; done ; echo
 	echo "Updated:"
-        /opt/ezdpl/bin/scon $_srvname e "ls -ltr $_dest_webapps_dir"
+        ${EZDPL_HOME}/bin/scon $_srvname e "ls -ltr $_dest_webapps_dir"
 	echo 
     done # servers
     echo "`date +%F_%T` ====================== $x"

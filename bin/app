@@ -1,4 +1,11 @@
 #!/bin/bash
+# Determine ezdpl home
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME : ${EZDPL_HOME}"
 
 #Main
 _hint="
@@ -11,10 +18,10 @@ _app_server=$2
 
 case $_op in 
 p)
-    /opt/ezdpl/bin/scon $_app_server e 'psj'
+    ${EZDPL_HOME}/bin/scon $_app_server e 'psj'
     ;;
 l)
-    /opt/ezdpl/bin/scon $_app_server e 'ls -lhtr --time-style=long-iso /opt/webs/*/webapps ;echo;mount|grep nfs4'
+    ${EZDPL_HOME}/bin/scon $_app_server e 'ls -lhtr --time-style=long-iso /opt/webs/*/webapps ;echo;mount|grep nfs4'
     ;;
 *)
     echo "$_hint"
