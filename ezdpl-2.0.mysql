@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.5.54, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.13  Distrib 5.6.30, for Linux (x86_64)
 --
 -- Host: localhost    Database: ezdpl
 -- ------------------------------------------------------
--- Server version	5.5.54-0ubuntu0.14.04.1
+-- Server version	5.6.30
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -27,23 +27,14 @@ CREATE TABLE `srv` (
   `ip` varchar(20) DEFAULT NULL,
   `ip_out` varchar(20) DEFAULT NULL,
   `name` varchar(20) DEFAULT NULL,
+  `user` varchar(20) DEFAULT NULL,
   `port` varchar(6) DEFAULT '22' COMMENT 'SSH port',
   `purpose` varchar(100) DEFAULT NULL,
   `isweb` char(1) DEFAULT 'N' COMMENT 'is web server',
   `lvs` char(1) DEFAULT 'N' COMMENT 'has lvs virtual ip',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `srv`
---
-
-LOCK TABLES `srv` WRITE;
-/*!40000 ALTER TABLE `srv` DISABLE KEYS */;
-INSERT INTO `srv` VALUES (1,'10.1.1.11',NULL,'app01','22','example','Y','N'),(2,'10.1.1.12',NULL,'app02','22','example','Y','N'),(3,'10.1.1.21',NULL,'app03','22','weixin','Y','N'),(4,'10.1.1.22',NULL,'app04','22','weixin','Y','N'),(5,'10.1.1.31',NULL,'app05','22','admin','Y','N'),(6,'10.1.1.32',NULL,'app06','22','admin','Y','N'),(7,'10.1.1.25',NULL,'app07','22','backup1','Y','N'),(8,'10.1.1.27',NULL,'app08','22','backup2','Y','N'),(9,'10.1.1.9',NULL,'deploy.example.com','223','deployment','N','N'),(10,'10.1.1.10',NULL,'testsrv.example.com','233','testing server','N','N');
-/*!40000 ALTER TABLE `srv` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `srvweb`
@@ -57,56 +48,46 @@ CREATE TABLE `srvweb` (
   `srv_id` int(11) DEFAULT NULL,
   `web_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `srvweb`
---
-
-LOCK TABLES `srvweb` WRITE;
-/*!40000 ALTER TABLE `srvweb` DISABLE KEYS */;
-INSERT INTO `srvweb` VALUES (1,1,1),(2,2,1),(3,3,2),(4,4,2),(5,5,3),(6,6,3);
-/*!40000 ALTER TABLE `srvweb` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Temporary table structure for view `v_srvwar`
+-- Temporary view structure for view `v_srvwar`
 --
 
 DROP TABLE IF EXISTS `v_srvwar`;
 /*!50001 DROP VIEW IF EXISTS `v_srvwar`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
-/*!50001 CREATE TABLE `v_srvwar` (
-  `srvname` tinyint NOT NULL,
-  `port` tinyint NOT NULL,
-  `webname` tinyint NOT NULL,
-  `webport` tinyint NOT NULL,
-  `warname` tinyint NOT NULL,
-  `warnewname` tinyint NOT NULL,
-  `wariswar` tinyint NOT NULL,
-  `needrestart` tinyint NOT NULL
-) ENGINE=MyISAM */;
+/*!50001 CREATE VIEW `v_srvwar` AS SELECT 
+ 1 AS `srvname`,
+ 1 AS `port`,
+ 1 AS `webname`,
+ 1 AS `webport`,
+ 1 AS `warname`,
+ 1 AS `warnewname`,
+ 1 AS `wariswar`,
+ 1 AS `needrestart`*/;
 SET character_set_client = @saved_cs_client;
 
 --
--- Temporary table structure for view `v_srvweb`
+-- Temporary view structure for view `v_srvweb`
 --
 
 DROP TABLE IF EXISTS `v_srvweb`;
 /*!50001 DROP VIEW IF EXISTS `v_srvweb`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
-/*!50001 CREATE TABLE `v_srvweb` (
-  `srvname` tinyint NOT NULL,
-  `port` tinyint NOT NULL,
-  `webname` tinyint NOT NULL,
-  `wars` tinyint NOT NULL,
-  `webpath` tinyint NOT NULL,
-  `targetpath` tinyint NOT NULL,
-  `webport` tinyint NOT NULL
-) ENGINE=MyISAM */;
+/*!50001 CREATE VIEW `v_srvweb` AS SELECT 
+ 1 AS `ipaddress`,
+ 1 AS `srvname`,
+ 1 AS `username`,
+ 1 AS `port`,
+ 1 AS `webname`,
+ 1 AS `wars`,
+ 1 AS `webpath`,
+ 1 AS `targetpath`,
+ 1 AS `webport`*/;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -124,18 +105,8 @@ CREATE TABLE `war` (
   `needrestart` char(1) DEFAULT 'N' COMMENT 'must restart when deploy',
   `web_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `war`
---
-
-LOCK TABLES `war` WRITE;
-/*!40000 ALTER TABLE `war` DISABLE KEYS */;
-INSERT INTO `war` VALUES (21,'portal','ROOT','Y','N',NULL),(22,'weixin','ROOT','Y','N',NULL),(23,'wxrestfull','interface','N','N',NULL),(24,'admin','admin','N','N',NULL);
-/*!40000 ALTER TABLE `war` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `warweb`
@@ -149,18 +120,8 @@ CREATE TABLE `warweb` (
   `war_id` int(11) DEFAULT NULL,
   `web_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `warweb`
---
-
-LOCK TABLES `warweb` WRITE;
-/*!40000 ALTER TABLE `warweb` DISABLE KEYS */;
-INSERT INTO `warweb` VALUES (1,21,1),(2,22,2),(3,23,2),(4,24,3);
-/*!40000 ALTER TABLE `warweb` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `web`
@@ -177,24 +138,13 @@ CREATE TABLE `web` (
   `targetpath` varchar(100) DEFAULT NULL COMMENT 'link target of webpath',
   `webport` varchar(6) DEFAULT NULL COMMENT 'TCP port',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `web`
---
-
-LOCK TABLES `web` WRITE;
-/*!40000 ALTER TABLE `web` DISABLE KEYS */;
-INSERT INTO `web` VALUES (1,'portal','portal','statics','/data/statics','8080'),(2,'weixin','weixin wxrestful','images','/data/images','8080'),(3,'admin','admin','download','/data/download','8080');
-/*!40000 ALTER TABLE `web` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Final view structure for view `v_srvwar`
 --
 
-/*!50001 DROP TABLE IF EXISTS `v_srvwar`*/;
 /*!50001 DROP VIEW IF EXISTS `v_srvwar`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
@@ -213,7 +163,6 @@ UNLOCK TABLES;
 -- Final view structure for view `v_srvweb`
 --
 
-/*!50001 DROP TABLE IF EXISTS `v_srvweb`*/;
 /*!50001 DROP VIEW IF EXISTS `v_srvweb`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
@@ -222,8 +171,8 @@ UNLOCK TABLES;
 /*!50001 SET character_set_results     = utf8 */;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `v_srvweb` AS select `s`.`name` AS `srvname`,`s`.`port` AS `port`,`w`.`name` AS `webname`,`w`.`wars` AS `wars`,`w`.`webpath` AS `webpath`,`w`.`targetpath` AS `targetpath`,`w`.`webport` AS `webport` from ((`srv` `s` join `srvweb` `sw` on((`s`.`id` = `sw`.`srv_id`))) join `web` `w` on((`w`.`id` = `sw`.`web_id`))) */;
+/*!50013 DEFINER=`root`@`::1` SQL SECURITY DEFINER */
+/*!50001 VIEW `v_srvweb` AS select `s`.`ip` AS `ipaddress`,`s`.`name` AS `srvname`,`s`.`user` AS `username`,`s`.`port` AS `port`,`w`.`name` AS `webname`,`w`.`wars` AS `wars`,`w`.`webpath` AS `webpath`,`w`.`targetpath` AS `targetpath`,`w`.`webport` AS `webport` from ((`srv` `s` join `srvweb` `sw` on((`s`.`id` = `sw`.`srv_id`))) join `web` `w` on((`w`.`id` = `sw`.`web_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -237,4 +186,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-03-22 15:47:54
+-- Dump completed on 2017-07-13 10:27:23

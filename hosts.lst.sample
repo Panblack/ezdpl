@@ -1,0 +1,6 @@
+#ip		#host	#user	#port	#purpose
+#192.168.0.1	systest	root	22	oper
+#192.168.0.2	syss1	root	22	slb
+#192.168.0.3	syss2	root	22	web
+#192.168.0.4	syss3	root	22	web
+#192.168.0.5	sysdb	root	22	db
