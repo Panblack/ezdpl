@@ -3,7 +3,7 @@
 # Requires: sqlezdpl, scon, JDK
 # For home-base-seperated tomcat deployment, or tomcats in /opt/webs/someWebName/<tomcat files & dirs>
 # webs, servers, wars info are stored in mysql DB 
-# Production config files are stored in ${EZDPL_HOME}/_config/
+# Production config files are stored in ${EZDPL_HOME}/_config_files/
 
 # Determine ezdpl home
 if [[ -z ${EZDPL_HOME} ]]; then
@@ -66,12 +66,12 @@ for x in ${array_wars[@]} ; do
 	_upload=${x}.war
 	_wardirname=${warnewname}
 	_warnewname=${warnewname}.war
-        /opt/jdk/bin/jar -uf ${x}.war -C ${EZDPL_HOME}/_config/${x}/ . 
+        /opt/jdk/bin/jar -uf ${x}.war -C ${EZDPL_HOME}/_config_files/${x}/ . 
     else
 	_upload=${x}
 	_wardirname=${warnewname}
 	${EZDPL_HOME}/bin/scon $_remote_server dp $_remote_path/${x} > /dev/null
-	/bin/cp -rp ${EZDPL_HOME}/_config/${x}/* $x/
+	/bin/cp -rp ${EZDPL_HOME}/_config_files/${x}/* $x/
     fi
     echo "backup ${_upload} to $_backup_path ..."
     /bin/cp -rp $_upload $_backup_path/
