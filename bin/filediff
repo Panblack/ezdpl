@@ -1,0 +1,10 @@
+#!/bin/bash
+# By panblack@126.com
+# Compare files in two dirs and show the different files, including the missing ones.
+_dir1=$1
+_dir2=$2
+
+for x in `find $_dir1/ -type f`; do 
+    y=${x//${_dir1}/${_dir2}}
+    echo "`md5sum $x 2>/dev/null` `md5sum $y 2>/dev/null`" |awk '{if ( $1 != $3 )  print "['$_dir1'] "$2"\t['$_dir2'] "$4}'
+done
