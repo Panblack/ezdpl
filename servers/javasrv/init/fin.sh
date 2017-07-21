@@ -70,9 +70,13 @@ ln -sf $_tomcat ./tomcat
 
 # Get nginx ready
 yum clean all
-yum install nginx -y
+yum install nginx python-pip -y
 chkconfig nginx on
 service start nginx
+pip install --upgrade pip
+pip install ngxtop
+
+# 
 
 # Install rpms
 cd /opt/packages
