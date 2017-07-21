@@ -2,6 +2,8 @@
 
 #class SendMail via http://www.oschina.net/code/snippet_221343_49994
 #A few modifications: Add Cc support ; print -> return string.
+# Sample:
+# ./pymail.py -f sender@example.com -t recv@somedomain1.com -c "ccrecv1@otherdomain1.com,ccrecv2@otherdomain2.com" -s smtp.somemailserver.com -u sender@example.com -p SendersPassword -S "hello test from pymail" -m "sent via cli" -F attached.file
 
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
