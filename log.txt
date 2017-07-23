@@ -6,3 +6,14 @@ OK!
 root@192.168.1.244:/tmp/fin.sh OK!
 Target Server: 192.168.1.244 done!
 
+
+2017-07-23_21:41:24 ./ezdpl Y 192.168.1.153:22 common/init N root
+root@192.168.1.153:/tmp/pre.sh OK!
+Start to copy ./servers/common/init/files/*  OK!
+root@192.168.1.153:/tmp/fin.sh exit code 130 . EXIT!!
+
+2017-07-23_21:50:52 ./ezdpl Y 192.168.1.153:22 mysql/init N root
+root@192.168.1.153:/tmp/pre.sh OK!
+Start to copy ./servers/mysql/init/files/*  OK!
+root@192.168.1.153:/tmp/fin.sh OK!
+Target Server: 192.168.1.153 done!
