@@ -4,7 +4,9 @@ if [[ -n $1 ]]; then
 else
     _ip=`ip a|grep "inet "|egrep -v ' 127.0.0.1| inet 10.| 172.1[6-9]| 172.2[0-9]| 172.3[0-1]| 192.168'|awk '{print $2}'|awk -F/ '{print $1}'`
     echo "External IP: $_ip "
+    echo "Ident.me: `curl -sL http://ident.me;echo`"
 fi
+echo 
 
 echo "Query ip138.com"
 if [[ -n $_ip ]]; then

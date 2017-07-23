@@ -7,7 +7,7 @@ if [[ ! -f /var/spool/cron/root ]]; then
     touch /var/spool/cron/root
 fi
 _cron="*/10 * * * * /usr/local/bin/ban_ssh.sh
-#*/10 * * * * /usr/sbin/ntpdate 0.cn.pool.ntp.org 1.cn.pool.ntp.org 2.cn.pool.ntp.org 3.cn.pool.ntp.org"
+#*/10 * * * * /usr/sbin/ntpdate ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com"
 sed -i /"ban_ssh"/d /var/spool/cron/root
 sed -i /"ntpdate"/d /var/spool/cron/root
 echo "$_cron" >> /var/spool/cron/root
@@ -23,6 +23,38 @@ if egrep "(mirrors.aliyuncs.com|mirrors.aliyun.com)" /etc/yum.repos.d/CentOS-Bas
     echo "exclude=kernel* centos-release*" >> /etc/yum.conf
 fi
 
+# install packages
+for x in `ps aux|egrep -i 'yum' |grep -v grep|awk '{print $2}'`; do
+    kill $x || kill -9 $x
+done
+yum clean all
+
+case $_RELEASE in
+    CENTOS6)
+        # timezone
+        /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+        # install epel
+        if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
+            rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+        fi
+        ;;
+    CENTOS7)
+        # timezone
+        timedatectl set-timezone Asia/Shanghai
+        # install epel
+        if ! grep enabled=1 /etc/yum.repos.d/epel* ;then
+            rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        fi
+        ;;
+    UBUNTU)
+        # timezone
+        /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+        ;;
+esac
+
+yum update -y
+yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop geoip htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter tcptraceroute python-pip && echo "Packages installed..."
+
 # vim auto indent(Hit <F9> for proper pasting)
 # q command replaced with :q
 # Q command replaced with :q!
@@ -34,16 +66,7 @@ nnoremap q :q
 nnoremap Q :q!
 "
 echo "$_vimrc" > /root/.vimrc
-
-# install packages
-for x in `ps aux|egrep -i 'yum.*install' |grep -v grep|awk '{print $2}'`; do
-    kill -9 $x
-done
-
-yum clean all
-yum install -y epel-release
-yum update -y
-yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop geoip htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter tcptraceroute python-pip && echo "Packages installed..."
+echo "$_vimrc" > /etc/skel/.vimrc
 
 # iftoprc
 _iftoprc="
@@ -59,13 +82,10 @@ show-totals: yes
 log-scale: yes
 "
 echo "$_iftoprc" > ~/.iftoprc
-
-# Update the entire file properties database 
-rkhunter --propupd
-echo
+echo "$_iftoprc" > /etc/skel/.iftoprc
 
 # python pip & tools
-echo "pip install memcached-cli, httpie"
+echo "pip install httpie"
 pip install --upgrade pip
 pip install memcached-cli httpie
 echo
@@ -78,5 +98,10 @@ fi
 # Install rpms
 cd /opt/packages
 yum localinstall *.rpm
+
+# Update the entire file properties database 
+echo "rkhunter --propupd ..."
+rkhunter --propupd
+echo
 
 echo "`date +%F_%T` common/init " >> /tmp/ezdpl.log
