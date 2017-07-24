@@ -1,63 +1,54 @@
 #!/bin/bash
-# Determine ezdpl home
+# get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
     cd $_dir && cd ..
     EZDPL_HOME=`pwd`
 fi
-echo "EZDPL_HOME : ${EZDPL_HOME}"
+echo "EZDPL_HOME=$EZDPL_HOME"
+echo
 
 set -u 
 _time_start=`date +%F_%T`
 echo $_time_start
-
-# Read servers
-if [[ -f ${EZDPL_HOME}/hosts.lst ]]; then
-    _servers=`egrep -v '(^#|^$)' ./hosts.lst`
-else
-    source ${EZDPL_HOME}/batch.where.sh
-    _SQL=" SELECT  ip , name , user , port , purpose FROM srv $_where "
-    _servers=`./bin/sqlezdpl "$_SQL" 2>/dev/null |egrep -v 'purpose'`
-fi
+#4.5.6.7	webs2	root	22      web
+_servers=`egrep -v '(^#|^$)' ${EZDPL_HOME}/hosts.lst`
+echo "$_servers"
+echo
 
 _mem_limit=80
 IFS=$'\n'
-echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDisk"
+echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDiskUsage"
 for x in $_servers;do
     	_centos6=""
 	_centos7=""
 	_os=""
-    	_ip=`  echo $x|awk '{print $1}'`
+    	_ip=`echo $x|awk '{print $1}'`
     	_host=`echo $x|awk '{print $2}'`
-    	_user=`echo $x|awk '{print $3}'`
+	_user=`echo $x|awk '{print $3}'`
     	_port=`echo $x|awk '{print $4}'`
-    	_purpose=`echo $x|awk '{print $5}'`
-
-	if [[ -z $_ip ]] || [[ -z $_port ]]; then
+	if [[ -z $_host ]] || [[ -z $_port ]]; then
+	    echo "Host/Port missing"
 	    continue
 	fi
-        [[ -z $_user ]] && _user=root
-
-	_raw_df=`ssh -p $_port $_user@$_ip "df -hTPl |egrep '(7.%|8.%|9.%|100%)'" 2>/dev/null`
-  	_str=`ssh -p $_port $_user@$_ip "\
-	cat /proc/cpuinfo|grep processor|wc -l ;\
+	_raw_df=`ssh $_user@$_ip -p $_port "df -hTPl |egrep '(4.%|5.%|6.%|7.%|8.%|9.%|100%)'" 2>/dev/null`
+  	_str=`ssh $_user@$_ip -p $_port "\
+	nproc ;\
 	echo '|' ;\
 	uptime|grep 'load average' ;\
 	echo '|' ;\
-	egrep ' 6\.' /etc/redhat-release ;\
+	egrep 'CentOS release 6\.' /etc/redhat-release ;\
 	echo '|' ;\
-	egrep ' 7\.' /etc/redhat-release ;\
+	egrep 'CentOS Linux release 7\.' /etc/redhat-release ;\
 	echo '|' ;\
       	free -tm |grep "Mem:" ;\
 	" 2>/dev/null`
-
 	#Extract data
 	_cpu_count=`echo $_str|awk -F'|' '{print $1}'`
 	_cpu_load=` echo $_str|awk -F'|' '{print $2}'|awk -F': ' '{print $2}'`
-	_centos6=`  echo $_str|awk -F'|' '{print $3}'`
-	_centos7=`  echo $_str|awk -F'|' '{print $4}'`
+	_centos6=`  echo $_str|awk -F'|' '{print $3}'|tr -d [:blank:]`
+	_centos7=`  echo $_str|awk -F'|' '{print $4}'|tr -d [:blank:]`
 	_mem_info=` echo $_str|awk -F'|' '{print $5}'`
-
 	_load_1=`echo $_cpu_load|awk -F', ' '{print $1}'`
 	_load_5=`echo $_cpu_load|awk -F', ' '{print $2}'`
 	_load_15=`echo $_cpu_load|awk -F', ' '{print $3}'`
@@ -85,8 +76,7 @@ for x in $_servers;do
 done
 _time_end=`date +%F_%T` 
 echo $_time_end
-exit 
-
+echo 
 #6
 # free -tm
 #1		2	  3	     4	      5	         6	    7
