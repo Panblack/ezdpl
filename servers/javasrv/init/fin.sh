@@ -1,4 +1,6 @@
 #!/bin/bash
+source /usr/local/bin/release.include
+echo $_RELEASE
 
 # Get dirs ready
 mkdir -p /opt/logs
@@ -8,7 +10,7 @@ mkdir -p /opt/webs
 # jdk and symbolic link
 cd /opt
 echo "Extracts jdk"
-for j in ./packages/jdk*.tar.gz ; do
+for j in /opt/packages/jdk*.tar.gz ; do
     tar zxf $j 
 done
 # Make the latest version default
@@ -19,7 +21,7 @@ ln -sf $_jdk ./jdk
 # Maven
 cd /opt
 echo "Extracts maven"
-for m in ./packages/apache-maven*.tar.gz ; do
+for m in /opt/packages/apache-maven*.tar.gz ; do
     tar zxf $m
 done
 # Make the latest version default
@@ -30,11 +32,11 @@ ln -sf $_maven ./maven
 # Configure tomcats app/webs
 cd /opt/app
 echo "Extracts tomcat*.zip"
-for tzip in ../packages/apache-tomcat-*.zip ; do
+for tzip in /opt/packages/apache-tomcat-*.zip ; do
     unzip -q $tzip
 done
 echo "Extracts tomcat*.tar.gz"
-for ttar in ../packages/apache-tomcat-*.tar.gz ; do
+for ttar in /opt/packages/apache-tomcat-*.tar.gz ; do
     tar zxf $ttar
 done
 
@@ -69,14 +71,20 @@ _tomcat=`find -type d -name "apache-tomcat-*"|sort -V|tail -1`
 ln -sf $_tomcat ./tomcat
 
 # Get nginx ready
+case $_RELEASE in
+    CENTOS6)
+        sed -i 's/X/6/g' /etc/yum.repos.d/nginx.repo
+        ;;
+    CENTOS7)
+        sed -i 's/X/7/g' /etc/yum.repos.d/nginx.repo
+        ;;
+esac
 yum clean all
 yum install nginx python-pip -y
 chkconfig nginx on
 service start nginx
 pip install --upgrade pip
 pip install ngxtop
-
-# 
 
 # Install rpms
 cd /opt/packages

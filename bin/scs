@@ -9,17 +9,9 @@
 #  192.168.1.22	c22	root	2222
 #  192.168.1.33	c33	root	222
 
-# get EZDPL_HOME
-_current_dir=`pwd`
-if [[ -z ${EZDPL_HOME} ]]; then
-    _dir=$(dirname `readlink -f $0`)
-    cd $_dir && cd ..
-    EZDPL_HOME=`pwd`
-fi
-echo "EZDPL_HOME=$EZDPL_HOME"
-echo
-
-_hosts_lst=`egrep -v '^ *#' ${EZDPL_HOME}/hosts.lst`
+_self=`readlink -f $0`
+_path=`dirname $_self`
+_hosts_lst=`egrep -v '^ *#' ${_path}/hosts.lst`
 if [[ -z $1 ]]; then
     echo "
 Usage:
@@ -37,10 +29,6 @@ $_hosts_lst
 "
     exit 0
 fi
-
-cd $_current_dir
-
-
 
 if echo $1|grep "@" > /dev/null; then
     _user=`echo $1|awk -F@ '{print $1}'`
@@ -67,17 +55,16 @@ _host_info_line_count=`echo "$_host_info"|wc -l`
 
 if [[ -n $_host_info ]]; then
     if [[ $_host_info_line_count = 1 ]]; then    
-    	_ip=`  echo "$_host_info" | grep $_host | awk '{print $1}'`
-    	_user=`echo "$_host_info" | grep $_host | awk '{print $3}'`
-    	_port=`echo "$_host_info" | grep $_host | awk '{print $4}'` 
-    	echo "$_user@$_ip:$_port"
+    	_ip=`  echo "$_host_info" | grep $_ip | awk '{print $1}'`
+    	_user=`echo "$_host_info" | grep $_ip | awk '{print $3}'`
+    	_port=`echo "$_host_info" | grep $_ip | awk '{print $4}'` 
     else
     	echo "$_ip is not unique is hosts.lst"
     	echo "$_host_info"
     	exit 1
     fi
 fi
-
+echo "[$_user@$_ip:$_port]"
 case $2 in 
     u)
         scp -P $_port -p  $3 ${_user}@${_ip}:${_dest}
