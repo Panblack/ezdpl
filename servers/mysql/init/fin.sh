@@ -33,10 +33,8 @@ case $_RELEASE in
 	;;
     UBUNTU)
 	sudo dpkg -i https://repo.mysql.com/mysql-apt-config_0.8.7-1_all.deb
-	#if [[ -f /etc/apt/sources.list.d/mysql.list ]]; then
-	#fi
+	if [[ -f /etc/apt/sources.list.d/mysql.list ]]; then
+	    echo ""
+	fi
 	;;
 esac
-
-#echo "Logon to remote server, run : sh /tmp/mysql.sh"
-#exit 0

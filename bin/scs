@@ -12,10 +12,9 @@
 _self=`readlink -f $0`
 _path=`dirname $_self`
 _hosts_lst=`egrep -v '^ *#' ${_path}/hosts.lst`
-if [[ -z $1 ]]; then
-    echo "
+_usage="
 Usage:
-scs [user@]<hostname>[:port] 
+scs [user@]<hostname>[:port] 						SSH login
 scs [user@]<hostname>[:port] e  'command'
 scs [user@]<hostname>[:port] d  'remote_src_file' 'local_dst_path' 	Download file(s)
 scs [user@]<hostname>[:port] dp 'remote_src_path' 'local_dst_path' 	Download dir(s)
@@ -27,6 +26,9 @@ If 'local_dst_path' is omitted, ' . ' will apply.
 Hosts & ports:
 $_hosts_lst
 "
+
+if [[ -z $1 ]]; then
+    echo "$_usage"
     exit 0
 fi
 
@@ -34,7 +36,6 @@ if echo $1|grep "@" > /dev/null; then
     _user=`echo $1|awk -F@ '{print $1}'`
     _host=`echo $1|awk -F@ '{print $2}'`
 else
-    _user="root"
     _host=$1
 fi
 if echo $_host|grep ":" > /dev/null; then
@@ -42,7 +43,6 @@ if echo $_host|grep ":" > /dev/null; then
     _port=`echo $_host|awk -F: '{print $2}'`
 else
     _ip=$_host
-    _port=22
 fi
 if [[ -n $4 ]]; then
     _dest=$4
@@ -52,18 +52,23 @@ fi
 
 _host_info=`echo "$_hosts_lst" | grep -w $_ip`
 _host_info_line_count=`echo "$_host_info"|wc -l`
-
 if [[ -n $_host_info ]]; then
     if [[ $_host_info_line_count = 1 ]]; then    
-    	_ip=`  echo "$_host_info" | grep $_ip | awk '{print $1}'`
-    	_user=`echo "$_host_info" | grep $_ip | awk '{print $3}'`
-    	_port=`echo "$_host_info" | grep $_ip | awk '{print $4}'` 
+    	_user_lst=`echo "$_host_info" | grep $_ip | awk '{print $3}'`
+    	_port_lst=`echo "$_host_info" | grep $_ip | awk '{print $4}'` 
     else
     	echo "$_ip is not unique is hosts.lst"
     	echo "$_host_info"
     	exit 1
     fi
 fi
+if [[ -z $_user ]]; then
+    _user=$_user_lst
+fi
+if [[ -z $_port ]]; then
+    _port=$_port_lst
+fi
+
 echo "[$_user@$_ip:$_port]"
 case $2 in 
     u)
