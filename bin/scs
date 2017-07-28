@@ -36,6 +36,7 @@ if echo $1|grep "@" > /dev/null; then
     _user=`echo $1|awk -F@ '{print $1}'`
     _host=`echo $1|awk -F@ '{print $2}'`
 else
+    _user_1="root"
     _host=$1
 fi
 if echo $_host|grep ":" > /dev/null; then
@@ -43,6 +44,7 @@ if echo $_host|grep ":" > /dev/null; then
     _port=`echo $_host|awk -F: '{print $2}'`
 else
     _ip=$_host
+    _port_1="22"
 fi
 if [[ -n $4 ]]; then
     _dest=$4
@@ -61,6 +63,10 @@ if [[ -n $_host_info ]]; then
     	echo "$_host_info"
     	exit 1
     fi
+else
+    echo "$_host not in hosts.lst."
+    _user=$_user_1
+    _port=$_port_1
 fi
 if [[ -z $_user ]]; then
     _user=$_user_lst
