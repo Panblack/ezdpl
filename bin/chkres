@@ -53,8 +53,6 @@ for x in $_servers;do
 	    _mem_buffers=`echo $_mem_info |awk '{print $6}'`
 	    _mem_cached=` echo $_mem_info |awk '{print $7}'` 
 	    _mem_used=`echo "$_mem_used_raw - $_mem_buffers - $_mem_cached"|bc`
-	    echo
-	    echo "total _mem_total $_mem_total  , used_raw $_mem_used_raw , used $_mem_used , buffer $_mem_buffers , cached $_mem_cached "
 	elif [[ -n $_centos7 ]]; then
 	    _os=c7
 	    _mem_used=$_mem_used_raw
