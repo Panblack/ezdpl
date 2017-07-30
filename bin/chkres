@@ -1,54 +1,47 @@
 #!/bin/bash
-# get EZDPL_HOME
-if [[ -z ${EZDPL_HOME} ]]; then
-    _dir=$(dirname `readlink -f $0`)
-    cd $_dir && cd ..
-    EZDPL_HOME=`pwd`
-fi
-echo "EZDPL_HOME=$EZDPL_HOME"
-echo
-
+_target=$1
 set -u 
 _time_start=`date +%F_%T`
 echo $_time_start
-#4.5.6.7	webs2	root	22      web
-_servers=`egrep -v '(^#|^$)' ${EZDPL_HOME}/hosts.lst`
-echo "$_servers"
-echo
-
+if [[ -n $_target ]]; then
+	_servers="$_target"
+else
+	_where=" WHERE name<>'huxijia'"
+	_servers=`/data/oper/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv $_where" | egrep -v 'name.*port' `
+fi
 _mem_limit=80
 IFS=$'\n'
-echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDiskUsage"
+echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMem%\tDisk"
 for x in $_servers;do
     	_centos6=""
 	_centos7=""
 	_os=""
-    	_ip=`echo $x|awk '{print $1}'`
-    	_host=`echo $x|awk '{print $2}'`
-	_user=`echo $x|awk '{print $3}'`
-    	_port=`echo $x|awk '{print $4}'`
+    	_host=`echo $x|awk '{print $1}'`
+    	_port=`echo $x|awk '{print $2}'`
 	if [[ -z $_host ]] || [[ -z $_port ]]; then
 	    echo "Host/Port missing"
 	    continue
 	fi
-	_raw_df=`ssh $_user@$_ip -p $_port "df -hTPl |egrep '(4.%|5.%|6.%|7.%|8.%|9.%|100%)'" 2>/dev/null`
-  	_str=`ssh $_user@$_ip -p $_port "\
+	_raw_df=`ssh root@$_host -p $_port "df -hTPl |egrep '(7.%|8.%|9.%|100%)'" 2>/dev/null`
+  	_str=`ssh root@$_host -p $_port "\
 	nproc ;\
 	echo '|' ;\
 	uptime|grep 'load average' ;\
 	echo '|' ;\
-	egrep 'CentOS release 6\.' /etc/redhat-release ;\
+	egrep ' 6\.' /etc/redhat-release ;\
 	echo '|' ;\
-	egrep 'CentOS Linux release 7\.' /etc/redhat-release ;\
+	egrep ' 7\.' /etc/redhat-release ;\
 	echo '|' ;\
       	free -tm |grep "Mem:" ;\
 	" 2>/dev/null`
+
 	#Extract data
 	_cpu_count=`echo $_str|awk -F'|' '{print $1}'`
 	_cpu_load=` echo $_str|awk -F'|' '{print $2}'|awk -F': ' '{print $2}'`
-	_centos6=`  echo $_str|awk -F'|' '{print $3}'|tr -d [:blank:]`
-	_centos7=`  echo $_str|awk -F'|' '{print $4}'|tr -d [:blank:]`
+	_centos6=`  echo $_str|awk -F'|' '{print $3}'`
+	_centos7=`  echo $_str|awk -F'|' '{print $4}'`
 	_mem_info=` echo $_str|awk -F'|' '{print $5}'`
+
 	_load_1=`echo $_cpu_load|awk -F', ' '{print $1}'`
 	_load_5=`echo $_cpu_load|awk -F', ' '{print $2}'`
 	_load_15=`echo $_cpu_load|awk -F', ' '{print $3}'`
@@ -60,11 +53,13 @@ for x in $_servers;do
 	    _mem_buffers=`echo $_mem_info |awk '{print $6}'`
 	    _mem_cached=` echo $_mem_info |awk '{print $7}'` 
 	    _mem_used=`echo "$_mem_used_raw - $_mem_buffers - $_mem_cached"|bc`
+	    echo
+	    echo "total _mem_total $_mem_total  , used_raw $_mem_used_raw , used $_mem_used , buffer $_mem_buffers , cached $_mem_cached "
 	elif [[ -n $_centos7 ]]; then
 	    _os=c7
 	    _mem_used=$_mem_used_raw
 	fi
-	_mem_percent=`echo "scale=2;ibase=10;obase=10;$_mem_used/$_mem_total*100"|bc|tr -d .00`
+	_mem_percent=`echo "scale=2;ibase=10;obase=10;$_mem_used/$_mem_total*100"|bc|sed 's/\.00//g'`
 
 	if [[ $_mem_percent -gt $_mem_limit ]]; then
 	    _mem_percent="\033[31m$_mem_percent\033[0m"
@@ -73,10 +68,18 @@ for x in $_servers;do
 	_df=`echo "$_raw_df"|awk '{print $7" "$6"  "}'|tr -d ['\n']`
 	echo -e "${_host}\t${_os}\t${_cpu_count}\t${_cpu_load}\t${_mem_total}\t${_mem_percent}%\t${_df}"
 
+	if [[ -n $_target ]]; then
+	    echo
+	    echo "RAW:"
+	    echo "$_str"
+	    echo "$_raw_df"
+	    echo
+	fi
+
 done
 _time_end=`date +%F_%T` 
 echo $_time_end
-echo 
+
 #6
 # free -tm
 #1		2	  3	     4	      5	         6	    7
