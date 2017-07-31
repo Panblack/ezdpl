@@ -1,11 +1,10 @@
 #!/bin/bash
-# Determine ezdpl home
+# get EZDPL_HOME(Warning: not the same as scripts in bin/)
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    cd $_dir
-    EZDPL_HOME=`pwd`
+    EZDPL_HOME=$_dir
 fi
-echo "EZDPL_HOME : ${EZDPL_HOME}"
+echo "EZDPL_HOME=$EZDPL_HOME"
 
 # Read servers
 if [[ -f ${EZDPL_HOME}/hosts.lst ]]; then

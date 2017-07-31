@@ -5,13 +5,12 @@
 # webs, servers, wars info are stored in mysql DB 
 # Production config files are stored in ${EZDPL_HOME}/_config_files/
 
-# Determine ezdpl home
+# get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    cd $_dir && cd ..
-    EZDPL_HOME=`pwd`
+    EZDPL_HOME=`echo $_dir|sed 's/\/bin$//g'`
 fi
-echo "EZDPL_HOME : ${EZDPL_HOME}"
+echo "EZDPL_HOME=$EZDPL_HOME"
 
 if [[ -z $1 ]] ; then
    echo -e "Usage: deployWeb <'war1 war2 ...'> <RemoteServer>"

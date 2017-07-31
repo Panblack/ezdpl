@@ -2,13 +2,12 @@
 # Monitoring all server resources, by panblack@126.com
 # Requires: sqlezdpl, sendmail service
 
-# Determine ezdpl home
+# get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    cd $_dir && cd ..
-    EZDPL_HOME=`pwd`
+    EZDPL_HOME=`echo $_dir|sed 's/\/bin$//g'`
 fi
-echo "EZDPL_HOME : ${EZDPL_HOME}"
+echo "EZDPL_HOME=$EZDPL_HOME"
 
 set -u
 _mail_recever="receive@example.com"

@@ -3,13 +3,12 @@
 # Requires: deployWeb scon 
 # Need to be configured as a cron job: */1 * * * * 
 
-# Determine ezdpl home
+# get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    cd $_dir && cd ..
-    EZDPL_HOME=`pwd`
+    EZDPL_HOME=`echo $_dir|sed 's/\/bin$//g'`
 fi
-echo "EZDPL_HOME : ${EZDPL_HOME}"
+echo "EZDPL_HOME=$EZDPL_HOME"
 
 fun_restore() {
   # restore remote server's config file 

@@ -10,11 +10,9 @@
 #  192.168.1.33	c33	root	222
 
 # get EZDPL_HOME
-_current_dir=`pwd`
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    cd $_dir && cd ..
-    EZDPL_HOME=`pwd`
+    EZDPL_HOME=`echo $_dir|sed 's/\/bin$//g'`
 fi
 echo "EZDPL_HOME=$EZDPL_HOME"
 

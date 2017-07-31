@@ -16,13 +16,12 @@
 #2017-01-14      app07   31      1961    83      43
 #2017-01-14      app08   33      597     37      40
 
-# Determine ezdpl home
+# get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    cd $_dir && cd ..
-    EZDPL_HOME=`pwd`
+    EZDPL_HOME=`echo $_dir|sed 's/\/bin$//g'`
 fi
-echo "EZDPL_HOME : ${EZDPL_HOME}"
+echo "EZDPL_HOME=$EZDPL_HOME"
 
 if [[ -n $1 ]]; then
     # Date format: yyyy-mm-dd
