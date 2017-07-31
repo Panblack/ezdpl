@@ -2,16 +2,23 @@
 # SSH login, remotely execute commands, upload or download files/dirs, by panblack@126.com
 # Requires no MySQL db, unlike script 'scon'
 # username, host/ip address and port can be explicitly specified as 'Usage' describes.
-# Can read hosts.lst file in the same dir for predefined IP's, usernames, hostnames and ssh ports. Best for a lazy sysadmin like me ;)
+# Can read hosts.lst file in EZDPL_HOME for predefined IP's, usernames, hostnames and ssh ports. Best for a lazy sysadmin like me ;)
 # Sample hosts.lst
 #  #ip address	#host	#user	#port
 #  192.168.1.11	c11	root	22
 #  192.168.1.22	c22	root	2222
 #  192.168.1.33	c33	root	222
 
-_self=`readlink -f $0`
-_path=`dirname $_self`
-_hosts_lst=`egrep -v '^ *#' ${_path}/hosts.lst`
+# get EZDPL_HOME
+_current_dir=`pwd`
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME=$EZDPL_HOME"
+
+_hosts_lst=`egrep -v '^ *#' ${EZDPL_HOME}/hosts.lst`
 _usage="
 Usage:
 scs [user@]<hostname>[:port] 						SSH login
@@ -36,7 +43,6 @@ if echo $1|grep "@" > /dev/null; then
     _user=`echo $1|awk -F@ '{print $1}'`
     _host=`echo $1|awk -F@ '{print $2}'`
 else
-    _user_1="root"
     _host=$1
 fi
 if echo $_host|grep ":" > /dev/null; then
@@ -44,7 +50,6 @@ if echo $_host|grep ":" > /dev/null; then
     _port=`echo $_host|awk -F: '{print $2}'`
 else
     _ip=$_host
-    _port_1="22"
 fi
 if [[ -n $4 ]]; then
     _dest=$4
@@ -52,27 +57,24 @@ else
     _dest="."
 fi
 
-_host_info=`echo "$_hosts_lst" | grep -w $_ip`
-_host_info_line_count=`echo "$_host_info"|wc -l`
-if [[ -n $_host_info ]]; then
-    if [[ $_host_info_line_count = 1 ]]; then    
-    	_user_lst=`echo "$_host_info" | grep $_ip | awk '{print $3}'`
-    	_port_lst=`echo "$_host_info" | grep $_ip | awk '{print $4}'` 
+# if _user & _port not given, find in hosts.lst
+if [[ -z $_user ]] && [[ -z $_port ]]; then
+    # host in hosts.lst should be uniq!
+    _host_info=`echo "$_hosts_lst" | grep -w $_ip | head -1`
+    if [[ -n $_host_info ]]; then
+        _user=`echo "$_host_info" | grep $_ip | awk '{print $3}'`
+        _port=`echo "$_host_info" | grep $_ip | awk '{print $4}'` 
     else
-    	echo "$_ip is not unique is hosts.lst"
-    	echo "$_host_info"
-    	exit 1
+        echo "$_host not in ${EZDPL_HOME}/hosts.lst"
     fi
-else
-    echo "$_host not in hosts.lst."
-    _user=$_user_1
-    _port=$_port_1
 fi
-if [[ -z $_user ]]; then
-    _user=$_user_lst
+
+# if _user & _port not given and _host/_ip not in hosts.lst, set default _user & _port
+if [[ -z $_user ]]; then 
+    _user="root"
 fi
 if [[ -z $_port ]]; then
-    _port=$_port_lst
+    _port="22"
 fi
 
 echo "[$_user@$_ip:$_port]"

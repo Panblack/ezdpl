@@ -1,47 +1,69 @@
 #!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
+fi
+echo "EZDPL_HOME=$EZDPL_HOME"
+echo
+
 _target=$1
 set -u 
 _time_start=`date +%F_%T`
 echo $_time_start
+
 if [[ -n $_target ]]; then
-	_servers="$_target"
+    # _target='x.x.x.x web-02 root 22'
+    _servers=$_target
+elif [[ -f ${EZDPL_HOME}/hosts.lst ]]; then
+    _servers=`egrep -v '(^ *#|^$)' ./hosts.lst`
 else
-	_where=" WHERE name<>'huxijia'"
-	_servers=`/data/oper/ezdpl/bin/sqlezdpl "SELECT name , port FROM srv $_where" | egrep -v 'name.*port' `
+    # mysql/sqlite version
+    _where=" "
+    _servers=`${EZDPL_HOME}/bin/sqlezdpl "SELECT ip , name , user, port FROM srv $_where" | egrep -v 'name.*port' `
 fi
-_mem_limit=80
+
+echo "$_servers"
+echo
+
 IFS=$'\n'
-echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMem%\tDisk"
+_mem_limit=80
+echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDiskUsage"
 for x in $_servers;do
     	_centos6=""
 	_centos7=""
 	_os=""
-    	_host=`echo $x|awk '{print $1}'`
-    	_port=`echo $x|awk '{print $2}'`
+    	_ip=`echo $x|awk '{print $1}'`
+    	_host=`echo $x|awk '{print $2}'`
+	_user=`echo $x|awk '{print $3}'`
+    	_port=`echo $x|awk '{print $4}'`
 	if [[ -z $_host ]] || [[ -z $_port ]]; then
 	    echo "Host/Port missing"
 	    continue
 	fi
-	_raw_df=`ssh root@$_host -p $_port "df -hTPl |egrep '(7.%|8.%|9.%|100%)'" 2>/dev/null`
-  	_str=`ssh root@$_host -p $_port "\
+	_raw_df=`ssh $_user@$_ip -p $_port "df -hTPl |egrep '(5.%|6.%|7.%|8.%|9.%|100%)'" 2>/dev/null`
+  	_str=`ssh $_user@$_ip -p $_port "\
 	nproc ;\
 	echo '|' ;\
 	uptime|grep 'load average' ;\
 	echo '|' ;\
-	egrep ' 6\.' /etc/redhat-release ;\
+	egrep 'CentOS release 6\.' /etc/redhat-release ;\
 	echo '|' ;\
-	egrep ' 7\.' /etc/redhat-release ;\
+	egrep 'CentOS Linux release 7\.' /etc/redhat-release ;\
 	echo '|' ;\
       	free -tm |grep "Mem:" ;\
 	" 2>/dev/null`
-
+	if [[ $? != 0 ]]; then
+	    echo "$_host($_ip) unreachable."
+	    continue
+	fi
 	#Extract data
 	_cpu_count=`echo $_str|awk -F'|' '{print $1}'`
 	_cpu_load=` echo $_str|awk -F'|' '{print $2}'|awk -F': ' '{print $2}'`
-	_centos6=`  echo $_str|awk -F'|' '{print $3}'`
-	_centos7=`  echo $_str|awk -F'|' '{print $4}'`
+	_centos6=`  echo $_str|awk -F'|' '{print $3}'|tr -d [:blank:]`
+	_centos7=`  echo $_str|awk -F'|' '{print $4}'|tr -d [:blank:]`
 	_mem_info=` echo $_str|awk -F'|' '{print $5}'`
-
 	_load_1=`echo $_cpu_load|awk -F', ' '{print $1}'`
 	_load_5=`echo $_cpu_load|awk -F', ' '{print $2}'`
 	_load_15=`echo $_cpu_load|awk -F', ' '{print $3}'`
@@ -57,7 +79,7 @@ for x in $_servers;do
 	    _os=c7
 	    _mem_used=$_mem_used_raw
 	fi
-	_mem_percent=`echo "scale=2;ibase=10;obase=10;$_mem_used/$_mem_total*100"|bc|sed 's/\.00//g'`
+	_mem_percent=`echo "scale=2;ibase=10;obase=10;$_mem_used/$_mem_total*100"|bc|sed 's/.00//g'`
 
 	if [[ $_mem_percent -gt $_mem_limit ]]; then
 	    _mem_percent="\033[31m$_mem_percent\033[0m"
@@ -66,18 +88,10 @@ for x in $_servers;do
 	_df=`echo "$_raw_df"|awk '{print $7" "$6"  "}'|tr -d ['\n']`
 	echo -e "${_host}\t${_os}\t${_cpu_count}\t${_cpu_load}\t${_mem_total}\t${_mem_percent}%\t${_df}"
 
-	if [[ -n $_target ]]; then
-	    echo
-	    echo "RAW:"
-	    echo "$_str"
-	    echo "$_raw_df"
-	    echo
-	fi
-
 done
 _time_end=`date +%F_%T` 
 echo $_time_end
-
+echo 
 #6
 # free -tm
 #1		2	  3	     4	      5	         6	    7
