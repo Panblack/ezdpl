@@ -60,6 +60,7 @@ if [[ -z $_user ]] && [[ -z $_port ]]; then
     # host in hosts.lst should be uniq!
     _host_info=`echo "$_hosts_lst" | grep -w $_ip | head -1`
     if [[ -n $_host_info ]]; then
+	_ip=`echo "$_host_info" | grep $_ip | awk '{print $1}'`
         _user=`echo "$_host_info" | grep $_ip | awk '{print $3}'`
         _port=`echo "$_host_info" | grep $_ip | awk '{print $4}'` 
     else
