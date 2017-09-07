@@ -7,7 +7,7 @@ if [[ ! -f /var/spool/cron/root ]]; then
     touch /var/spool/cron/root
 fi
 _cron="*/10 * * * * /usr/local/bin/ban_ssh.sh
-#*/10 * * * * /usr/sbin/ntpdate ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com"
+*/10 * * * * /usr/sbin/ntpdate ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com"
 sed -i /"ban_ssh"/d /var/spool/cron/root
 sed -i /"ntpdate"/d /var/spool/cron/root
 echo "$_cron" >> /var/spool/cron/root
@@ -87,7 +87,7 @@ echo "$_iftoprc" > /etc/skel/.iftoprc
 # python pip & tools
 echo "pip install httpie"
 pip install --upgrade pip
-pip install memcached-cli httpie
+#pip install memcached-cli httpie
 echo
 
 if [[ -f /usr/sbin/iptraf-ng ]] ; then 
