@@ -1,0 +1,6 @@
+TYPE=Ethernet
+NAME=enp2s0
+BRIDGE=br0
+UUID=6dd9e78e-c53c-4120-ad55-6d68200beed5
+DEVICE=enp2s0
+ONBOOT=yes
