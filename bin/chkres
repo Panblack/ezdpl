@@ -2,9 +2,11 @@
 # get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    EZDPL_HOME=`echo $_dir|sed 's/\/bin$//g'`
+    cd $_dir && cd ..
+    EZDPL_HOME=`pwd`
 fi
 echo "EZDPL_HOME=$EZDPL_HOME"
+echo
 
 _target=$1
 set -u 
@@ -22,10 +24,10 @@ else
     _servers=`${EZDPL_HOME}/bin/sqlezdpl "SELECT ip , name , user, port FROM srv $_where" | egrep -v 'name.*port' `
 fi
 
-echo "$_servers"
-echo
+#echo "$_servers"
 
 IFS=$'\n'
+echo "Server Resource:"
 _mem_limit=80
 echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDiskUsage"
 for x in $_servers;do
@@ -87,9 +89,46 @@ for x in $_servers;do
 	echo -e "${_host}\t${_os}\t${_cpu_count}\t${_cpu_load}\t${_mem_total}\t${_mem_percent}%\t${_df}"
 
 done
+
+echo "Server Ports"
+echo -e "Host(Ip Address)\t80\t8000\t8080\t8888\t9000\t11211\t6379\t27017\t3306\t61616\t5672"
+for x in $_servers;do
+        _centos6=""
+        _centos7=""
+        _os=""
+        _ip=`echo $x|awk '{print $1}'`
+        _host=`echo $x|awk '{print $2}'`
+        _user=`echo $x|awk '{print $3}'`
+        _port=`echo $x|awk '{print $4}'`
+        if [[ -z $_host ]] || [[ -z $_port ]]; then
+            echo "Host/Port missing"
+            continue
+        fi
+	_ports_info=`ssh $_user@$_ip -p $_port "ss -lnt"`
+	#echo "$_ports_info"
+	echo -en "$_host($_ip)\t"
+	for y in 80 8000 8080 8888 9000 11211 6379 27017 3306 61616 5672;do 
+	    if echo "$_ports_info"|egrep ":$y " &>/dev/null;then
+		echo -en "OK\t"
+	    else
+		echo -en "-\t"
+	    fi
+	done
+	echo
+done
 _time_end=`date +%F_%T` 
 echo $_time_end
 echo 
+
+# Sample
+# Server Resource:
+# Host	OS	CPUs	CPU_load	MemTotal	MemUsed%	DiskUsage
+# c20	c7	4 	0.00, 0.01, 0.05 	7856	32%	   
+# Server Ports
+# Host(Ip Address)	80	8000	8080	8888	9000	11211	6379	27017	3306	61616	5672
+# c20(172.16.33.20)	OK	OK	OK	OK	-	-	OK	-	OK	-	-	
+
+#free format
 #6
 # free -tm
 #1		2	  3	     4	      5	         6	    7
@@ -98,7 +137,6 @@ echo
 #-/+ buffers/cache:      10106       5781
 #Swap:          991        773        218
 #Total:       16880      16569        310
-
 
 #7
 # free -tm
