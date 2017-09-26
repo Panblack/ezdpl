@@ -76,7 +76,7 @@ if [[ -z $_port ]]; then
     _port="22"
 fi
 
-echo "[$_user@$_ip:$_port]"
+echo "[$_host $_user@$_ip:$_port]"
 case $2 in 
     u)
         scp -P $_port -p  $3 ${_user}@${_ip}:${_dest}
