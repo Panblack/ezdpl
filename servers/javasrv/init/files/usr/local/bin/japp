@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# Functions
+funJavaPs() {
+    ps aux|grep -v grep|grep "${_APP_PATH}/${_app_name}/${_app_name}\.jar"
+}
+
+# Main
 source /usr/local/bin/japp.include
 _app_name=$1
 _oper=$2
@@ -14,13 +21,11 @@ fi
 if [[ -z $_LOG_PATH ]]; then
     _LOG_PATH=`pwd`
 fi
-if [[ -z $_JAVA_OPTS ]]; then
-    _JAVA_OPTS=""
-fi
 if [[ -z $_app_name ]];then
-    echo -e "Usage: japp <appName> [u|s] \nu\tstartup(default)\ns\tshutdown"
-    echo -e "appNames in $_APP_PATH :"
-    cd $_APP_PATH && ls -1 *.jar|sed 's/\.jar//g'
+    echo -e "Usage: japp <appName> [u|s] \nu\tstartup(default)\ns\tshutdown\nl\troll log"
+    echo -e "Log dir ${_LOG_PATH}/${_app_name}" 
+    echo -e "App dir $_APP_PATH has following apps:"
+    cd ${_APP_PATH} && for x in *; do if [[ -d $x ]]; then echo $x;fi; done 
     echo
     exit 1
 fi
@@ -28,15 +33,17 @@ if [[ -z $_oper ]]; then
     _oper=u
 fi
 
-if [[ ! -f ${_APP_PATH}/${_app_name}.jar ]]; then
+if [[ ! -f ${_APP_PATH}/${_app_name}/${_app_name}.jar ]]; then
     echo "$_app_name not found!"
     exit 1
 fi
 
 set -u
 cd $_APP_PATH
-_log_file="${_LOG_PATH}/${_app_name}.out"
-_app_pid=`ps aux|grep java|egrep "/${_app_name}\.jar" | awk '{print $2}'`
+_log_file="${_LOG_PATH}/${_app_name}/${_app_name}.out"
+_app_pid=`funJavaPs | awk '{print $2}'`
+_JAVA_OPTS=`cat ${_APP_PATH}/${_app_name}/java_opts`
+#_JAVA_OPTS="-Djava.ext.dirs=$JRE_HOME/lib/ext:/opt/javaapp/a/lib"
 
 case $_oper in 
 s)
@@ -46,7 +53,7 @@ s)
   else
     kill $_app_pid
     for ((i=1;i<=$_MAX_WAIT;i++)) ; do
-	if ps aux|grep java|grep $_app_name; then
+	if funJavaPs; then
 	    echo -n . ; sleep 1
 	else
       	    echo "$_app_name shutdown OK."
@@ -59,14 +66,17 @@ s)
           echo "$_app_name force kill OK."
         else
           echo "Force kill failed."
-	  exit 1
         fi
     fi
     mv $_log_file $_log_file.`date +%F_%H%M`
   fi
   ;;
 
-*)
+l) 
+  tail -f $_log_file
+  ;;
+
+u|*)
   if [[ -n $_app_pid ]];then
     echo "$_app_name already started."
     echo 
@@ -74,11 +84,11 @@ s)
     echo > $_log_file  
     for ((i=1;i<=$_MAX_TRY;i++));do 
 	echo -en "\ntrying "
-        nohup java $_JAVA_OPTS -jar ${_APP_PATH}/${_app_name}.jar &>>$_log_file &
+        nohup java $_JAVA_OPTS -jar ${_APP_PATH}/${_app_name}/${_app_name}.jar &>>$_log_file &
 	for ((j=1;j<=$_MAX_WAIT;j++));do 
 	    echo -n "." ; sleep 1
 	done
-	if ps aux|egrep "/${_app_name}\.jar"|grep -v grep ; then
+	if funJavaPs ; then
 	    break
 	fi
 	echo
