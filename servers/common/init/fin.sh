@@ -13,15 +13,24 @@ sed -i /"ntpdate"/d /var/spool/cron/root
 echo "$_cron" >> /var/spool/cron/root
 chmod 600 /var/spool/cron/root
 
-#selinux
+# selinux
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
+
+# stop and disable firewalld
+systemctl stop firewalld
+systemctl disable firewalld
+
+# sshd port 2222, UseDNS no
+sed -i 's/^#Port 22/Port 2222/g' /etc/ssh/sshd_config
+sed -i 's/^#UseDNS yes/UseDNS no/g' /etc/ssh/sshd_config
 
 # history record
 _LOGOUT_HISTORY="mkdir -p ~/.history ; history &>> ~/.history/.history.\`whoami\`.\`date +%F_%H%M\`.log"
 sed -i '/history/d' ~/.bash_logout
+sed -i '/history/d' /etc/skel/.bash_logout
 echo "$_LOGOUT_HISTORY" >> ~/.bash_logout
-echo "$_LOGOUT_HISTORY" >> /etc/skel/
+echo "$_LOGOUT_HISTORY" >> /etc/skel/.bash_logout
 
 # aliyun (exclude kernel centos-release when `yum update`) 
 if egrep "(mirrors.aliyuncs.com|mirrors.aliyun.com|mirrors.cloud.aliyuncs.com|mirrors.cloud.aliyun.com)" /etc/yum.repos.d/CentOS-Base.repo &>/dev/null ; then
@@ -110,4 +119,5 @@ echo "rkhunter --propupd ..."
 rkhunter --propupd
 echo
 
+service sshd restart
 echo "`date +%F_%T` common/init " >> /tmp/ezdpl.log
