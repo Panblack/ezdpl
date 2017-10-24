@@ -2,7 +2,7 @@
 # jetty managing script, ver 0.1
 if [[ -z $1 ]]; then
     echo "Usage: In a jetty dir, Run"
-    echo "jetty [-d] {start|stop|run|restart|check|supervise} [ CONFIGS ... ]"
+    echo "jetty {start|stop|run|restart|check|supervise} [ CONFIGS ... ]"
     exit 0
 fi
 if [[ -f ./start.jar ]] && [[ -f ./bin/jetty.sh ]] && ls ./lib/jetty-* &>/dev/null; then 
