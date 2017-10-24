@@ -17,6 +17,12 @@ chmod 600 /var/spool/cron/root
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
+# history record
+_LOGOUT_HISTORY="mkdir -p ~/.history ; history &>> ~/.history/.history.\`whoami\`.\`date +%F_%H%M\`.log"
+sed -i '/history/d' ~/.bash_logout
+echo "$_LOGOUT_HISTORY" >> ~/.bash_logout
+echo "$_LOGOUT_HISTORY" >> /etc/skel/
+
 # aliyun (exclude kernel centos-release when `yum update`) 
 if egrep "(mirrors.aliyuncs.com|mirrors.aliyun.com|mirrors.cloud.aliyuncs.com|mirrors.cloud.aliyun.com)" /etc/yum.repos.d/CentOS-Base.repo &>/dev/null ; then
     cp -p /etc/yum.conf /etc/yum.conf.bak
