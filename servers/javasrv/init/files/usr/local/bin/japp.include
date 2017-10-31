@@ -4,7 +4,7 @@
 # Global
 _WORK_USER="ezdpl"
 
-# for jdk
+# for jdk ( may be overwritten by ${catalina.home}/bin/setenv.sh or ${_APP_PATH}/appName/java_env )
 export JAVA_HOME=/opt/jdk
 export JRE_HOME=$JAVA_HOME/jre
 export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin

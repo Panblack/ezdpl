@@ -41,6 +41,7 @@ fi
 set -u
 cd $_APP_PATH
 _log_file="${_LOG_PATH}/${_app_name}/${_app_name}.out"
+_java_env_file="${_APP_PATH}/${_app_name}/java_env"
 _app_pid=`funJavaPs | awk '{print $2}'`
 _JAVA_OPTS=`cat ${_APP_PATH}/${_app_name}/java_opts`
 #_JAVA_OPTS="-Djava.ext.dirs=$JRE_HOME/lib/ext:/opt/javaapp/a/lib"
@@ -84,6 +85,9 @@ u|*)
     echo > $_log_file  
     for ((i=1;i<=$_MAX_TRY;i++));do 
 	echo -en "\ntrying "
+        if [[ -f $_java_env_file ]] ;then
+            source $_java_env_file
+        fi
         nohup java $_JAVA_OPTS -jar ${_APP_PATH}/${_app_name}/${_app_name}.jar &>>$_log_file &
 	for ((j=1;j<=$_MAX_WAIT;j++));do 
 	    echo -n "." ; sleep 1
