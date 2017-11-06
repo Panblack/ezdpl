@@ -71,7 +71,9 @@ class SendMail:
 
 	    s.sendmail(self.from_addr, to_addrs.split(','), self.msginfo(msg,subject,filename))
         except (socket.gaierror,socket.error,socket.herror,smtplib.SMTPException),e:
-            return "*** Your message may not have been sent!\n" + e            
+            print "*** Your message may not have been sent!\n"
+            print e
+            sys.exit(2)
         else:
             return "OK"
 
@@ -130,7 +132,6 @@ if __name__=='__main__':
             filename=value
 if server and from_addr and to_addr and username and password:
     test=SendMail(server,from_addr,to_addr,cc_addr,username,password)
-    strResult=test.send(msg,subject,filename)
-    print strResult
+    test.send(msg,subject,filename)
 else:
     usage()
