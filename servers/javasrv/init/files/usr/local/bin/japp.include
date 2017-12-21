@@ -1,11 +1,11 @@
-# Shared env variables and pre-requirement checks for script tmc/deployweb/japp
-# `sh thisscript` to initialize dirs & files.
+# japp.include
+# Shared env variables and pre-requirement checks for script tmc/japp
  
 # Global
-_WORK_USER="ezdpl"
+_WORK_USER="root"
 
-# for jdk ( may be overwritten by ${catalina.home}/bin/setenv.sh or ${_APP_PATH}/appName/java_env )
-export JAVA_HOME=/opt/jdk
+# for jdk
+export JAVA_HOME=/opt/jdk1.8
 export JRE_HOME=$JAVA_HOME/jre
 export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
 export LANG=zh_CN.UTF-8
@@ -14,27 +14,16 @@ export LC_ALL=zh_CN.UTF-8
 # for tomcat apps
 _BASES_DIR="/opt/webs"
 _HOME_DIR="/opt/app/tomcat"
+_WAR_RUNNING_PATH="/data/webShare/read/webapps"
 _max_shutdown_retry=15
-
-# for deployweb
-_SSH_PORT="22"
-_OPER_PATH="/opt/wars"
-_WAR_LIST_HEADER="#warName:newName:needRestart:serverName:serverUser:serverPort:webName:webPort"
-
-if [[ `id -u` = 0 ]]; then
-    mkdir -p $_OPER_PATH $_OPER_PATH/archive $_OPER_PATH/_config $_OPER_PATH/cook $_OPER_PATH/todeploy $_OPER_PATH/prod
-    chown -R $_WORK_USER:$_WORK_USER $_OPER_PATH
-fi 
-
-if [[ ! -f $_OPER_PATH/wars.lst ]]; then
-    echo "$_WAR_LIST_HEADER" > $_OPER_PATH/wars.lst
-fi
 
 # for jar apps
 _MAX_TRY=5
 _MAX_WAIT=10
 _APP_PATH="/opt/javaapp"
 _LOG_PATH="/opt/logs"
+_JAVA_OPTS=""
+#_JAVA_OPTS="-Djava.ext.dirs=$JRE_HOME/lib/ext:/opt/javaapp/a/lib:/opt/javaapp/b/lib"
 
 # Run under specific user 
 if [[ `whoami` != $_WORK_USER ]] ; then

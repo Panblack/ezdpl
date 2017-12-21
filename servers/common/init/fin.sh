@@ -13,6 +13,9 @@ sed -i /"ntpdate"/d /var/spool/cron/root
 echo "$_cron" >> /var/spool/cron/root
 chmod 600 /var/spool/cron/root
 
+# logrotate.conf
+sed -i 's/rotate 4/rotate 104/g' /etc/logrotate.conf
+
 # selinux
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
@@ -22,8 +25,8 @@ systemctl stop firewalld
 systemctl disable firewalld
 
 # sshd port 2222, UseDNS no
-sed -i 's/^#Port 22/Port 2222/g' /etc/ssh/sshd_config
-sed -i 's/^#UseDNS yes/UseDNS no/g' /etc/ssh/sshd_config
+#sed -i 's/^#Port 22/Port 2222/g' /etc/ssh/sshd_config
+#sed -i 's/^#UseDNS yes/UseDNS no/g' /etc/ssh/sshd_config
 
 # history record
 _LOGOUT_HISTORY="mkdir -p ~/.history ; history &>> ~/.history/.history.\`whoami\`.\`date +%F_%H%M\`.log"
@@ -68,7 +71,7 @@ case $_RELEASE in
 esac
 
 yum update -y
-yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop geoip htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter tcptraceroute python-pip && echo "Packages installed..."
+yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils nethogs lsof sysstat dstat iftop geoip htop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter tcptraceroute python-pip && echo "Packages installed..."
 
 # vim auto indent(Hit <F9> for proper pasting)
 # q command replaced with :q

@@ -1,0 +1,27 @@
+#!/bin/bash
+# Deploying configuration descriptor ${catalina.base}/conf/Catalina/localhost/webapp.xml
+# vars: _BASES_DIR _WAR_RUNNING_PATH
+source /usr/local/bin/japp.include
+funHelp() {
+    echo -e "Usage:  verWebxml <run|all>	Show running versioin | Show all versions";exit
+}
+
+IFS=$'\n'
+case $1 in
+    run)
+	_webs=`ls -1 $_BASES_DIR`
+	for x in $_webs; do
+     	    echo "$x :" ; cat ${_BASES_DIR}/${x}/conf/Catalina/localhost/*.xml 2>/dev/null ; echo
+	done
+	;;
+    all)
+	_wars=`ls -1 $_WAR_RUNNING_PATH`
+	for y in $_wars; do 
+	    echo "$y :" ; ls -1 ${_WAR_RUNNING_PATH}/${y} 2>/dev/null ; echo
+	done
+	;;
+    *)
+	funHelp
+	;;
+esac
+

@@ -1,16 +1,25 @@
 #!/bin/bash
 set -u
-_thedate=`date +%F_%H%M%S`
+_max_days=30
+_backup_path="/data/backupmysql/m"
 _mysqlpass=""
-_databases="mysql "
+_databases="User_DB mysql"
 _data_path="/data/mysql"
-_backup_path="/data/backup"
 _logfile="$_backup_path/mysqldump.log"
 _logbin=`cat /etc/my.cnf | grep 'log_bin'|grep '=' |awk -F= '{print $2}'|tr -d [:blank:]`
 
-echo "Start full backup $_thedate" >> $_logfile
 for x in $_databases ; do
-    mysqldump -u root -p"$_mysqlpass" --flush-logs --default-character-set=utf8 --opt --hex-blob $x 2>>$_logfile |gzip > ${_backup_path}/${x}_${_thedate}.sql.gz
+    if [[ $x = Very_Big_DB ]] ; then
+	if [[ `date +%H` = 23 ]] ;then 
+	    _thedate=`date +%F_%H%M%S`; echo "Start full backup $x $_thedate" >> $_logfile
+    	    mysqldump --flush-logs --default-character-set=utf8 --opt --hex-blob $x 2>>$_logfile |gzip > ${_backup_path}/${x}_${_thedate}.sql.gz
+	    _thedate=`date +%F_%H%M%S`; echo "End   full backup $x $_thedate" >> $_logfile
+	fi
+    else
+	_thedate=`date +%F_%H%M%S`; echo "Start full backup $x $_thedate" >> $_logfile
+    	mysqldump --flush-logs --default-character-set=utf8 --opt --hex-blob $x 2>>$_logfile |gzip > ${_backup_path}/${x}_${_thedate}.sql.gz
+	_thedate=`date +%F_%H%M%S`; echo "End   full backup $x $_thedate" >> $_logfile
+    fi
 done
 
 # Move logbin files.
@@ -27,8 +36,7 @@ for x in ${_logbin}.[0-9]* ;do
 done
 
 _enddate=`date +%F_%H%M%S`
-echo -e "Backup Completed $_enddate \n\n" >> $_logfile
+echo -e "Backup Completed $_enddate " >> $_logfile
 
-cd ${_backup_path} && find -name "*.sql.gz" -mtime +60 -delete ; find -name "${_logbin}.*" -mtime +7 -delete 
-echo -e "Backup files older than 60 days deleted!"  >> $_logfile
-echo  >> $_logfile
+cd ${_backup_path} && find -name "*.sql.gz" -mtime +${_max_days} -delete ; find -name "${_logbin}.*" -mtime +${_max_days} -delete 
+echo -e "Backup files older than ${_max_days} days deleted!\n\n"  >> $_logfile

@@ -164,19 +164,26 @@ for x in ${_array_bases[@]}; do
     fi
 
     echo
-    _cur_dir="$_BASES_DIR/$x"
+    _cur_dir="${_BASES_DIR}/${x}"
     cd $_cur_dir
     if [[ ! -d ./conf ]] || [[ ! -d ./temp ]] || [[ ! -d ./work ]] || [[ ! -d logs ]] || [[ ! -d webapps ]] ; then
 	echo "[$_host] $_cur_dir Not a tomcat base dir!"
 	continue
     fi
 
-    if _home_def=`head -1 $_cur_dir/home.def 2>/dev/null` ;then
+    # Custom HOME DEF( other than $_HOME_DIR defined in japp.include )
+    if _home_def=`head -1 $_cur_dir/home_def 2>/dev/null` ;then
       if [[ -n $_home_def ]] && [[ -d $_home_def/bin ]] && [[ -d $_home_def/lib ]];then
     	_Home=$_home_def
       fi
     else
     	_Home=$_HOME_DIR
+    fi
+
+    # Custom JAVA ENV( other than those defined in japp.include )	
+    _java_env_file="${_BASES_DIR}/${x}/java_env"
+    if [[ -f $_java_env_file ]] ;then
+        source $_java_env_file
     fi
 
     export CATALINA_HOME=$_Home
@@ -274,6 +281,6 @@ done
 #     ├── webapps
 #     └── work
 #
-# If certain webapp requires different tomcat version, write tomcat home path(e.g. '/opt/apache-tomcat-8.0.39') in the file '$_BASES_DIR/$_base/home.def'
+# If certain webapp requires different tomcat version, write tomcat home path(e.g. '/opt/apache-tomcat-8.0.39') in the file '$_BASES_DIR/$_base/home_def'
 # $_HOME_DIR and $_BASES_DIR can be a symbolic link or a real dir
 # 

@@ -1,0 +1,67 @@
+#!/bin/bash
+# Deploying configuration descriptor ${catalina.base}/conf/Catalina/localhost/webapp.xml
+# vars: _BASES_DIR _WAR_RUNNING_PATH
+source /usr/local/bin/japp.include
+funHelp() {
+    echo -e "Usage:  deployWebxml <web_name> <war_name> <d/u/r> <version_dir> "
+    echo -e "Sample: deployWebxml backendapi api2 d 20171201-124622 	#Deploy 'api2' of version 20171201-124622 to '${_BASES_DIR}/backendapi'"
+    echo -e "Sample: deployWebxml backendapi api2 u yes 		#Undeploy 'api2' from '${_BASES_DIR}/backendapi'"
+    echo -e "Sample: deployWebxml backendapi api2 r 20171125-180556	#Rollback 'api2' to version 20171125-180556"
+    echo -e "Available webs:\n`ls -1 ${_BASES_DIR} ` " ; echo
+}
+
+if [[ $# -lt 3 ]] ; then
+    funHelp;
+    exit 1
+fi
+
+_web_name=$1
+_war_name=$2
+_oper=$3
+_version_dir=$4
+if [[ -z $_version_dir ]];then
+    echo "version dir required, check these out:"
+    ls -lh --color=auto --time-style=long-iso ${_WAR_RUNNING_PATH}/${_war_name} ; exit 1
+fi
+set -u 
+
+_war_xml_path="${_BASES_DIR}/$_web_name/conf/Catalina/localhost/"
+_war_xml="${_war_xml_path}/${_war_name}.xml"
+_war_torun="${_WAR_RUNNING_PATH}/${_war_name}/${_version_dir}/${_war_name}.war"
+
+case $_oper in 
+    d) 
+      	# Deploy new/updated war file
+        mkdir -p $_war_xml_path
+	# wait for nfs delay
+	while true ; do 
+	    test -f $_war_torun && echo "<Context docBase='$_war_torun' />" > $_war_xml && break
+	done
+   	echo "$_war_torun Deployed!"
+	;;
+    u)
+	if [[ $_version_dir = yes ]]; then
+      	    # UnDeploy war file
+    	    if [[ -f $_war_xml ]]; then
+            	mv -f $_war_xml /tmp/
+            	echo "$_war_xml Undeployed!"
+    	    else
+            	echo "$_war_xml does not exists."; funHelp;  exit 1
+    	    fi
+        fi
+	;;
+    r)
+	# Roll back
+    	if [[ -f $_war_xml ]]; then
+    	    echo "<Context docBase='$_war_torun' />" > $_war_xml
+    	    echo "Rollback to $_war_torun !"
+    	else
+	    echo "$_war_xml does not exists."; funHelp;  exit 1
+    	fi
+	;;
+    *)
+	echo "Only d/u/r is valid."
+	;;
+esac
+
+
