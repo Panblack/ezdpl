@@ -15,7 +15,7 @@ fun_commit() {
 	echo "Commit Message needed. Exit!"
 	exit 1
     fi
-    git add .
+    git add -A
     git commit -a -m "$_msg"
     #"Please tell me who you are"
 }
