@@ -22,7 +22,7 @@ if [[ -z $_LOG_PATH ]]; then
     _LOG_PATH=`pwd`
 fi
 if [[ -z $_app_name ]];then
-    echo -e "Usage: japp <appName> [u|s] \nu\tstartup(default)\ns\tshutdown\nl\troll log"
+    echo -e "Usage: japp <appName> [u|s|l] \nu\tstartup(default)\ns\tshutdown\nl\troll log"
     echo -e "Log dir ${_LOG_PATH}/${_app_name}" 
     echo -e "App dir $_APP_PATH has following apps:"
     cd ${_APP_PATH} && for x in *; do if [[ -d $x ]] ; then echo $x;fi; done 
@@ -40,9 +40,13 @@ fi
 
 set -u
 cd $_APP_PATH
+mkdir -p ${_LOG_PATH}/${_app_name}
 _log_file="${_LOG_PATH}/${_app_name}/${_app_name}.out"
-_java_env_file="${_APP_PATH}/${_app_name}/java_env"
 _app_pid=`funJavaPs | awk '{print $2}'`
+
+_java_env_file="${_APP_PATH}/${_app_name}/java_env"
+# export JAVA_HOME envs other than defined in japp.include
+
 _java_opts_file="${_APP_PATH}/${_app_name}/java_opts"
 #_JAVA_OPTS="-Djava.ext.dirs=$JRE_HOME/lib/ext:/opt/javaapp/a/lib"
 
