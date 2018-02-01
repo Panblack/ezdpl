@@ -1,5 +1,24 @@
 # ezdpl
 =====
+
+# Version 3.0
+
+## How version 3.0 started
+Version 2.0 worked pretty well on my first project, a comparatively large system. Scripts grew in tremendous scale, of course, only some of them were shared in this repo. 
+
+When the second project came, I found that I had to make lots of modifications to the scripts. Server and application info started to be stored in simple text files, instead of MySql server, for the data was hard to modify and I was lazy enough to write a data management application. 
+
+The second project went smooth after those modifications. But real nightmare came with the third project last year. I had many new ideas for  ezdpl, especially on java web and static html deployment. I would like to upgrade the previous two projects and syncronize this repo at the same time. It was hard. The hardest part was that modifications to the scripts were still required when ezdpl was deployed to a new project. It could hardly be called 'ez' any more. 
+
+So, the version 3.0 is targeted to one major improvement --- to be configuration oriented. When deployed to a new operating project, I don't have to modify the scripts. I just modify the configurations files. 
+
+Another improvement is the new way of application deployment. Java web applications are deployed via tomcat context xml files( e.g.  ${catalina.base}/conf/Catalina/localhost/YourApplication.xml ). War files are built on the operating server and stored in a nfs share, each version in a new directory. When you need to update an application, rewrite the context xml file. If a rollback is needed, just rewrite the context xml file again. 
+
+Version 3.0 is still on the way. The whole infrastructure needs to be rebuilt. Previous versions were writen, while this version needs to be designed.
+
+BTW, LwMon was moved here. 
+Feb 1, 2018
+
 # Version 2.0
 
 * Server info stored in MySQL
