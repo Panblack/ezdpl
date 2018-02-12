@@ -13,23 +13,28 @@
 # Sample script: deployWeb
 
 # Keeping a log for a cron job is a good idea.
-_log_file="/tmp/$0.log"
-if [[ ! -f $_log_file ]]; then
-    touch $_log_file
-fi
+_script=`echo "$0"|awk -F'/' '{print $NF}'`
+_log_dir="/data/logs/${_script}"
+_log_file=${$_log_dir}/${_script}.`date +%F`.log
+mkdir -p $_log_dir
+touch $_log_file
 
 # Check pidfile
-_pid_file="/dev/shm/$0.pid"
+_pid_file="/dev/shm/${_script}.pid"
 if [[ -f $_pid_file ]]; then
     _existing_pid=`cat $_pid_file 2>/dev/null`
    if [[ -n $_existing_pid ]] ;then
-       echo " `date +%F_%T` Existing pid $_existing_pid ." | tee -a $_log_file
+       echo " `date +%F_%T` Existing pid $_existing_pid" | tee -a $_log_file
        exit 0
    fi
 fi
 
 # Update pidfile
 echo $$ > $_pid_file
+
+# Error control
+set -u;set -E;set -T
+trap "mv -f $_pid_file "/tmp/${_script}.pid.`date +%F_%H%M%S`" 2>/dev/null ; exit" ERR EXIT SIGQUIT SIGHUP SIGINT SIGKILL SIGTERM
 
 # Job Starts ...
 
