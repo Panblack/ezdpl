@@ -1,0 +1,19 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+
+_web_servers=`grep '_WEB_SERVER_' ${EZDPL_HOME}/conf/hosts.lst|egrep -v ^#`
+IFS=$'\n'
+for x in $_web_servers ; do 
+    _ip=`echo "$x"|awk '{print $1}'`
+    _host=`echo "$x"|awk '{print $2}'`
+    _user=`echo "$x"|awk '{print $3}'`
+    _sshport=`echo "$x"|awk '{print $4}'`
+    echo -e "${_host} ${_user}@${_ip}:${_sshport}"
+    ssh -p${_sshport} ${_user}@${_ip} "ss -antup -o state bucket"
+    echo 
+done

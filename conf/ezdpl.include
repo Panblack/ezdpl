@@ -1,0 +1,14 @@
+## Mem water mark %
+_MEM_WATER_MARK=80
+
+## readsql
+_MYSQL_SERVER_READ=mydb1
+
+# Notify email config
+_NOTIFY_SENDER="alert@example.com"
+_NOTIFY_SENDER_USER="$_NOTIFY_SENDER"
+_NOTIFY_SENDER_PASS="MTIzNDU2Cg=="
+_NOTIFY_SENDER_SMTP="smtp.example.com"
+_NOTIFY_RECEIVERS="reciever@example.com"
+
+

@@ -1,0 +1,31 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+_usageInfo="Usage: chkngxlog <status|url> <nginx_access_log_file>
+status: Statistics for all http status
+url   : Statistics for http status other than 20? & 30?"
+
+if [[ $# -lt 2 ]];then
+    echo "$_usageInfo";exit 1
+fi
+_oper=$1
+_access_log=$2
+
+case $_oper in
+    status)
+        cat $_access_log |awk '{for (i=1;i<=NF;i++) if(  $i ~ /HTTP\/1.?/  ) print " "$(i+1)}'|sort|uniq -c
+#    	cat /data/logs/nginx/access.log-`date +%Y%m%d` | awk '{for (i=1;i<=NF;i++) if(  $i ~ /HTTP\/1.?/  ) print " "$(i+1)}' 2>/dev/null
+        ;;
+    url)
+        echo -e "Count\tIp\tDateTime\t\tXForward\tURL\tStatus"
+        cat $_access_log |awk '{for (i=1;i<=NF;i++) if(  $i ~ /HTTP\/1.?/  &&  $(i+1) !~ /20?/ && $(i+1) !~ /30?/ ) print $1"\t"$4" "$5"\t"$(NF-5)"\t"$(i-1)"\t"$(i+1)  }'|sort|uniq -c|sort -h
+        ;;
+    *)
+	echo "$_usageInfo"
+        ;;
+esac
+

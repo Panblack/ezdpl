@@ -1,0 +1,30 @@
+spring:
+  http:
+    multipart:
+      max-file-size: 1024Mb
+      max-request-size: 2048Mb
+  profiles: prod
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://mysql_server:3306/dbname?characterEncoding=UTF-8
+    username: dbuser
+    password: dbpass
+    sql-script-encoding: utf-8
+  jpa:
+
+  hazelcast:
+     config: hazelcast.xml
+  cache:
+     type: hazelcast
+
+jwt:
+  header: Authorization
+  secret: MySecret
+  expiration: 30000
+  tokenHead: "MYTOKEN "
+  route:
+    authentication:
+      path: auth
+      refresh: refresh
+      register: "auth/register"
+      logout: "auth/logout"

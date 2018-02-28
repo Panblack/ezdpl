@@ -1,0 +1,29 @@
+# depwar.include
+# requires EZDPL_HOME env variable 
+_DEP_WORK_USER="ezdpl"
+
+export JAVA_HOME=/usr/local/jdk1.8.0_144
+export JRE_HOME=$JAVA_HOME/jre
+export PATH=$PATH:$JAVA_HOME/bin
+
+_OPER_PATH="/opt/wars"
+_WARS_RUN="/data/webShare/read/webapps"
+_HTML_RUN="/data/webShare/read/html"
+
+_WAR_LST_HEADER="#warDevName|warDeployName|needRestart|webName|webPort|gitBranch|gitRepo"
+_SERVERS_LST_HEADER="#warDevName|serverIp|serverUser|serverPort"
+_HTML_LST_HEADER="#htmlDeployName|htmlDevName|htmlPort|gitBranch|gitRepo"
+_HTMLSERVERS_LST_HEADER="#htmlDeployName|serverIp|serverUser|serverPort"
+
+_WAR_LST_FILE="${EZDPL_HOME}/conf/war.lst"
+_WEBSERVERS_LST_FILE="${EZDPL_HOME}/conf/webservers.lst"
+_WAR_DEPLOY_DELAY=10
+
+_HTML_LST_FILE="${EZDPL_HOME}/conf/html.lst"
+_HTMLSERVERS_LST_FILE="${EZDPL_HOME}/conf/htmlservers.lst"
+_HTML_DEPLOY_DELAY=1
+
+#Run under specific user 
+if [[ `whoami` != $_DEP_WORK_USER ]] ; then
+    echo "please 'su - $_DEP_WORK_USER' " ; exit 1
+fi

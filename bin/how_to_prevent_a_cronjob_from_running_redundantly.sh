@@ -10,12 +10,14 @@
 # Enjoy!
 # Wait, what if the script does not finish successfully, and the pidfile holds the job forever?
 # It is you who need to make sure the script finally finishes. Don't blame the pidfile ^_- 
-# Sample script: deployWeb
+# Also, we have `trap` command at hand...
 
 # Keeping a log for a cron job is a good idea.
+
+######## Start of preparation ########
 _script=`echo "$0"|awk -F'/' '{print $NF}'`
-_log_dir="/data/logs/${_script}"
-_log_file=${$_log_dir}/${_script}.`date +%F`.log
+_log_dir="/opt/report/${_script}"
+_log_file=${_log_dir}/${_script}.`date +%F`.log
 mkdir -p $_log_dir
 touch $_log_file
 
@@ -28,17 +30,18 @@ if [[ -f $_pid_file ]]; then
        exit 0
    fi
 fi
-
 # Update pidfile
 echo $$ > $_pid_file
-
 # Error control
 set -u;set -E;set -T
 trap "mv -f $_pid_file "/tmp/${_script}.pid.`date +%F_%H%M%S`" 2>/dev/null ; exit" ERR EXIT SIGQUIT SIGHUP SIGINT SIGKILL SIGTERM
+######## End of preparation ########
 
 # Job Starts ...
+echo -e "`date +%F_%T` START"   | tee -a $_log_file
 
 
+echo -e "`date +%F_%T` END\n\n" | tee -a $_log_file
 # Job Ends ...
 
 # Delete pidfile

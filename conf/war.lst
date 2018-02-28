@@ -1,0 +1,3 @@
+#warDevName|warDeployName|needRestart|webName|webPort|configFilesPath|gitBranch|gitRepo
+salesweb|ROOT|Y|Sales|8090|WEB-INF/classes||
+backendapi|api|Y|BackEnd|8080|src/main/resources|master|ssh://user@server:sshport/path/to/backendapi.git

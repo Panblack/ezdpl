@@ -1,0 +1,35 @@
+#!/bin/bash
+# mysql_config_editor set --host=<mysql_server> --user=<read_user> --password
+
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`     
+fi
+
+# 基础变量 _MYSQL_SERVER_READ
+source ${EZDPL_HOME}/conf/ezdpl.include
+
+if [[ -n $_MYSQL_SERVER_READ ]];then
+    _mysql_server=$_MYSQL_SERVER_READ
+else
+    _mysql_server=`grep '_MYSQL_SERVER_' ${EZDPL_HOME}/conf/hosts.lst|head -1|awk '{print $1}'`
+fi
+#echo "MYSQL_SERVER: $_mysql_server"
+
+_db=$1
+if [[ -z $2 ]];then
+   _sql=""
+else
+   _sql="$2"
+fi 
+if [[ -n $_sql ]]; then
+    if [[ -f $_sql ]]; then
+	mysql --default-character-set=utf8 -h $_mysql_server $_db < $_sql
+    else
+        mysql --default-character-set=utf8 -h $_mysql_server $_db -e "$_sql" 
+    fi
+else
+    mysql --default-character-set=utf8 -h $_mysql_server $_db
+fi

@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# Main
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+
+# 基础变量
+# 获取 $_OPER_PATH $_WARS_RUN $_WAR_LST_FILE $_WEBSERVERS_LST_FILE _WAR_DEPLOY_DELAY 变量
+source ${EZDPL_HOME}/conf/deploy.include 
+_usage="Usage: depwar <war_name> <d|u> <version_dir>"
+
+#参数变量
+_warName=$1
+_oper=$2
+_version_dir=$3
+_warSharedRunningDir="${_WARS_RUN}/${_warName}"
+_path_new=${_warSharedRunningDir}/${_version_dir}
+if [[ $# -eq 0 ]] ; then
+    echo "$_usage"
+    ls -1 "${_WARS_RUN}"
+    exit 1
+fi
+if [[ ! -d ${_warSharedRunningDir} ]]; then
+    echo "$_usage"
+    echo "${_warSharedRunningDir} does not exist!";ls -1 ${_WARS_RUN} 2>/dev/null;exit 1
+fi
+if [[ $_oper != d ]] && [[ $_oper != u ]]; then
+    echo "$_usage"
+    echo "Only d|u is valid";exit 1
+fi
+if [[ $# -lt 3 ]] ; then
+    echo "$_usage"
+    echo  "${_warSharedRunningDir}"
+    ls -1 "${_warSharedRunningDir}" 2>/dev/null | grep -v versions
+    exit 1
+fi
+if [[ ! -d ${_path_new} ]]; then
+    echo "$_usage"
+    echo "${_path_new} does not exists!";exit 1
+fi
+
+set -u 
+# 发版日志
+_log_file=${_OPER_PATH}/depwar.log
+touch $_log_file
+echo -e "\n\n" >> $_log_file
+
+# 获取wars信息 #warDevName|warDeployName|needRestart|webName|webPort|git_repo
+if [[ -f "$_WAR_LST_FILE" ]]; then
+    ls $_WAR_LST_FILE
+    _war_info=`cat $_WAR_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_warName}'" ) print $0}' | head -1 `
+    #_war_info=`egrep "^${_warName}\|" $_WAR_LST_FILE |egrep -v '(^ *#|^$)'|head -1 `
+    _warDeployName=` echo $_war_info|awk -F'|' '{print $2}'`
+    _warNeedRestart=`echo $_war_info|awk -F'|' '{print $3}'`
+    _warWebName=`    echo $_war_info|awk -F'|' '{print $4}'`
+else
+    echo "`date +%F_%T` $_WAR_LST_FILE does not exist!" | tee -a $_log_file ; exit 1
+fi
+if [[ -z $_war_info ]]; then
+    echo "`date +%F_%T` $_warName not defined!" | tee -a $_log_file ; exit 1
+fi
+
+# 获取 webservers 信息 #webName|serverIp|serverUser|serverPort
+if [[ -f "$_WEBSERVERS_LST_FILE" ]]; then
+    ls $_WEBSERVERS_LST_FILE
+    _servers=`cat $_WEBSERVERS_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_warWebName}'" ) print $0}' | head -1 `
+    #_servers=`egrep "^${_warWebName}\|" $_WEBSERVERS_LST_FILE |egrep -v '^ *#'`
+else
+    echo "`date +%F_%T` $_WEBSERVERS_LST_FILE does not exist!" | tee -a $_log_file ; exit 1
+fi
+if [[ -z $_servers ]]; then
+    echo "`date +%F_%T` no webserver defined for ${_warName}!" | tee -a $_log_file ; exit 1
+fi
+
+echo -e "`date +%F_%T` $_warName $_oper $_version_dir\nWarInfo:\n${_war_info}\nServers:\n${_servers}"  | tee -a $_log_file
+echo 
+
+read -p "Enter Y to continue, Enter to quit: " _Y
+if [[ $_Y != "Y" ]]; then
+    echo "Aborted!" | tee -a $_log_file
+    exit 
+fi
+exit 
+
+IFS=$'\n'
+case $_oper in 
+    d)
+	# 连接远程服务器，运行/usr/local/bin/deployWebxml脚本，携带必要参数
+	for x in $_servers; do 
+	    _webServerName=` echo $x|awk -F'|' '{print $2}'`
+	    _webServerPort=` echo $x|awk -F'|' '{print $4}'`
+	    _webServerUser=` echo $x|awk -F'|' '{print $3}'`
+	    echo "warName:        $_warName"
+	    echo "warDeployName:  $_warDeployName"
+	    echo "warNeedRestart: $_warNeedRestart"
+	    echo "warWebName:     $_warWebName"
+	    echo "webServer:      ${_webServerUser}@${_webServerName}:${_webServerPort}"
+	    echo 
+            ssh -p ${_webServerPort} ${_webServerUser}@${_webServerName} "/usr/local/bin/deployWebxml ${_warWebName} ${_warDeployName} d ${_path_new}/${_warDeployName}.war ${_warNeedRestart}"
+	    echo "${_webServerName} deployed ${_path_new}/${_warDeployName}.war !" | tee -a $_log_file ; echo
+	    for ((i=1;i<=${_WAR_DEPLOY_DELAY};i++)); do sleep 1 ; echo -n . ; done ; echo
+	done
+	;;
+    u)
+	# 连接远程服务器，运行/usr/local/bin/deployWebxml脚本，携带必要参数
+	for x in $_servers; do 
+	    _webServerName=` echo $x|awk -F'|' '{print $2}'`
+	    _webServerPort=` echo $x|awk -F'|' '{print $4}'`
+	    _webServerUser=` echo $x|awk -F'|' '{print $3}'`
+	    echo "warName:        $_warName"
+	    echo "warDeployName:  $_warDeployName"
+	    echo "warNeedRestart: $_warNeedRestart"
+	    echo "warWebName:     $_warWebName"
+	    echo "webServer:      ${_webServerUser}@${_webServerName}:${_webServerPort}"
+	    echo 
+	    ssh -p ${_webServerPort} ${_webServerUser}@${_webServerName} "/usr/local/bin/deployWebxml ${_warWebName} ${_warDeployName} u yes "
+	    echo "${_webServerName} undeployed ${_warName} !" | tee -a $_log_file ; echo
+	done
+	;;
+    *)
+	echo "Only d|u is valid."
+	;;
+esac
+
+exit
+
+# README
+# 部署脚本环境变量
+# ${EZDPL_HOME}/conf/deploy.include
+# _DEP_WORK_USER 	部署脚本运行用户
+# _OPER_PATH=/opt/wars	war包构建 _OPER_PATH/build 待部署的war包 _OPER_PATH/todepoy/xxx.war war包重新打包 _OPER_PATH/cook
+# _WARS_RUN=/data/webShare/read/webapps	war包运行目录
+# _HTML_RUN=/data/webShare/read/html	html部署目录
+#
+# ${EZDPL_HOME}/conf/_config 
+# war包的生产配置文件，构建时会将这些文件更新到代码中，应用如果新增配置文件项，必须及时修改本目录下的文件。
+#
+# war包部署信息
+# ${EZDPL_HOME}/conf/war.lst 
+# 开发名|部署名|是否重启tomcat|web名（/opt/webs/xxx）|web端口（仅标识用）|git分支|git代码库地址 
+# #warDevName|warDeployName|needRestart|webName|webPort|gitBranch|gitRepo
+# 
+# web部署服务器信息
+# ${EZDPL_HOME}/conf/webservers.lst 
+# 开发名|服务器IP|服务器用户名|服务器SSH端口
+# #webName|serverName|serverUser|serverPort
+# 
+# html部署信息
+# ${EZDPL_HOME}/conf/html.lst
+# html部署目录名|html开发名|html web服务器端口（仅标识用）|git分支|git代码库地址
+# #htmlDeployName|htmlDevName|htmlPort|gitBranch|gitRepo
+# 
+# html部署服务器信息
+# ${EZDPL_HOME}/conf/htmlservers.lst
+# html部署目录名|服务器IP|服务器用户名|服务器SSH端口
+# #htmlDeployName|serverIp|serverUser|serverPort
+# 
+
+

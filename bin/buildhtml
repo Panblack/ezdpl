@@ -1,0 +1,77 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`
+fi
+echo "EZDPL_HOME=$EZDPL_HOME"
+
+# Main
+# 获取 _HTML_RUN _HTML_LST_FILE 变量，引入html生产配置修正脚本
+source ${EZDPL_HOME}/conf/deploy.include
+source ${EZDPL_HOME}/conf/mkhtml.sh
+_usage="Usage: buildhtml <webname> [git_commit_num]"
+
+if [[ $# -eq 0 ]];then
+    echo "$_usage";ls -1 ${_HTML_RUN} ; exit 1
+fi
+
+_htmlName=$1
+if [[ -z $2 ]]; then
+    _commit=""
+else
+    _commit=$2
+fi
+
+if ! ls ${_HTML_RUN}/${_htmlName} &>/dev/null ; then
+   echo "${_HTML_RUN}/${_htmlName} does not exist!";echo "$_usage"; exit 1
+fi
+
+set -u
+# 获取html信息
+_gitRepo=`egrep "^${_htmlName}\|" $_HTML_LST_FILE |awk -F'|' '{print $NF}'`
+if [[ -z $_gitRepo ]];then
+    echo "git repo for ${_htmlName} not found!";exit 1
+fi
+_gitBranch=`egrep "^${_htmlName}\|" $_HTML_LST_FILE |awk -F'|' '{print $(NF-1)}'`
+_htmlDevName=`egrep "^${_htmlName}\|" $_HTML_LST_FILE |awk -F'|' '{print $2}'`
+_datetime=`date +%Y%m%d_%H%M%S`
+_deploy_path="${_HTML_RUN}/${_htmlName}/${_datetime}"
+
+echo "htmlName:  $_htmlName"
+echo "DevName:   $_htmlDevName"
+echo "gitRepo:   $_gitRepo"
+echo "gitBranch: $_gitBranch"
+echo "gitCommit: $_commit"
+echo "Generating new $_htmlName in $_deploy_path ...... "
+echo
+
+# 获取最新代码
+git clone $_gitRepo -b $_gitBranch $_deploy_path
+cd $_deploy_path
+git checkout $_gitBranch
+if [[ -n $_commit ]]; then
+    if git reset --hard $_commit ;then
+	echo "Reset to $_commit"
+    else
+	echo "$_commit does not exist.";exit 1
+    fi
+else
+    _commit=`git rev-parse HEAD`
+fi
+mv $_deploy_path ${_deploy_path}_${_commit}
+_deploy_path="${_deploy_path}_${_commit}"
+
+# 记录版本信息
+_html_version_Show_file="${_deploy_path}/html_version_Show.txt" ; touch $_html_version_Show_file
+_git_branch_v=`git branch -v`
+_git_log=`git log --decorate=short -1`
+
+_version_info="\n\n${_datetime}\n${_deploy_path}\n${_git_branch_v}\n${_git_log}"
+echo -e "$_version_info" | tee -a $_html_version_Show_file
+
+funMakeProduction $_htmlName
+echo
+echo "$_deploy_path"
+echo "${_datetime}_${_commit}"

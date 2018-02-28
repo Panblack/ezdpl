@@ -2,35 +2,43 @@
 # get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    cd $_dir && cd ..
-    EZDPL_HOME=`pwd`
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
 fi
-echo "EZDPL_HOME=$EZDPL_HOME"
-echo
 
-_target=$1
+#基础变量 _MEM_WATER_MARK
+source ${EZDPL_HOME}/conf/ezdpl.include
+
+if [[ $# -eq 0 ]];then
+    echo "Query all servers' resources and listening ports in hosts.lst, ports defined in ezdpl.include      
+Usage:    
+chkres r					Query resources only
+chkres p					Query ports only
+chkres						Show this help
+chkres r|p 'IP HostName UserName SSHPort'	Qurey one server"
+    exit 0
+fi
+_oper=$1
+_target=$2
+if [[ -z $_target ]]; then
+   _target=""
+fi 
 set -u 
-_time_start=`date +%F_%T`
-echo $_time_start
 
 if [[ -n $_target ]]; then
     # _target='x.x.x.x web-02 root 22'
     _servers=$_target
-elif [[ -f ${EZDPL_HOME}/hosts.lst ]]; then
-    _servers=`egrep -v '(^ *#|^$)' ./hosts.lst`
 else
-    # mysql/sqlite version
-    _where=" "
-    _servers=`${EZDPL_HOME}/bin/sqlezdpl "SELECT ip , name , user, port FROM srv $_where" | egrep -v 'name.*port' `
+    _servers=`egrep -v '(^ *#|^$)' ${EZDPL_HOME}/conf/hosts.lst|grep $'\t'root$'\t'`
 fi
 
-#echo "$_servers"
-
 IFS=$'\n'
-echo "Server Resource:"
-_mem_limit=80
-echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDiskUsage"
-for x in $_servers;do
+
+case $_oper in
+    r)
+    echo "Server Resource:"
+    echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDiskUsage"
+    for x in $_servers;do
     	_centos6=""
 	_centos7=""
 	_os=""
@@ -48,9 +56,9 @@ for x in $_servers;do
 	echo '|' ;\
 	uptime|grep 'load average' ;\
 	echo '|' ;\
-	egrep 'CentOS release 6\.' /etc/redhat-release ;\
+	egrep '(CentOS|Red Hat)' /etc/redhat-release | grep 'release 6\.' ;\
 	echo '|' ;\
-	egrep 'CentOS Linux release 7\.' /etc/redhat-release ;\
+	egrep '(CentOS|Red Hat)' /etc/redhat-release | grep 'release 7\.' ;\
 	echo '|' ;\
       	free -tm |grep "Mem:" ;\
 	" 2>/dev/null`
@@ -64,11 +72,11 @@ for x in $_servers;do
 	_centos6=`  echo $_str|awk -F'|' '{print $3}'|tr -d [:blank:]`
 	_centos7=`  echo $_str|awk -F'|' '{print $4}'|tr -d [:blank:]`
 	_mem_info=` echo $_str|awk -F'|' '{print $5}'`
-	_load_1=`echo $_cpu_load|awk -F', ' '{print $1}'`
-	_load_5=`echo $_cpu_load|awk -F', ' '{print $2}'`
-	_load_15=`echo $_cpu_load|awk -F', ' '{print $3}'`
-	_mem_total=`echo $_mem_info|awk '{print $2}'`
-	_mem_used_raw=`echo $_mem_info |awk '{print $3}'`
+	_load_1=`   echo $_cpu_load|awk -F', ' '{print $1}'`
+	_load_5=`   echo $_cpu_load|awk -F', ' '{print $2}'`
+	_load_15=`  echo $_cpu_load|awk -F', ' '{print $3}'`
+	_mem_total=`echo $_mem_info|awk        '{print $2}'`
+	_mem_used_raw=`echo $_mem_info | awk   '{print $3}'`
 
 	if [[ -n $_centos6 ]]; then
 	    _os=c6
@@ -81,18 +89,20 @@ for x in $_servers;do
 	fi
 	_mem_percent=`echo "scale=2;ibase=10;obase=10;$_mem_used/$_mem_total*100"|bc|sed 's/.00//g'`
 
-	if [[ $_mem_percent -gt $_mem_limit ]]; then
+	if [[ $_mem_percent -gt $_MEM_WATER_MARK ]]; then
 	    _mem_percent="\033[31m$_mem_percent\033[0m"
 	fi
 
 	_df=`echo "$_raw_df"|awk '{print $7" "$6"  "}'|tr -d ['\n']`
 	echo -e "${_host}\t${_os}\t${_cpu_count}\t${_cpu_load}\t${_mem_total}\t${_mem_percent}%\t${_df}"
 
-done
+    done
+    ;;
 
-echo "Server Ports"
-echo -e "Host(Ip Address)\t80\t8000\t8080\t8888\t9000\t11211\t6379\t27017\t3306\t61616\t5672"
-for x in $_servers;do
+    p)
+    echo "Server Ports:"
+    echo -e "Host(Ip address)\tListeningPorts"
+    for x in $_servers;do
         _centos6=""
         _centos7=""
         _os=""
@@ -100,36 +110,31 @@ for x in $_servers;do
         _host=`echo $x|awk '{print $2}'`
         _user=`echo $x|awk '{print $3}'`
         _port=`echo $x|awk '{print $4}'`
+	_listening_ports=`echo $x|awk '{print $5}'|sed 's/:/ /g'`
         if [[ -z $_host ]] || [[ -z $_port ]]; then
             echo "Host/Port missing"
             continue
         fi
 	_ports_info=`ssh $_user@$_ip -p $_port "ss -lnt"`
 	#echo "$_ports_info"
+	IFS=$' \t\n'
 	echo -en "$_host($_ip)\t"
-	for y in 80 8000 8080 8888 9000 11211 6379 27017 3306 61616 5672;do 
+	for y in $_listening_ports; do 
 	    if echo "$_ports_info"|egrep ":$y " &>/dev/null;then
-		echo -en "OK\t"
+		echo -en "${y}\t"
 	    else
-		echo -en "-\t"
+		echo -en "\033[31m-${y}\033[0m\t"
 	    fi
 	done
 	echo
-done
-_time_end=`date +%F_%T` 
-echo $_time_end
+	IFS=$'\n'
+    done
+    ;;
+esac    
 echo 
 
-# Sample
-# Server Resource:
-# Host	OS	CPUs	CPU_load	MemTotal	MemUsed%	DiskUsage
-# c20	c7	4 	0.00, 0.01, 0.05 	7856	32%	   
-# Server Ports
-# Host(Ip Address)	80	8000	8080	8888	9000	11211	6379	27017	3306	61616	5672
-# c20(172.16.33.20)	OK	OK	OK	OK	-	-	OK	-	OK	-	-	
 
-#free format
-#6
+#Centos 6
 # free -tm
 #1		2	  3	     4	      5	         6	    7
 #             total       used       free     shared    buffers     cached
@@ -138,7 +143,8 @@ echo
 #Swap:          991        773        218
 #Total:       16880      16569        310
 
-#7
+
+#Centos 7
 # free -tm
 #1		2	     3	        4	   5	         6	    7
 #              total        used        free      shared  buff/cache   available

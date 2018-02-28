@@ -1,0 +1,132 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+echo "EZDPL_HOME=$EZDPL_HOME"
+
+# Main
+# 获取 _OPER_PATH _WARS_RUN _WAR_LST_FILE 变量
+source ${EZDPL_HOME}/conf/deploy.include
+_wars=`awk -F'|' '{print $1}' ${EZDPL_HOME}/conf/war.lst|egrep -v '(^ *#|^$)'`
+_usage="Usage: buildwar <war_name> [git_commit_id]
+$_wars"
+
+if [[ $# -eq 0 ]];then
+    echo "$_usage"; exit 1
+fi
+
+_warName=$1
+if [[ -z $2 ]]; then
+    _commit=""
+else
+    _commit=$2
+fi
+
+if [[ ! -d ${_WARS_RUN}/${_warName} ]]; then
+   echo "${_WARS_RUN}/${_warName} does not exist!"; echo "$_usage"; exit 1
+fi
+
+set -u
+# 获取war信息
+#warDevName|warDeployName|needRestart|webName|webPort|configFilesPath|gitBranch|gitRepo
+_warInfo=`cat $_WAR_LST_FILE | egrep -v "(^ *#|^$)" | awk -F'|' '{if ( $1 == "'${_warName}'" ) print $0}' | head -1`
+_gitRepo=`echo "${_warInfo}" | awk -F'|' '{print $8}'`
+_gitBranch=`echo "${_warInfo}" | awk -F'|' '{print $7}'`
+_configFiles=`echo "${_warInfo}" | awk -F'|' '{print $6}'`
+_warDeployName=`echo "${_warInfo}" | awk -F'|' '{print $2}'`
+_config_files_path="${EZDPL_HOME}/conf/_config/${_warName}/${_configFiles}"
+echo "warName:    $_warName"
+echo "DeployName: $_warDeployName"
+echo "configFiles:$_configFiles"
+echo "gitRepo:    $_gitRepo"
+echo "gitBranch:  $_gitBranch"
+echo "gitCommit:  $_commit"
+echo
+
+# 判断是否有gitRepo,如果有则获取最新代码
+if [[ -n $_gitRepo ]]; then
+    mkdir -p ${_OPER_PATH}/build/${_warName}
+    cd ${_OPER_PATH}/build
+    echo "Clone the latest code..."
+    rm ${_warName} -rf
+    git clone $_gitRepo $_warName
+    cd $_warName
+    pwd
+    
+    git checkout $_gitBranch  
+    if [[ -n $_commit ]]; then
+        if git reset --hard $_commit ;then
+            echo "Reset to $_commit"
+        else
+            echo "$_commit does not exist.";exit 1
+        fi
+    fi
+    
+    # 获取版本信息
+    _version_file="${_WARS_RUN}/${_warName}/versions" ; touch $_version_file
+    _git_branch_v=`git branch -v`
+    _git_log=`git log --decorate=short -1`
+    _git_commit=`git rev-parse HEAD`
+    _git_tag=`git tag --points-at HEAD`
+
+    # 生成部署目录名
+    _datetime=`date +%Y%m%d_%H%M%S`
+    _deploy_path="${_datetime}_${_git_tag}_${_git_commit}"
+    
+    # 创建部署目录
+    _warSharedRunningDir="${_WARS_RUN}/${_warName}/${_deploy_path}" ; mkdir -p $_warSharedRunningDir 
+
+    # 记录版本信息
+    _version_info="\n\n${_datetime}\n${_warSharedRunningDir}\n${_git_branch_v}\n${_git_log}"
+    echo -e "$_version_info" | tee -a $_version_file
+
+    # 复制生产配置文件到运行目录（以备检查）
+    /bin/cp -r ${_config_files_path} ${_warSharedRunningDir}
+
+    # 更换源码中的生产配置文件
+    /bin/cp -rp ${_config_files_path}/* ${_OPER_PATH}/build/${_warName}/${_configFiles}/
+    if [[ $? != 0 ]];then
+        echo "${EZDPL_HOME}/conf/_config/${_warName} ... does not exist! ";exit 1
+    fi
+    
+    # 构建新包 
+    echo "Building..."
+    $MAVEN_HOME/bin/mvn clean package
+    
+    # 复制war包到运行目录 
+    /bin/cp ${_OPER_PATH}/build/${_warName}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war
+    md5sum  ${_OPER_PATH}/build/${_warName}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war
+    echo
+
+else
+    # 待发布的war包要放到 ${_OPER_PATH}/todeploy 目录
+    if [[ ! -f ${_OPER_PATH}/todeploy/${_warName}.war ]]; then
+	echo "${_warName}.war does not exist in ${_OPER_PATH}/todeploy !"; exit 1
+    fi
+
+    # 生成部署目录名
+    _datetime=`date +%Y%m%d_%H%M%S`
+    _deploy_path="${_datetime}"
+
+    # 创建部署目录
+    _warSharedRunningDir="${_WARS_RUN}/${_warName}/${_deploy_path}" ; mkdir -p $_warSharedRunningDir 
+
+    # 重新打包
+    echo "Repacking war ..."
+    /bin/cp ${_OPER_PATH}/todeploy/${_warName}.war ${_OPER_PATH}/cook
+    cd ${_OPER_PATH}/cook
+    jar -uf ${_warName}.war -C ${_config_files_path}/ .
+
+    # 复制war包到运行目录 
+    /bin/cp ${_OPER_PATH}/cook/${_warName}.war ${_warSharedRunningDir}/${_warDeployName}.war
+    md5sum  ${_OPER_PATH}/cook/${_warName}.war ${_warSharedRunningDir}/${_warDeployName}.war
+    echo
+
+fi
+
+# 显示部署目录名
+echo $_deploy_path
+

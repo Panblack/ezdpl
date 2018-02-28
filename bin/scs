@@ -12,11 +12,11 @@
 # get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
-    EZDPL_HOME=`echo $_dir|sed 's/\/bin$//g'`
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`     
 fi
-echo "EZDPL_HOME=$EZDPL_HOME"
 
-_hosts_lst=`egrep -v '^ *#' ${EZDPL_HOME}/hosts.lst`
+_hosts_lst=`egrep -v '^ *#' ${EZDPL_HOME}/conf/hosts.lst`
 _usage="
 Usage:
 scs [user@]<hostname>[:port] 						SSH login
@@ -64,7 +64,7 @@ if [[ -z $_user ]] && [[ -z $_port ]]; then
         _user=`echo "$_host_info" | grep $_ip | awk '{print $3}'`
         _port=`echo "$_host_info" | grep $_ip | awk '{print $4}'` 
     else
-        echo "$_host not in ${EZDPL_HOME}/hosts.lst"
+        echo "$_host not in ${EZDPL_HOME}/conf/hosts.lst"
     fi
 fi
 

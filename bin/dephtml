@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Main
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+
+# 基础变量
+# 获取 $_OPER_PATH $_HTML_RUN $_HTML_LST_FILE $_HTMLSERVERS_LST_FILE _HTML_DEPLOY_DELAY 变量
+source ${EZDPL_HOME}/conf/deploy.include
+_usage="Usage: <htmlName> <version_dir>"
+
+#参数变量
+_htmlName=$1
+
+_version_dir=$2
+_htmlSharedRunningDir="${_HTML_RUN}/${_htmlName}"
+_path_new=${_htmlSharedRunningDir}/${_version_dir}
+if [[ $# -eq 0 ]]; then
+    echo "$_usage"
+    ls -1 "${_HTML_RUN}"
+    exit 1
+fi
+if [[ ! -d ${_htmlSharedRunningDir} ]] ; then
+    echo "$_usage"
+    echo "${_htmlSharedRunningDir} does not exist!";ls -1 ${_HTML_RUN} 2>/dev/null;exit 1
+fi  
+if [[ $# -lt 2 ]]; then
+    echo "$_usage"
+    echo  "${_htmlSharedRunningDir}"
+    ls -1 "${_htmlSharedRunningDir}" 2>/dev/null | grep -v versions
+    exit 1
+fi
+if [[ ! -d ${_path_new} ]]; then
+    echo "$_usage"
+    echo "${_path_new} does not exists!";exit 1
+fi
+
+set -u
+# 发版日志
+_log_file=${_OPER_PATH}/dephtml.log
+touch $_log_file
+echo -e "\n\n" >> $_log_file
+
+# 获取html信息 #htmlDeployName|htmlDevName|htmlPort|gitBranch|gitRepo
+if [[ -f "$_HTML_LST_FILE" ]]; then
+    ls $_HTML_LST_FILE
+    _html_info=`egrep "^${_htmlName}\|" $_HTML_LST_FILE |egrep -v '(^ *#|^$)'|head -1 `
+    _htmlDeployName=` echo $_html_info|awk -F'|' '{print $1}'`
+
+
+else
+    echo "`date +%F_%T` $_HTML_LST_FILE does not exist." | tee -a $_log_file ; exit 1
+fi
+if [[ -z $_html_info ]]; then
+    echo "`date +%F_%T` $_htmlName not defined ." | tee -a $_log_file ; exit 1
+fi
+
+# 获取 htmlservers 信息 #htmlDeployName|serverIp|serverUser|serverPort
+if [[ -f "$_HTMLSERVERS_LST_FILE" ]]; then
+    ls $_HTMLSERVERS_LST_FILE
+    _servers=`egrep "^${_htmlName}\|" $_HTMLSERVERS_LST_FILE |egrep -v '^ *#'`
+else
+    echo "`date +%F_%T` $_HTMLSERVERS_LST_FILE does not exist." | tee -a $_log_file ; exit 1
+fi
+if [[ -z $_servers ]]; then
+    echo "`date +%F_%T` no htmlserver defined for $_htmlName ." | tee -a $_log_file ; exit 1
+fi
+
+echo -e "`date +%F_%T` $_htmlName $_version_dir\n\nServers:\n${_servers}"  | tee -a $_log_file
+echo 
+#read -p "Enter Y to continue, Enter to quit: " _Y
+#if [[ $_Y != "Y" ]]; then
+#    echo "Aborted!" | tee -a $_log_file
+#    exit 
+#fi
+
+IFS=$'\n'
+for x in $_servers; do
+    _htmlServerName=` echo $x|awk -F'|' '{print $2}'`
+    _htmlServerPort=` echo $x|awk -F'|' '{print $4}'`
+    _htmlServerUser=` echo $x|awk -F'|' '{print $3}'`
+    echo "htmlName:        $_htmlName"
+    echo "htmlServer:      $_htmlServerUser@${_htmlServerName}:${_htmlServerPort}"
+    echo 
+    ssh -p ${_htmlServerPort} ${_htmlServerUser}@${_htmlServerName} "cd /opt/html && rm ${_htmlName} -f && ln -sf ${_path_new} ${_htmlName}; ls -l --color=always /opt/html/${_htmlName}"
+    echo "${_htmlServerName} updated ${_htmlName} to ${_path_new} ! " | tee -a $_log_file ; echo
+    
+    for ((i=1;i<=${_HTML_DEPLOY_DELAY};i++)); do sleep 1 ; echo -n . ; done ; echo
+done

@@ -1,0 +1,8 @@
+#webName|serverName|serverUser|serverPort
+Sales|172.16.2.1|root|22
+Sales|172.16.2.2|root|22
+Sales|172.16.2.3|root|22
+Sales|172.16.2.4|root|22
+BackEnd|172.16.3.1|root|22
+BackEnd|172.16.3.2|root|22
+BackEnd|172.16.3.3|root|22

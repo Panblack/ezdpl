@@ -1,2 +1,4 @@
+packages/
+todeploy/
+.svn
 *.log
-/packages/

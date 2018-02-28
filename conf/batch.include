@@ -1,0 +1,4 @@
+#${EZDPL_HOME}/ezdpl $_ip:$_port common/init N $_user
+#ssh -p$_port $_user@$_ip "crontab -l"
+#scp -P$_port $_user@$_ip:/var/log/iptraf/* .
+#ssh -p$_port $_user@$_ip "egrep '(DNS|GSS)' /etc/ssh/sshd_config"

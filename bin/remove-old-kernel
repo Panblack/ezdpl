@@ -6,7 +6,7 @@ if egrep -i '(ubuntu|debian)' /etc/*-release &>/dev/null; then
     echo "To be kept:"
     echo $_keep
     echo
-    _tobe_removed=`dpkg --list|egrep '(linux-generic|linux-headers|linux-image)'|egrep -v "($_keep|lts)" |awk '{print $2}'|sed 's/\n/ /g' `
+    _tobe_removed=`dpkg --list|egrep '(linux-generic|linux-headers|linux-image)'|egrep -v "($_keep|lts|hwe)" |awk '{print $2}'|sed 's/\n/ /g' `
     echo "To be removed:"
     echo "$_tobe_removed"
     read -p "Proceed?(Y to go)" go

@@ -3,6 +3,13 @@
 
 # Version 3.0
 
+## Almost there
+Finally, the scripts in `bin/` are almost ready. Whiles `servers/*` are not.
+And detailed documentation is comming soon...
+
+Mar 1, 2018
+
+
 ## How version 3.0 started
 Version 2.0 worked pretty well on my first project, a comparatively large system. Scripts grew in tremendous scale, of course, only some of them were shared in this repo. 
 
@@ -17,6 +24,7 @@ Another improvement is the new way of application deployment. Java web applicati
 Version 3.0 is still on the way. The whole infrastructure needs to be rebuilt. Previous versions were writen, while this version needs to be designed.
 
 BTW, LwMon was moved here. 
+
 Feb 1, 2018
 
 # Version 2.0
