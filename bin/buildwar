@@ -37,7 +37,7 @@ _gitRepo=`echo "${_warInfo}" | awk -F'|' '{print $8}'`
 _gitBranch=`echo "${_warInfo}" | awk -F'|' '{print $7}'`
 _configFiles=`echo "${_warInfo}" | awk -F'|' '{print $6}'`
 _warDeployName=`echo "${_warInfo}" | awk -F'|' '{print $2}'`
-_config_files_path="${EZDPL_HOME}/conf/_config/${_warName}/${_configFiles}"
+_config_files_path="${EZDPL_HOME}/conf/_config/${_warName}"
 echo "warName:    $_warName"
 echo "DeployName: $_warDeployName"
 echo "configFiles:$_configFiles"
@@ -50,7 +50,7 @@ echo
 if [[ -n $_gitRepo ]]; then
     mkdir -p ${_OPER_PATH}/build/${_warName}
     cd ${_OPER_PATH}/build
-    echo "Clone the latest code..."
+    echo "Get the latest code..."
     rm ${_warName} -rf
     git clone $_gitRepo $_warName
     cd $_warName
@@ -84,10 +84,11 @@ if [[ -n $_gitRepo ]]; then
     echo -e "$_version_info" | tee -a $_version_file
 
     # 复制生产配置文件到运行目录（以备检查）
-    /bin/cp -r ${_config_files_path} ${_warSharedRunningDir}
+    /bin/cp -r ${_config_files_path}/${_configFiles}/ ${_warSharedRunningDir}
 
     # 更换源码中的生产配置文件
-    /bin/cp -rp ${_config_files_path}/* ${_OPER_PATH}/build/${_warName}/${_configFiles}/
+    echo "Replacing config files..."
+    /bin/cp -rp ${_config_files_path}/${_configFiles}/* ${_OPER_PATH}/build/${_warName}/${_configFiles}/
     if [[ $? != 0 ]];then
         echo "${EZDPL_HOME}/conf/_config/${_warName} ... does not exist! ";exit 1
     fi
@@ -118,7 +119,7 @@ else
     echo "Repacking war ..."
     /bin/cp ${_OPER_PATH}/todeploy/${_warName}.war ${_OPER_PATH}/cook
     cd ${_OPER_PATH}/cook
-    jar -uf ${_warName}.war -C ${_config_files_path}/ .
+    ${JAVA_HOME}/bin/jar -uf ${_warName}.war -C ${_config_files_path}/ .
 
     # 复制war包到运行目录 
     /bin/cp ${_OPER_PATH}/cook/${_warName}.war ${_warSharedRunningDir}/${_warDeployName}.war
