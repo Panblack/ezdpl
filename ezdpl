@@ -3,7 +3,7 @@
 # Last update: 2017-04-03
 
 funUsage() {
-    echo -e "Usage: ./ezdpl <Silent Mode Y|N> <ip address>:[port] <ServerType/Operation> [reboot Y|N(N)] [username(root)]\nServerType/Operation:"
+    echo -e "Usage: ./ezdpl <ip address>:[port] <ServerType/Operation> [reboot Y|N(N)] [username(root)]\nServerType/Operation:"
     cd servers; for x in * ; do cd $x; for y in *; do echo $x/`ls -d $y`;done;cd ..;done; cd ..
 }
 
@@ -11,17 +11,10 @@ _dir=$(dirname `readlink -f $0`)
 cd $_dir
 echo "ezdplHome:`pwd`"
 
-if [ -n "$1" ]; then 
-  _silent=$1
-else
-  funUsage
-  exit 1
-fi
-
-if [ -n "$2" ]; then
+if [ -n "$1" ]; then
   #Detailed param check will be needed.
-  _ipaddress=$(echo $2|awk -F':' '{print $1}')
-  _port=$(echo $2|awk -F':' '{print $2}')
+  _ipaddress=$(echo $1|awk -F':' '{print $1}')
+  _port=$(echo $1|awk -F':' '{print $2}')
   if [ ${#_port} -eq 0 ]; then
     _port="22"
   fi
@@ -30,44 +23,23 @@ else
   exit 1
 fi
 
-if [ -n "$3" ]; then
-  _app_version=$3
+if [ -n "$2" ]; then
+  _server_oper=$2
 else
   funUsage
   exit 1
 fi
 
 # Optional parameters
-if [ -n "$4" ]; then
-  _reboot=$4
+if [ -n "$3" ]; then
+  _reboot=$3
 else 
   _reboot="N"
 fi
-if [ -n "$5" ]; then
-  _username=$5
+if [ -n "$4" ]; then
+  _username=$4
 else
   _username="root"
-fi
-
-
-# Silent mode or not
-if [ "$_silent" != "Y" ]; then
-  echo
-  echo "Ezdpl does things in a raw and simple way."
-  echo "https://github.com/Panblack/ezdpl"
-  echo 
-  echo "Will initialize a new server, configure a server for certain purpose."
-  echo "Usage: ./ezdpl <Silent Mode Y|N> <ip address>:[port] <ServerType/Operation> [reboot Y|N(N)] [username(root)]"
-  echo "Manually Initialize 10.1.1.1		 : ./ezdpl N 10.1.1.1 common/init Y"
-  echo "Silently Configure 10.1.1.1 as appserver : ./ezdpl Y 10.1.1.1:22 appsrv/init Y root"
-  echo
-
-  # Confirmation
-  read -p "Will overwrite configuration files or apps on $_ipaddress. Enter Y to continue: "
-  if [ "$REPLY" != "Y" ]; then
-    echo "Exit"
-    exit 0
-  fi
 fi
 
 # Check
@@ -78,63 +50,60 @@ if ! ssh -p $_port $_username@$_ipaddress uname > /dev/null ; then
   exit 1
 fi
 
-if [ ! -d "./servers/$_app_version" ]; then
+if [ ! -d "./servers/$_server_oper" ]; then
   echo
-  echo "There is no $_app_version configured here !"
+  echo "There is no $_server_oper configured here !"
   exit 1
 fi
 
 # Everything seems OK. Go!
-echo >> ezdpl.log
-echo "`date +%Y-%m-%d_%H:%M:%S` ./ezdpl $_silent $_ipaddress:$_port $_app_version $_reboot $_username" >> ezdpl.log
-
-# Upload release.include 
-/usr/bin/scp -q -P$_port ./release.include $_username@$_ipaddress:/usr/local/bin/
+echo >> log.txt
+echo "`date +%Y-%m-%d_%H:%M:%S` ./ezdpl $_ipaddress:$_port $_server_oper $_reboot $_username" >> log.txt
 
 # Run pre.sh on the target server
-if [ -f "./servers/$_app_version/pre.sh" ]; then
-  /usr/bin/scp -q -P$_port ./servers/$_app_version/pre.sh $_username@$_ipaddress:/tmp/
+if [ -f "./servers/$_server_oper/pre.sh" ]; then
+  /usr/bin/scp -q -P$_port ./servers/$_server_oper/pre.sh $_username@$_ipaddress:/tmp/
   ssh -p$_port $_username@$_ipaddress 'source /etc/profile; bash -l /tmp/pre.sh'
   _pre=$?
   if [[ $_pre != 0 ]];then 
-    echo "$_username@$_ipaddress:/tmp/pre.sh exit code $_pre . EXIT!!" | tee -a ezdpl.log
+    echo "$_username@$_ipaddress:/tmp/pre.sh exit code $_pre . EXIT!!" | tee -a log.txt
     exit 1
   else
-    echo "$_username@$_ipaddress:/tmp/pre.sh OK!" | tee -a ezdpl.log
+    echo "$_username@$_ipaddress:/tmp/pre.sh OK!" | tee -a log.txt
   fi
 fi
 
 # Start copy app/version/files/*
-if [ -d ./servers/$_app_version/files  ]; then 
-  echo -n "Start to copy ./servers/$_app_version/files/*  "| tee -a ezdpl.log
+if [ -d ./servers/$_server_oper/files  ]; then 
+  echo -n "Start to copy ./servers/$_server_oper/files/*  "| tee -a log.txt
   echo -n "......"
-  if /usr/bin/scp -rq -P$_port ./servers/$_app_version/files/* $_username@$_ipaddress:/ ; then
-      echo "OK!"      | tee -a ezdpl.log
+  if /usr/bin/scp -rq -P$_port ./servers/$_server_oper/files/* $_username@$_ipaddress:/ ; then
+      echo "OK!"      | tee -a log.txt
   else
-      echo "Failed!"  | tee -a ezdpl.log
+      echo "Failed!"  | tee -a log.txt
   fi
 fi
 
 # Run fin.sh on the target server
-if [ -f "./servers/$_app_version/fin.sh" ]; then
-  /usr/bin/scp -q -P$_port ./servers/$_app_version/fin.sh $_username@$_ipaddress:/tmp/
+if [ -f "./servers/$_server_oper/fin.sh" ]; then
+  /usr/bin/scp -q -P$_port ./servers/$_server_oper/fin.sh $_username@$_ipaddress:/tmp/
   ssh -p$_port $_username@$_ipaddress 'source /etc/profile; bash -l /tmp/fin.sh'
   _fin=$?
   if [[ $_fin != 0 ]];then
-    echo "$_username@$_ipaddress:/tmp/fin.sh exit code $_fin . EXIT!!" | tee -a ezdpl.log
+    echo "$_username@$_ipaddress:/tmp/fin.sh exit code $_fin . EXIT!!" | tee -a log.txt
     exit 1
   else
-    echo "$_username@$_ipaddress:/tmp/fin.sh OK!" | tee -a ezdpl.log
+    echo "$_username@$_ipaddress:/tmp/fin.sh OK!" | tee -a log.txt
   fi
 fi
 
 # Reboot target server.
 if [ "$_reboot" = "Y" ]; then
   echo
-  echo "Target server will reboot..." | tee -a ezdpl.log
+  echo "Target server will reboot..." | tee -a log.txt
   echo
   ssh -p $_port $_username@$_ipaddress reboot
 fi
-echo "Target Server: ${_ipaddress} done!" | tee -a ezdpl.log
+echo "Target Server: ${_ipaddress} done!" | tee -a log.txt
 echo
 # End of ezdpl
