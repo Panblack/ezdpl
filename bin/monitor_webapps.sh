@@ -6,7 +6,10 @@ if [[ -z ${EZDPL_HOME} ]]; then
     EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`     
 fi
 
+# get _BASES_DIR 
 source ${EZDPL_HOME}/conf/ezdpl.include
+
+# get _NOTIFY_SENDER _NOTIFY_SENDER_USER _NOTIFY_SENDER_PASS _NOTIFY_SENDER_SMTP _NOTIFY_RECEIVERS
 source ${EZDPL_HOME}/conf/japp.include
 
 ######## Start of preparation ########
@@ -70,9 +73,9 @@ for x in $_webs; do		# webs
 	    	echo -e "${_notify_content} created. Email sent." | tee -a $_log_file
 	    fi
         done	# wars
+	echo | tee -a $_log_file
     done 	# servers
     unset y
-    echo | tee -a $_log_file
 done		# webs
 echo -e "`date +%F_%T` END\n\n" | tee -a $_log_file
 # Job Ends ...
