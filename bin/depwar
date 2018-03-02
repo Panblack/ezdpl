@@ -84,7 +84,6 @@ if [[ $_Y != "Y" ]]; then
     echo "Aborted!" | tee -a $_log_file
     exit 
 fi
-exit 
 
 IFS=$'\n'
 case $_oper in 
