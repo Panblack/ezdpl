@@ -79,11 +79,12 @@ fi
 echo -e "`date +%F_%T` $_warName $_oper $_version_dir\nWarInfo:\n${_war_info}\nServers:\n${_servers}"  | tee -a $_log_file
 echo 
 
-read -p "Enter Y to continue, Enter to quit: " _Y
-if [[ $_Y != "Y" ]]; then
-    echo "Aborted!" | tee -a $_log_file
-    exit 
-fi
+#read -p "Enter Y to continue, Enter to quit: " _Y
+#if [[ $_Y != "Y" ]]; then
+#    echo "Aborted!" | tee -a $_log_file
+#    exit 
+#fi
+for ((i=1;i<=5;i++)); do sleep 1 ; echo -n . ; done ; echo
 
 IFS=$'\n'
 case $_oper in 
@@ -145,7 +146,7 @@ exit
 # 
 # web部署服务器信息
 # ${EZDPL_HOME}/conf/webservers.lst 
-# 开发名|服务器IP|服务器用户名|服务器SSH端口
+# web名|服务器IP|服务器用户名|服务器SSH端口
 # #webName|serverName|serverUser|serverPort
 # 
 # html部署信息
