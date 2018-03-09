@@ -2,6 +2,10 @@
 =====
 
 # Version 3.0
+## 中文文档
+Mar 9,2018
+
+https://github.com/Panblack/ezdpl/blob/master/doc_cn/README_CN.md
 
 ## Almost there
 Finally, the scripts in `bin/` are almost ready. Whiles `servers/*` are not.
