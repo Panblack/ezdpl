@@ -1,5 +1,6 @@
 # Used by bin/buildhtml
 funMakeProduction() {
+    echo "Making production: $1"
     case $1 in
     sales)
         sed -i /'var *webname'/d ./js/allActive.js
@@ -14,6 +15,6 @@ funMakeProduction() {
 	sed -i '1i\var webname = "https://portal.example.com/backendapi"' ./js/allActive.js
 	;;
     esac
-    echo "Making production: $1"
+    echo "Made production: $1"
 }
 

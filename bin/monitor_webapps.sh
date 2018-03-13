@@ -35,24 +35,24 @@ trap "mv -f $_pid_file "/tmp/${_script}.pid.`date +%F_%H%M%S`" 2>/dev/null ; exi
 # Job Starts ...
 echo -e "`date +%F_%T` START" | tee -a $_log_file
 _notify_sender_pass=`echo $_NOTIFY_SENDER_PASS|base64 -d`
-_webs=`cat ${EZDPL_HOME}/conf/war.lst|egrep -v '^ *#'|awk -F'|' '{print $4}' |uniq`
+_webs=`cat ${EZDPL_HOME}/conf/webservers.lst|egrep -v '^ *#'`
 IFS=$'\n'
 for x in $_webs; do		# webs
-    _servers=`cat ${EZDPL_HOME}/conf/webservers.lst|egrep "^ *${x}\|" `
-    _wars=`cat ${EZDPL_HOME}/conf/war.lst|egrep -v "^ *#"|awk -F'|' '{if ($4 == "'$x'") print $2}'`
-    for y in $_servers ; do	# servers 
-	_server_ip=`  echo $y|awk -F'|' '{print $2}'`
-	_server_user=`echo $y|awk -F'|' '{print $3}'`
-	_server_port=`echo $y|awk -F'|' '{print $4}'`
-	echo -e "Web:\t${x}\nServer:\t${_server_user}@${_server_ip}:${_server_port}" | tee -a $_log_file
+	_web=`        echo $x|awk -F'|' '{print $1}'`
+	_server_ip=`  echo $x|awk -F'|' '{print $2}'`
+	_server_user=`echo $x|awk -F'|' '{print $3}'`
+	_server_port=`echo $x|awk -F'|' '{print $4}'`
+    
+    	_wars=`cat ${EZDPL_HOME}/conf/war.lst|egrep -v "^ *#"|awk -F'|' '{if ($4 == "'$_web'") print $2}'`
+	echo -e "Web:\t${_web}\nServer:\t${_server_user}@${_server_ip}:${_server_port}" | tee -a $_log_file
 
     	# Check tomcat bases
 	_base_check=`ssh -p${_server_port} ${_server_user}@${_server_ip} "/usr/local/bin/psj"`
 	_server_hostname=`ssh -p${_server_port} ${_server_user}@${_server_ip} "hostname -s"`
-    	if ! echo "$_base_check"|grep "\-Dcatalina.base"|egrep "${_BASES_DIR}/${x}" &>/dev/null; then
-	    _notify_title="${_server_hostname}:${x}"
+    	if ! echo "$_base_check"|grep "\-Dcatalina.base"|egrep "${_BASES_DIR}/${_web}" &>/dev/null; then
+	    _notify_title="${_server_hostname}:${_web}"
 	    _notify_content="`date +%F_%T` $_base_check"
-	    ssh -p${_server_port} ${_server_user}@${_server_ip} "/usr/local/bin/tmc ${x} up " >> $_log_file
+	    ssh -p${_server_port} ${_server_user}@${_server_ip} "/usr/local/bin/tmc ${_web} up " >> $_log_file
 	    echo -e "\n\n${_notify_title}\n${_notify_content}\nSending notify email" | tee -a $_log_file
 	    /usr/local/bin/pymail.py -f "$_NOTIFY_SENDER" -t "$_NOTIFY_RECEIVERS" -s "$_NOTIFY_SENDER_SMTP" \
 		-u "$_NOTIFY_SENDER_USER" -p "$_notify_sender_pass" -S "${_notify_title} down" -m "${_notify_content}" 
@@ -63,10 +63,10 @@ for x in $_webs; do		# webs
 	# Check tomcat work dir 
         for z in $_wars; do 	# wars
 	    echo -e "War:\t$z" | tee -a $_log_file
-	    _webapp_temp_dir="${_BASES_DIR}/${x}/work/Catalina/localhost/${z}"
+	    _webapp_temp_dir="${_BASES_DIR}/${_web}/work/Catalina/localhost/${z}"
 	    if ! ssh -p${_server_port} ${_server_user}@${_server_ip} "ls $_webapp_temp_dir &>/dev/null" ; then
 		ssh -p${_server_port} ${_server_user}@${_server_ip} "mkdir -p $_webapp_temp_dir" 
-	    	_notify_title="${_server_hostname}:${x} work dir for ${z} missing"
+	    	_notify_title="${_server_hostname}:${_web} work dir for ${z} missing"
 	    	_notify_content="`date +%F_%T` ${_server_hostname}:${_webapp_temp_dir}"
 	        /usr/local/bin/pymail.py -f "$_NOTIFY_SENDER" -t "$_NOTIFY_RECEIVERS" -s "$_NOTIFY_SENDER_SMTP" \
 		    -u "$_NOTIFY_SENDER_USER" -p "$_notify_sender_pass" -S "${_notify_title}" -m "${_notify_content}" 
@@ -74,8 +74,7 @@ for x in $_webs; do		# webs
 	    fi
         done	# wars
 	echo | tee -a $_log_file
-    done 	# servers
-    unset y
+    unset x
 done		# webs
 echo -e "`date +%F_%T` END\n\n" | tee -a $_log_file
 # Job Ends ...

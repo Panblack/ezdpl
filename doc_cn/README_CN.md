@@ -52,7 +52,7 @@ ezdpl 是一套批量配置/管理/监控服务器的脚本工具
 `chkres`             | 从 `conf/hosts.lst`读取服务器信息，检查服务器的资源状况和监听端口
 `chktcp`             | 从 `conf/hosts.lst`读取服务器信息，检查服务器是否有大量未关闭的TCP连接
 `dephtml`            | 从 `conf/html.lst` 和 `conf/htmlservers.lst` 读取html项目信息和对应的服务器信息，将指定目录的静态页项目发布到对应的服务器。
-`depwar`             | 从 `conf/war.lst` 和 `conf/webservers.lst` 读取java web项目信息和对应的服务器信息，将指定目录的静态页项目发布到对应的服务器。
+`depwar`             | 从 `conf/war.lst` 和 `conf/webservers.lst` 读取java web项目信息和对应的服务器信息，将指定目录的java web项目发布到对应的服务器。
 `monitor_webapps.sh` | 从 `conf/war.lst` 和 `conf/webservers.lst` 读取java web项目信息和对应的服务器信息，监控java web应用是否处于运行状态，可根据情况启动相应的应用。
 `readsql`            | 从 `ezdpl.include` 读取mysql服务器信息，以只读方式访问。
 `scs`                | ssh 登录其他服务器，或上传/下载文件。
