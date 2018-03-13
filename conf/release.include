@@ -21,6 +21,12 @@ _CRON_FOR_ROOT="*/10 * * * * /usr/local/bin/ban_ssh.sh
 #*/10 * * * * /usr/sbin/ntpdate ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com
 "
 
+_LOCAL_REPO="[local]
+name=local
+baseurl=http://Host:Port/path/to/repo
+enabled=1
+gpgcheck=0"
+
 _SELINUX_OFF=1
 
 _TIMEZONE_INFO="Asia/Shanghai"
@@ -83,4 +89,13 @@ _NFS_DIRS_INIT="/data/webShare/read/html /data/webShare/read/webapps /data/webSh
 
 _LOCAL_DIRS_FOR_APPS="/opt/html /opt/app /opt/webs /opt/javaapp /opt/logs"
 _LOCAL_DIRS_FOR_DEPLOY="/opt/wars/build /opt/wars/todeploy /opt/wars/cook /opt/wars/archive "
+
+_WEBSERVER_FIREWALL_PORTS="80 443 8080 8090"
+_WEBSERVER_FIREWALL_RICH_RULES="rule family='ipv4' source address='224.2.2.3' port port='54328' protocol='udp' accept
+rule family='ipv4' destination address='224.2.2.3' port port='54328' protocol='udp' accept"
+
+#sample rich rules
+#"rule family='ipv4' source address='224.2.2.3' port port='54328' protocol='udp' accept
+#rule family='ipv4' destination address='224.2.2.3' port port='54328' protocol='udp' accept"
+
 

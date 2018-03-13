@@ -11,7 +11,7 @@ echo "EZDPL_HOME=$EZDPL_HOME"
 # 获取 _OPER_PATH _WARS_RUN _WAR_LST_FILE 变量
 source ${EZDPL_HOME}/conf/deploy.include
 _wars=`awk -F'|' '{print $1}' ${EZDPL_HOME}/conf/war.lst|egrep -v '(^ *#|^$)'`
-_usage="Usage: buildwar <war_name> [git_commit_id]
+_usage="Usage: buildwar <war_name> [skip_test(Y |N)] [git_commit_id]
 $_wars"
 
 if [[ $# -eq 0 ]];then
@@ -20,9 +20,14 @@ fi
 
 _warName=$1
 if [[ -z $2 ]]; then
+    _skipTest="Y"
+else
+    _skipTest=$2
+fi
+if [[ -z $3 ]]; then
     _commit=""
 else
-    _commit=$2
+    _commit=$3
 fi
 
 if [[ ! -d ${_WARS_RUN}/${_warName} ]]; then
@@ -94,8 +99,13 @@ if [[ -n $_gitRepo ]]; then
     fi
     
     # 构建新包 
-    echo "Building..."
-    $MAVEN_HOME/bin/mvn clean package
+    if [[ $_skipTest = "Y" ]]; then
+    	echo "Building(skip test)..."
+	$MAVEN_HOME/bin/mvn -Dmaven.test.skip=true clean package
+    else
+    	echo "Building(run test)..."
+	$MAVEN_HOME/bin/mvn clean package
+    fi
     
     # 复制war包到运行目录 
     /bin/cp ${_OPER_PATH}/build/${_warName}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war
