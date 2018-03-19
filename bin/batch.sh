@@ -8,10 +8,13 @@ fi
 echo "EZDPL_HOME : ${EZDPL_HOME}"
 
 # Read servers
-if [[ -f ${EZDPL_HOME}/conf/hosts.lst ]]; then
-    _servers=`egrep -v '(^#|^$)' ./conf/hosts.lst`
-else
+if [[ ! -f ${EZDPL_HOME}/conf/hosts.lst ]]; then
     echo "${EZDPL_HOME}/conf/hosts.lst does not exist.";exit 1
+fi
+if [[ -n $1 ]]; then
+    _servers=`egrep -v '(^#|^$)' ./conf/hosts.lst | grep $1`
+else
+    _servers=`egrep -v '(^#|^$)' ./conf/hosts.lst` 
 fi
 
 # Confirm
@@ -41,7 +44,7 @@ for x in $_servers ; do
     [[ -z $_user ]] && _user=root
 
     echo "$_count [ $_ip , $_user@$_host:$_port , $_purpose ]"
-    source ${EZDPL_HOME}/conf/batch/batch.include
+    source ${EZDPL_HOME}/conf/batch.include
     echo
     ((_count++))
 done
