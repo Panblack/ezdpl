@@ -79,16 +79,16 @@ fi
 echo "[$_host $_user@$_ip:$_port]"
 case $2 in 
     u)
-        scp -C -P $_port -p  $3 ${_user}@${_ip}:${_dest}
+        scp -C -P $_port -p  "$3" ${_user}@${_ip}:${_dest}
         ;;
     up)
-        scp -C -P $_port -rp $3 ${_user}@${_ip}:${_dest}
+        scp -C -P $_port -rp "$3" ${_user}@${_ip}:${_dest}
         ;;
     d)
-        scp -C -P $_port -p     ${_user}@${_ip}:${3} ${_dest}
+        scp -C -P $_port -p     ${_user}@${_ip}:"${3}" ${_dest}
         ;;
     dp)
-        scp -C -P $_port -rp    ${_user}@${_ip}:${3} ${_dest}
+        scp -C -P $_port -rp    ${_user}@${_ip}:"${3}" ${_dest}
         ;;
     e)
         ssh -p $_port        ${_user}@${_ip} "${3}"
