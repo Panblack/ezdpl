@@ -52,7 +52,7 @@ echo -e "\n\n" >> $_log_file
 # 获取wars信息 #warDevName|warDeployName|needRestart|webName|webPort|git_repo
 if [[ -f "$_WAR_LST_FILE" ]]; then
     ls $_WAR_LST_FILE
-    _war_info=`cat $_WAR_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_warName}'" ) print $0}' | head -1 `
+    _war_info=`cat $_WAR_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_warName}'" ) print $0}'`
     #_war_info=`egrep "^${_warName}\|" $_WAR_LST_FILE |egrep -v '(^ *#|^$)'|head -1 `
     _warDeployName=` echo $_war_info|awk -F'|' '{print $2}'`
     _warNeedRestart=`echo $_war_info|awk -F'|' '{print $3}'`

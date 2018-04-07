@@ -12,9 +12,9 @@ if [[ ! -f ${EZDPL_HOME}/conf/hosts.lst ]]; then
     echo "${EZDPL_HOME}/conf/hosts.lst does not exist.";exit 1
 fi
 if [[ -n $1 ]]; then
-    _servers=`egrep -v '(^#|^$)' ./conf/hosts.lst | grep $1`
+    _servers=`egrep -v '(^#|^$)' ${EZDPL_HOME}/conf/hosts.lst | grep $1`
 else
-    _servers=`egrep -v '(^#|^$)' ./conf/hosts.lst` 
+    _servers=`egrep -v '(^#|^$)' ${EZDPL_HOME}/conf/hosts.lst` 
 fi
 
 # Confirm
