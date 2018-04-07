@@ -32,7 +32,7 @@ case $_oper in
 	cat $_access_log |awk '{for (i=1;i<=NF;i++) if($i ~ /HTTP\/1.?/) print $(i-1)"\t"$(i-2)"\t"$(NF-5)"\t"$(i+1)}'|sort|uniq -c|sort -h|sed 's/\"//g'
         ;;
     trans)
-	awk '{total+=($10/1024/1024)} END {print "Transfered(MB)=" total}' access.log
+	awk '{total+=($10/1024/1024)} END {print "Transfered(MB)=" total}' $_access_log
 	;;
     *)
 	echo "$_usageInfo"
