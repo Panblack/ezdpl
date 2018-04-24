@@ -24,6 +24,9 @@ innodb_open_files = 10000
 table_open_cache = 10000
 table_definition_cache = 10000
 
+#32MB
+max_allowed_packet = 33554432
+
 #
 # Remove leading # to turn on a very important data integrity option: logging
 # changes to the binary log between backups.

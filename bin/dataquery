@@ -1,0 +1,30 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+
+# Get funDataQuery() function
+source ${EZDPL_HOME}/conf/dataquery.sql.sh
+
+_mysql_server=`grep '_MYSQL_MASTER_' ${EZDPL_HOME}/conf/hosts.lst|head -1|awk '{print $1}'`
+echo "MYSQL_SERVER(MASTER): $_mysql_server"
+
+funSql() {
+    #$1=db
+    #$2=sql statement or file name
+    #~/.mylogin.cnf created with `mysql_config_editor` is required.
+    if [[ -f $2 ]];then
+       mysql -h $_mysql_server $1 -e "source $2" 2>/dev/null 
+    else
+       mysql -h $_mysql_server $1 -e "$2"  2>/dev/null 
+    fi
+}
+_oper=$1
+_para=$2
+_para1=$3
+
+funDataQuery
+

@@ -52,8 +52,7 @@ echo -e "\n\n" >> $_log_file
 # 获取wars信息 #warDevName|warDeployName|needRestart|webName|webPort|git_repo
 if [[ -f "$_WAR_LST_FILE" ]]; then
     ls $_WAR_LST_FILE
-    _war_info=`cat $_WAR_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_warName}'" ) print $0}'`
-    #_war_info=`egrep "^${_warName}\|" $_WAR_LST_FILE |egrep -v '(^ *#|^$)'|head -1 `
+    _war_info=`cat $_WAR_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_warName}'" ) print $0}' | head -1 `
     _warDeployName=` echo $_war_info|awk -F'|' '{print $2}'`
     _warNeedRestart=`echo $_war_info|awk -F'|' '{print $3}'`
     _warWebName=`    echo $_war_info|awk -F'|' '{print $4}'`
@@ -67,8 +66,7 @@ fi
 # 获取 webservers 信息 #webName|serverIp|serverUser|serverPort
 if [[ -f "$_WEBSERVERS_LST_FILE" ]]; then
     ls $_WEBSERVERS_LST_FILE
-    _servers=`cat $_WEBSERVERS_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_warWebName}'" ) print $0}' | head -1 `
-    #_servers=`egrep "^${_warWebName}\|" $_WEBSERVERS_LST_FILE |egrep -v '^ *#'`
+    _servers=`cat $_WEBSERVERS_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_warWebName}'" ) print $0}'`
 else
     echo "`date +%F_%T` $_WEBSERVERS_LST_FILE does not exist!" | tee -a $_log_file ; exit 1
 fi
@@ -79,11 +77,11 @@ fi
 echo -e "`date +%F_%T` $_warName $_oper $_version_dir\nWarInfo:\n${_war_info}\nServers:\n${_servers}"  | tee -a $_log_file
 echo 
 
-#read -p "Enter Y to continue, Enter to quit: " _Y
-#if [[ $_Y != "Y" ]]; then
-#    echo "Aborted!" | tee -a $_log_file
-#    exit 
-#fi
+read -p "Enter Y to continue, Enter to quit: " _Y
+if [[ $_Y != "Y" ]]; then
+    echo "Aborted!" | tee -a $_log_file
+    exit 
+fi
 for ((i=1;i<=5;i++)); do sleep 1 ; echo -n . ; done ; echo
 
 IFS=$'\n'
