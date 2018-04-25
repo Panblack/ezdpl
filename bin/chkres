@@ -115,7 +115,7 @@ case $_oper in
             echo "Host/Port missing"
             continue
         fi
-	_ports_info=`ssh $_user@$_ip -p $_port "ss -lnt"`
+	_ports_info=`ssh $_user@$_ip -p $_port "ss -lntu"`
 	#echo "$_ports_info"
 	IFS=$' \t\n'
 	echo -en "$_host($_ip)\t"
