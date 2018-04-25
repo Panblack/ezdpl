@@ -1,8 +1,18 @@
 #!/bin/bash
-# Show or Kill sleeping mysql processes
-echo "Sleeping processes: `mysql -uroot -pYourPassword -e "show processlist" 2>/dev/null|grep YourDB|grep Sleep|wc -l`"
-if [[ $1 = y ]]; then
-  for x in `mysql -uroot -pYourPassword -e "show processlist" 2>/dev/null |grep YourDB|grep Sleep |awk '{print $1}'` ; do 
-    mysql -uroot -pYourPassword -e "kill $x"  2>/dev/null
+_filter=$1
+_kill=$2
+echo "Usage: 
+freemysql		Show sleeping process count.
+freemysql <str>		Show sleeping process count containing <str>.
+freemysql <str> y 	Kill all sleeping processes containing <str>."
+_process=`mysql -e "show processlist" 2>/dev/null|egrep -v "^Id"|egrep -v "show processlist$"|grep Sleep|grep "$_filter"`
+_count=`echo "$_process"|wc -l`
+((_count=_count-1))
+echo -e "$_process" 
+echo -e "Sleeping processes for [$_filter] Total : $_count"
+if [[ $_kill = y ]]; then
+  for x in `mysql -e "show processlist" 2>/dev/null |grep "$_filter"|grep Sleep |awk '{print $1}'` ; do 
+    mysql -e "kill $x"  2>/dev/null
   done
+  echo "Sleeping processes for $_filter killed."
 fi
