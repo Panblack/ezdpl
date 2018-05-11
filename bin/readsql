@@ -19,6 +19,9 @@ fi
 #echo "MYSQL_SERVER: $_mysql_server"
 
 _db=$1
+if [[ $_db = -h ]] ; then
+    echo "$_mysql_server";exit 
+fi
 if [[ -z $2 ]];then
    _sql=""
 else
