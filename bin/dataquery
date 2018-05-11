@@ -9,8 +9,15 @@ fi
 # Get funDataQuery() function
 source ${EZDPL_HOME}/conf/dataquery.sql.sh
 
-_mysql_server=`grep '_MYSQL_MASTER_' ${EZDPL_HOME}/conf/hosts.lst|head -1|awk '{print $1}'`
-echo "MYSQL_SERVER(MASTER): $_mysql_server"
+# 基础变量 _MYSQL_SERVER_READ
+source ${EZDPL_HOME}/conf/ezdpl.include
+
+if [[ -n $_MYSQL_SERVER_READ ]];then
+    _mysql_server=$_MYSQL_SERVER_READ
+else
+    _mysql_server=`grep '_MYSQL_MASTER_' ${EZDPL_HOME}/conf/hosts.lst|head -1|awk '{print $1}'`
+fi
+echo "MYSQL_SERVER: $_mysql_server"
 
 funSql() {
     #$1=db
