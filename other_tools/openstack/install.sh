@@ -43,7 +43,7 @@ echo "sshd configured and restarted"
 if [[ -f /root/.vimrc ]]; then
     /bin/cp /root/.vimrc /root/.vimrc.bak
 fi
-echo -e "nnoremap q :q\nnnoremap Q :q" > /root/.vimrc
+echo -e "nnoremap q :q\nnnoremap Q :q!" > /root/.vimrc
 echo "vimrc ok"
 
 # update
