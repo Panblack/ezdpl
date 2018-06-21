@@ -86,4 +86,10 @@ systemctl restart network
 echo
 ip address show
 
+if vgdisplay|egrep 'VG Name *cinder-volumes' ; then 
+    echo "Your server is ready to install OpenStack with packstack."
+else
+    echo "You need a lvm vg named 'cinder-volumes'"
+fi
+echo
 echo "All done."
