@@ -14,8 +14,9 @@ if [[ $# -eq 0 ]];then
 Usage:    
 chkres r					Query resources only
 chkres p					Query ports only
+chkres y					Query yum updateinfo security only
 chkres						Show this help
-chkres r|p 'IP HostName UserName SSHPort'	Qurey one server"
+chkres r|p|y 'IP HostName UserName SSHPort'	Qurey one server"
     exit 0
 fi
 _oper=$1
@@ -130,6 +131,23 @@ case $_oper in
 	IFS=$'\n'
     done
     ;;
+
+    y)
+    echo "Server yum updateinfo"
+    for x in $_servers;do 
+        _centos6=""
+        _centos7=""
+        _os=""
+        _ip=`echo $x|awk '{print $1}'`
+        _host=`echo $x|awk '{print $2}'`
+        _user=`echo $x|awk '{print $3}'`
+        _port=`echo $x|awk '{print $4}'`
+	echo "$_host"
+	ssh $_user@$_ip -p $_port "yum updateinfo updates security"
+	echo
+    done
+    ;;
+
 esac    
 echo 
 
