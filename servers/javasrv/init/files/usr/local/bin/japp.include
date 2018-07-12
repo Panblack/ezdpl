@@ -1,21 +1,28 @@
 # japp.include
-# Shared env variables and pre-requirement checks for script tmc/japp
+# Shared env variables and pre-requirement checks for script mvn/tmc/japp
  
 # Global
 _WORK_USER="root"
 
 # for jdk
-export JAVA_HOME=/opt/jdk1.8
+export JAVA_HOME=/opt/jdk
 export JRE_HOME=$JAVA_HOME/jre
+export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
-export LANG=zh_CN.UTF-8
-export LC_ALL=zh_CN.UTF-8
+
+# for maven
+export MAVEN_HOME=/opt/maven
+export M2_HOME=$MAVEN_HOME
+export PATH=$PATH:$MAVEN_HOME/bin
 
 # for tomcat apps
+#_HOME_DIR="/opt/app/tomcat"
+_HOME_DIR=""
 _BASES_DIR="/opt/webs"
-_HOME_DIR="/opt/app/tomcat"
+_LANG="zh_CN.UTF-8"
+_LC_ALL="zh_CN.UTF-8"
 _WAR_RUNNING_PATH="/data/webShare/read/webapps"
-_max_shutdown_retry=15
+_MAX_SHUTDOWN_RETRY=15
 
 # for jar apps
 _MAX_TRY=5
@@ -25,8 +32,9 @@ _LOG_PATH="/opt/logs"
 _JAVA_OPTS=""
 #_JAVA_OPTS="-Djava.ext.dirs=$JRE_HOME/lib/ext:/opt/javaapp/a/lib:/opt/javaapp/b/lib"
 
-# Run under specific user 
-if [[ `whoami` != $_WORK_USER ]] ; then
-    echo "please 'su - $_WORK_USER' " ; exit 1
-fi
-
+# Notify email config
+_WEBAPP_NOTIFY_SENDER=""
+_WEBAPP_NOTIFY_SENDER_USER=""
+_WEBAPP_NOTIFY_SENDER_PASS=""
+_WEBAPP_NOTIFY_SENDER_SMTP=""
+_WEBAPP_NOTIFY_RECEIVERS=""

@@ -6,6 +6,11 @@
 # Critical Env variables:
 source /usr/local/bin/japp.include
 
+# Run under specific user 
+if [[ `whoami` != $_WORK_USER ]] ; then
+    echo "please 'su - $_WORK_USER' " ; exit 1
+fi
+
 # Functions 
 fun_usage() {
 echo "Usage: tmc <base> <oper> [roll output y/n]
@@ -24,7 +29,7 @@ echo
 
 fun_up() {
 set -u
-if ps aux|grep java|grep "Dcatalina.base=$CATALINA_BASE" &>/dev/null ;then
+if ps aux|grep java|grep "Dcatalina.base=${CATALINA_BASE}" &>/dev/null ;then
   echo
   echo "$_host $CATALINA_BASE already started."
   echo
@@ -54,7 +59,7 @@ else
     return 1
 fi
 
-for ((i=1;i<=${_max_shutdown_retry};i++));do
+for ((i=1;i<=${_MAX_SHUTDOWN_RETRY};i++));do
     local lc_pid=`ps aux|grep java|grep "Dcatalina.base=$CATALINA_BASE" | awk '{print $2}' 2>/dev/null`
     sleep 1
     echo -n .
@@ -64,7 +69,7 @@ for ((i=1;i<=${_max_shutdown_retry};i++));do
     fi
 done
 
-if [[ $i -ge $_max_shutdown_retry ]];then
+if [[ $i -ge $_MAX_SHUTDOWN_RETRY ]];then
     echo "$_Base_Info force kill engaged."
     kill -9 $lc_pid
     sleep 2
@@ -171,21 +176,35 @@ for x in ${_array_bases[@]}; do
 	continue
     fi
 
-    # Custom HOME DEF( other than $_HOME_DIR defined in japp.include )
-    if _home_def=`head -1 $_cur_dir/home_def 2>/dev/null` ;then
-      if [[ -n $_home_def ]] && [[ -d $_home_def/bin ]] && [[ -d $_home_def/lib ]];then
-    	_Home=$_home_def
-      fi
+    # Custom HOME Defination in file ${catalina_base}/home_def ( other than $_HOME_DIR defined in japp.include )
+    _home_def_file=${_cur_dir}/home_def
+    if _home_def=`head -1 $_home_def_file 2>/dev/null` ;then
+      	    if [[ -n $_home_def ]] && [[ -d $_home_def/bin ]] && [[ -d $_home_def/lib ]];then
+    	    	_Home=$_home_def
+	    else
+		echo "$_home_def_file invalid.";exit 1
+            fi
     else
-    	_Home=$_HOME_DIR
+    	# if _HOME_DIR not definded in japp.include , use CATALINA_BASE as CATALINA_HOME
+    	if [[ -n $_HOME_DIR ]];then
+    	    _Home=$_HOME_DIR
+    	else
+    	    _Home=$_cur_dir
+        fi
     fi
 
-    # Custom JAVA ENV( other than those defined in japp.include )	
-    _java_env_file="${_BASES_DIR}/${x}/java_env"
+    # Custom JAVA ENV Defination in file ${catalina_base}/java_env ( other than those defined in japp.include )	
+    _java_env_file="${_cur_dir}/java_env"
     if [[ -f $_java_env_file ]] ;then
         source $_java_env_file
     fi
 
+    if [[ -n $_LANG ]];then
+        export LANG=$_LANG
+    fi
+    if [[ -n $_LC_ALL ]];then
+	export LC_ALL=$_LC_ALL
+    fi
     export CATALINA_HOME=$_Home
     export CATALINA_BASE=$_cur_dir
 

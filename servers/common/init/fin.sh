@@ -114,13 +114,13 @@ if [[ -f /usr/sbin/iptraf-ng ]] ; then
 fi
 
 # Install rpms
-cd /opt/packages
-yum localinstall *.rpm
+#cd /opt/packages
+#yum localinstall *.rpm
 
 # Update the entire file properties database 
-echo "rkhunter --propupd ..."
-rkhunter --propupd
-echo
+#echo "rkhunter --propupd ..."
+#rkhunter --propupd
+#echo
 
 service sshd restart
 echo "`date +%F_%T` common/init " >> /tmp/ezdpl.log

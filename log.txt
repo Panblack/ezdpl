@@ -1,0 +1,30 @@
+
+2018-07-09_11:23:46 ./ezdpl 192.168.31.49:22 common/init N root
+root@192.168.31.49:/tmp/pre.sh OK!
+Start to copy ./servers/common/init/files/*  OK!
+root@192.168.31.49:/tmp/fin.sh OK!
+Target Server: 192.168.31.49 done!
+
+2018-07-09_16:08:40 ./ezdpl c49:22 common/init N root
+root@c49:/tmp/pre.sh OK!
+Start to copy ./servers/common/init/files/*  OK!
+root@c49:/tmp/fin.sh OK!
+Target Server: c49 done!
+
+2018-07-09_17:48:46 ./ezdpl 192.168.31.181:22 common/init N root
+root@192.168.31.181:/tmp/pre.sh OK!
+Start to copy ./servers/common/init/files/*  OK!
+root@192.168.31.181:/tmp/fin.sh OK!
+Target Server: 192.168.31.181 done!
+
+2018-07-10_16:04:48 ./ezdpl 192.168.31.172:22 common/init N root
+root@192.168.31.172:/tmp/pre.sh OK!
+Start to copy ./servers/common/init/files/*  OK!
+root@192.168.31.172:/tmp/fin.sh OK!
+Target Server: 192.168.31.172 done!
+
+2018-07-12_13:25:09 ./ezdpl 192.168.31.14:22 javasrv/init/ N root
+root@192.168.31.14:/tmp/pre.sh OK!
+Start to copy ./servers/javasrv/init//files/*  OK!
+root@192.168.31.14:/tmp/fin.sh OK!
+Target Server: 192.168.31.14 done!
