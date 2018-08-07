@@ -1,0 +1,13 @@
+#!/bin/bash
+_usage="tail -f access_log key_word_in_url with 500/200/4?? status code\n\nUsage: tail_ngx_log <nginx_access_log_file> <key_word_in_url>"
+_access_log=$1
+_key_word=$2
+if [[ -z $_access_log ]]; then
+    echo -e "$_usage";exit 1
+fi
+if [[ -z $_key_word ]]; then
+    echo -e "$_usage";exit 1
+fi
+
+tail -f $_access_log | egrep --color=always "(${_key_word}.*\" 500 |${_key_word}.*\" 200 |${_key_word}.*\" 400 |${_key_word}.*\" 401|${_key_word}.*\" 403 |${_key_word}.*\" 405 |${_key_word}.*\" 444 )"
+
