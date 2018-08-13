@@ -1,5 +1,5 @@
 #!/bin/bash
-_usage="tail -f access_log key_word_in_url with 500/200/4?? status code\n\nUsage: tail_ngx_log <nginx_access_log_file> <key_word_in_url> [2|3|4|5]"
+_usage="tail -f access_log key_word_in_url with curtern status code\nUsage:\ntail_ngx_log <nginx_access_log_file> <key_word_in_url> [1|2|3|4|5]\n"
 _access_log=$1
 _key_word=$2
 _status=$3
@@ -10,19 +10,10 @@ if [[ -z $_key_word ]]; then
     echo -e "$_usage";exit 1
 fi
 case $_status in 
-    2)
-        tail -f $_access_log | egrep --color=always "${_key_word}.*\" 200 "
+    1|2|3|4|5)
+        tail -f $_access_log | egrep --color=always "${_key_word}.*HTTP/1\..\" ${_status}.. "
         ;; 
-    3)
-        tail -f $_access_log | egrep --color=always "(${_key_word}.*\" 304 |${_key_word}.*\" 301 |${_key_word}.*\" 302 )"
-        ;;
-    4)
-        tail -f $_access_log | egrep --color=always "(${_key_word}.*\" 400 |${_key_word}.*\" 401 |${_key_word}.*\" 403 |${_key_word}.*\" 405 |${_key_word}.*\" 444 )"
-        ;;
-    5)
-        tail -f $_access_log | egrep --color=always "${_key_word}.*\" 500 "
-        ;;
     *)
-        tail -f $_access_log | egrep --color=always "(${_key_word}.*\" 500 |${_key_word}.*\" 200 |${_key_word}.*\" 400 |${_key_word}.*\" 401|${_key_word}.*\" 403 |${_key_word}.*\" 405 |${_key_word}.*\" 444 )"
+        tail -f $_access_log | egrep --color=always "${_key_word}.*HTTP/1\..\" ... "
         ;;
 esac
