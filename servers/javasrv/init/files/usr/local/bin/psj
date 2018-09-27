@@ -1,17 +1,19 @@
 #!/bin/bash
-_psinfo=`ps aux | grep java | grep -v grep`
-_netstat=`netstat -lntp | grep java`
+source /usr/local/bin/japp.include
+_psinfo=`ps aux | grep java | grep -v grep | grep -v cloudmonitor`
+_netstat=`netstat -lntup | grep java`
 echo "Java processes & Listening ports:"
 echo
 IFS="
 "
 for x in $_psinfo; do
     _psline=${x// -/'\n' -}
-    _psline=`echo -e "$_psline" | sed 's/ root /\nroot /g'`
+    _psline=`echo -e "$_psline" | sed 's/ '$_WORK_USER' /\n'$_WORK_USER' /g'`
     _pid=`echo $x|awk '{print $2}'`
     echo -e "$_psline" | egrep -w 'java|/java'
     echo -e "$_psline" | egrep '\.home|\.base|classPath|-jar'
     echo "$_netstat"   | grep "$_pid/java" | sort
+    echo "OOM_SCORE: `cat /proc/${_pid}/oom_score`"
     echo
 done
 

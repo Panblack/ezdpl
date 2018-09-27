@@ -42,12 +42,12 @@ fi
 rm -rf ./work/*
 rm -rf ./temp/*
 $CATALINA_HOME/bin/catalina.sh start
+fun_ps
 if [[ $1 = y ]];then
     sleep 1
     fun_log c y
 fi
 set +u
-
 }
 
 fun_down() {
@@ -96,13 +96,19 @@ local lc_psinfo=`ps aux | grep $CATALINA_BASE | grep -v grep`
 local lc_netstat=`netstat -lntp | grep java`
 for x in $lc_psinfo; do
     local lc_psline=${x// -/'\n' -}
-    local lc_psline=`echo -e "$lc_psline" | sed 's/ root /\nroot /g'`
+    local lc_psline=`echo -e "$lc_psline" | sed 's/ ${_WORK_USER} /\n${_WORK_USER} /g'`
     local lc_pid=`echo $x|awk '{print $2}'`
     echo -e "$lc_psline" | egrep -w 'java|/java'
     echo -e "$lc_psline" | egrep '\.home|\.base|classPath|-jar'
     echo "$lc_netstat"   | grep "$lc_pid/java" | sort
     echo
 done
+echo "-17"   > /proc/${lc_pid}/oom_adj
+echo "-1000" > /proc/${lc_pid}/oom_score_adj
+echo "OOM_SCORE    : `cat /proc/${lc_pid}/oom_score`"
+echo "OOM_ADJ      : `cat /proc/${lc_pid}/oom_adj`"
+echo "OOM_SCORE_ADJ: `cat /proc/${lc_pid}/oom_score_adj`"
+echo
 echo -n "Thread: "
 ps -efL|grep java|grep $CATALINA_BASE |head -1|awk '{print $6}'
 echo -n "Uptime:"
