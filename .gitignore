@@ -2,3 +2,5 @@ packages/
 todeploy/
 .svn
 *.log
+log.txt
+
