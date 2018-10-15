@@ -53,16 +53,22 @@ for tm in apache-tomcat-*/ ; do
     chmod +x ./bin/*.sh
     echo "$_setenv" > ./bin/setenv.sh
     rm ./webapps/* -rf
-    sed -i '/<Context>/a\    <Resources allowLinking="true" cachingAllowed="true" cacheMaxSize="102400" \/>' ./conf/context.xml    
+    rm ./work/*    -rf
+    rm ./temp/*    -rf
+    
+    # context
+    sed -i '/<Context>/a\    <Resources allowLinking="true" cachingAllowed="true" cacheMaxSize="102400" \/>' ./conf/context.xml
+    # accesslog
     sed -i 's/%s %b/%s %b %D %S %{X-Forwarded-For}i %{Referer}i/g' ./conf/server.xml
-    ls -l
+    # http protocol 
+    sed -i 's/protocol="HTTP\/1.1"/protocol=\"org.apache.coyote.http11.Http11Nio2Protocol\"/g' ./conf/server.xml
+    # tomcat optimization
+    sed -i '/maxThreads=.* minSpareThreads=.* acceptCount=.* enableLookups=/d' ./conf/server.xml
+    sed -i '/Connector port=\".*\" protocol=\"org.apache.coyote.http11.Http11Nio2Protocol\"/a\               maxThreads=\"640\" minSpareThreads=\"128\" acceptCount=\"768\" enableLookups=\"false\" ' ./conf/server.xml
+
     _webdir="/opt/webs/app-`echo $tm|sed 's/apache-tomcat-//g'`"
     mkdir -p $_webdir
-    mv ./conf $_webdir
-    mv ./logs $_webdir
-    mv ./temp $_webdir
-    mv ./webapps $_webdir
-    mv ./work $_webdir
+    /bin/cp -r ./* $_webdir
     cd ..
 done
 

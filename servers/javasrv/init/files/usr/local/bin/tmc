@@ -45,6 +45,7 @@ $CATALINA_HOME/bin/catalina.sh start
 fun_ps
 if [[ $1 = y ]];then
     sleep 1
+    echo -e "\nStartup log:"
     fun_log c y
 fi
 set +u
@@ -90,8 +91,8 @@ fun_up $1
 }
 
 fun_ps() {
-IFS="
-"
+_ifs=$IFS
+IFS=$'\n'
 local lc_psinfo=`ps aux | grep $CATALINA_BASE | grep -v grep`
 local lc_netstat=`netstat -lntp | grep java`
 for x in $lc_psinfo; do
@@ -113,7 +114,7 @@ echo -n "Thread: "
 ps -efL|grep java|grep $CATALINA_BASE |head -1|awk '{print $6}'
 echo -n "Uptime:"
 uptime
-
+IFS=$_ifs
 }
 
 fun_log() {
