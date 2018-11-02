@@ -21,7 +21,6 @@ _access_log=$2
 case $_oper in
     status)
         cat $_access_log |awk '{for (i=1;i<=NF;i++) if($i ~ /HTTP\/1.?/) print " "$(i+1)}'|sort|uniq -c
-#    	cat /data/logs/nginx/access.log-`date +%Y%m%d` | awk '{for (i=1;i<=NF;i++) if(  $i ~ /HTTP\/1.?/  ) print " "$(i+1)}' 2>/dev/null
         ;;
     url45)
         echo -e "Count\tHost\tURL\tMTHD\tIp\tXF_IP\tStatus"

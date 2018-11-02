@@ -11,7 +11,7 @@ fi
 # 基础变量
 # 获取 $_OPER_PATH $_HTML_RUN $_HTML_LST_FILE $_HTMLSERVERS_LST_FILE _HTML_DEPLOY_DELAY 变量
 source ${EZDPL_HOME}/conf/deploy.include
-_usage="Usage: <htmlName> <version_dir>"
+_usage="Usage: <htmlName> <version_dir> <Confirm? y|n>"
 
 #参数变量
 _htmlName=$1
@@ -26,7 +26,7 @@ if [[ $# -eq 0 ]]; then
 fi
 if [[ ! -d ${_htmlSharedRunningDir} ]] ; then
     echo "$_usage"
-    echo "${_htmlSharedRunningDir} does not exist!";ls -1 ${_HTML_RUN} 2>/dev/null;exit 1
+    echo "${_htmlSharedRunningDir} does not exist.";ls -1 ${_HTML_RUN} 2>/dev/null;exit 1
 fi  
 if [[ $# -lt 2 ]]; then
     echo "$_usage"
@@ -36,7 +36,12 @@ if [[ $# -lt 2 ]]; then
 fi
 if [[ ! -d ${_path_new} ]]; then
     echo "$_usage"
-    echo "${_path_new} does not exists!";exit 1
+    echo "${_path_new} does not exists.";exit 1
+fi
+if [[ $3 = "n" ]]; then
+    _confirm="n"
+else
+    _confirm="y"
 fi
 
 set -u
@@ -45,24 +50,27 @@ _log_file=${_OPER_PATH}/dephtml.log
 touch $_log_file
 echo -e "\n\n" >> $_log_file
 
-# 获取html信息 #htmlDeployName|htmlDevName|htmlPort|gitBranch|gitRepo
+# 获取html信息，如有同名htmlName则只取第一条，去掉所有空格和TAB
+#htmlName|htmlDevName|gitBranch|gitRepo|codeDir|builtPath
+#    1          2          3       4       5       6
 if [[ -f "$_HTML_LST_FILE" ]]; then
     ls $_HTML_LST_FILE
-    _html_info=`egrep "^${_htmlName}\|" $_HTML_LST_FILE |egrep -v '(^ *#|^$)'|head -1 `
-    _htmlDeployName=` echo $_html_info|awk -F'|' '{print $1}'`
-
-
+    _htmlInfo=`cat $_HTML_LST_FILE | egrep -v "(^ *#|^$)" |awk -F'|' '{if ( $1 == "'${_htmlName}'" ) print $0}' | head -1`
 else
     echo "`date +%F_%T` $_HTML_LST_FILE does not exist." | tee -a $_log_file ; exit 1
 fi
-if [[ -z $_html_info ]]; then
-    echo "`date +%F_%T` $_htmlName not defined ." | tee -a $_log_file ; exit 1
+if [[ -z $_htmlInfo ]]; then
+    echo "`date +%F_%T` $_htmlName not configured in $_HTML_LST_FILE ."| tee -a $_log_file ; exit 1
 fi
+_htmlInfo=` echo "$_htmlInfo" | sed 's/[ \t]//g'`
+_builtPath=`echo "$_htmlInfo" | awk -F'|' '{print $6}'`
 
-# 获取 htmlservers 信息 #htmlDeployName|serverIp|serverUser|serverPort
+# 获取htmlservers信息，去掉所有空格和TAB
+#htmlDeployName|serverName|serverIp|serverUser|serverPort|targetPath|htmlPort
+#	1	   2	     3		 4	  5		6	7
 if [[ -f "$_HTMLSERVERS_LST_FILE" ]]; then
     ls $_HTMLSERVERS_LST_FILE
-    _servers=`egrep "^${_htmlName}\|" $_HTMLSERVERS_LST_FILE |egrep -v '^ *#'`
+    _servers=`cat $_HTMLSERVERS_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_htmlName}'" ) print $0}' `
 else
     echo "`date +%F_%T` $_HTMLSERVERS_LST_FILE does not exist." | tee -a $_log_file ; exit 1
 fi
@@ -70,24 +78,41 @@ if [[ -z $_servers ]]; then
     echo "`date +%F_%T` no htmlserver defined for $_htmlName ." | tee -a $_log_file ; exit 1
 fi
 
-echo -e "`date +%F_%T` $_htmlName $_version_dir\n\nServers:\n${_servers}"  | tee -a $_log_file
+_servers=`echo "$_servers" | sed 's/[ \t]//g'`
+echo -e "`date +%F_%T` $_htmlName $_version_dir\nhtmlInfo:\n${_htmlInfo}\nServers:\n${_servers}"  | tee -a $_log_file
 echo 
-#read -p "Enter Y to continue, Enter to quit: " _Y
-#if [[ $_Y != "Y" ]]; then
-#    echo "Aborted!" | tee -a $_log_file
-#    exit 
-#fi
+
+if [[ $_confirm = "y" ]]; then
+    read -p "Enter Y to continue, Enter to quit: " _Y
+    if [[ $_Y != "Y" ]]; then
+        echo "Aborted." | tee -a $_log_file
+        exit
+    fi
+fi
+for ((i=1;i<=5;i++)); do sleep 1 ; echo -n . ; done ; echo
 
 IFS=$'\n'
 for x in $_servers; do
-    _htmlServerName=` echo $x|awk -F'|' '{print $2}'`
-    _htmlServerPort=` echo $x|awk -F'|' '{print $4}'`
-    _htmlServerUser=` echo $x|awk -F'|' '{print $3}'`
-    echo "htmlName:        $_htmlName"
-    echo "htmlServer:      $_htmlServerUser@${_htmlServerName}:${_htmlServerPort}"
+    _htmlServerName=`echo $x|awk -F'|' '{print $2}'`
+    _htmlServerIp=`  echo $x|awk -F'|' '{print $3}'`
+    _htmlServerUser=`echo $x|awk -F'|' '{print $4}'`
+    _htmlServerPort=`echo $x|awk -F'|' '{print $5}'`
+    _targetPath=`    echo $x|awk -F'|' '{print $6}'`
+    echo "htmlName:       $_htmlName"		| tee -a $_log_file
+    echo "htmlServerName: $_htmlServerName"	| tee -a $_log_file
+    echo "htmlServer:     ${_htmlServerUser}@${_htmlServerIp}:${_htmlServerPort}:${_targetPath}" | tee -a $_log_file
+    echo "htmlServerPort: $_htmlServerPort"	| tee -a $_log_file
+    echo "htmlTargetPath: $_targetPath"		| tee -a $_log_file
     echo 
-    ssh -p ${_htmlServerPort} ${_htmlServerUser}@${_htmlServerName} "cd /opt/html && rm ${_htmlName} -f && ln -sf ${_path_new} ${_htmlName}; ls -l --color=always /opt/html/${_htmlName}"
-    echo "${_htmlServerName} updated ${_htmlName} to ${_path_new} ! " | tee -a $_log_file ; echo
-    
+    if [[ -n $_targetPath ]];then
+	# 有_targetPath ， 删除目的_targetPath，复制新的文件为_targetPath
+	ssh -p${_htmlServerPort} ${_htmlServerUser}@${_htmlServerIp} "rm ${_targetPath} -rf"
+	scp -P${_htmlServerPort} -r ${_path_new}/${_builtPath} ${_htmlServerUser}@${_htmlServerIp}:${_targetPath}
+        echo "${_htmlServerName} updated ${_htmlName} to ${_htmlServerUser}@${_htmlServerIp}:${_targetPath} ." | tee -a $_log_file ; echo
+    else
+	# 没有_targetPath，删除目的_htmlName的软连接，链接到新的部署目录
+        ssh -p${_htmlServerPort} ${_htmlServerUser}@${_htmlServerIp} "cd /opt/html && rm ${_htmlName} -f && ln -sf ${_path_new} ${_htmlName}; ls -l --color=always /opt/html/${_htmlName}"
+        echo "${_htmlServerName} updated ${_htmlName} to ${_path_new} ." | tee -a $_log_file ; echo
+    fi
     for ((i=1;i<=${_HTML_DEPLOY_DELAY};i++)); do sleep 1 ; echo -n . ; done ; echo
 done

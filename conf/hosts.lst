@@ -1,11 +1,11 @@
 #ip		#host	#user	#port	#Listening ports	#purpose	#TAG
-172.16.2.1	web01	root	22	80:8080			web		_WEB_SERVER_
-172.16.2.2	web02	root	22      80:8080                 web             _WEB_SERVER_
-172.16.2.3	web03	root	22      80:8080                 web             _WEB_SERVER_
-172.16.2.4	web04	root	22      80:8080                 web             _WEB_SERVER_
-172.16.3.1	web05	root	22      80:8080                 web             _WEB_SERVER_
-172.16.3.2      web06   root    22      80:8080                 web             _WEB_SERVER_
-172.16.3.3      web07   root    22      80:8080                 web             _WEB_SERVER_
+172.16.2.1	web01	root	22	80:8080			web		_WEB_SERVER_ _SSL_SERVER_
+172.16.2.2	web02	root	22      80:8080                 web             _WEB_SERVER_ _SSL_SERVER_
+172.16.2.3	web03	root	22      80:8080                 web             _WEB_SERVER_ _SSL_SERVER_
+172.16.2.4	web04	root	22      80:8080                 web             _WEB_SERVER_ _SSL_SERVER_
+172.16.3.1	web05	root	22      80:8080                 web             _WEB_SERVER_ _SSL_SERVER_
+172.16.3.2      web06   root    22      80:8080                 web             _WEB_SERVER_ _SSL_SERVER_
+172.16.3.3      web07   root    22      80:8080                 web             _WEB_SERVER_ _SSL_SERVER_
 172.16.0.1	nfs	root	22	2049			nfs	
 172.16.0.2	mydb1	root	22	3306			db_server	_MYSQL_SERVER_ _MYSQL_MASTER_	
 172.16.0.3	mydb2	root	22	3306			db_server	_MYSQL_SERVER_ _MYSQL_SLAVE_	

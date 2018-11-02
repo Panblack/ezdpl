@@ -1,2 +1,8 @@
 
 
+
+2018-10-17_08:02:37 ./ezdpl c48:22 mysql/init N root
+root@c48:/tmp/pre.sh OK!
+Start to copy ./servers/mysql/init/files/*  OK!
+root@c48:/tmp/fin.sh OK!
+Target Server: c48 done!

@@ -1,0 +1,43 @@
+#!/bin/bash
+_dir=$(dirname `readlink -f $0`)
+source $_dir/release.include
+echo $_RELEASE
+
+_type=$1
+_proto=$2
+[[ -z $_proto ]] && _proto=t
+case $_type in
+    a)
+	netstat -anp$_proto 2>/dev/null || ss -anp$_proto|column
+	;;
+    e)
+	netstat -anp$_proto 2>/dev/null|grep ESTABLISHED || ss -anp$_proto|grep ESTAB
+	;;
+    l)
+	netstat -lnp$_proto 2>/dev/null || ss -lnp$_proto|column
+	;;
+    li)
+	netstat -lnp$_proto 2>/dev/null || ss -lnp$_proto|column
+	echo;
+	case $_RELEASE in
+	    CENTOS6)
+	        iptables -nvL
+		;;
+	    CENTOS7)
+	        firewall-cmd --list-ports
+	        firewall-cmd --list-rich-rules
+		;;
+	    UBUNTU)
+		sudo ufw status | grep -v "(v6)"
+		;;
+	esac
+	echo
+	;;
+    *)
+	echo "
+$0 a  [u]	netstat -anpt[u]
+$0 e  [u]	netstat -anpt[u] ESTAB
+$0 l  [u]	netstat -lnpt[u]
+$0 li [u]	netstat -anpt[u] ; firewall info
+"
+esac

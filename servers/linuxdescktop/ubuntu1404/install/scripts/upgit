@@ -1,0 +1,67 @@
+#!/bin/bash
+# Everyday git operation, presuming that remote is "origin" and current branch is "master".
+# upgit i       Initilize user info with login name and hostname, especially useful after you clone a repo.
+# upgit         Pull, Commit and Push
+
+fun_commit() {
+    # Commit
+    _status=`git status`
+    echo "$_status"
+    if echo "$_status"|grep "nothing to commit" ; then
+    	exit 0
+    fi
+    read -p "Commit Message:" _msg
+    if [ -z "$_msg" ]; then
+	echo "Commit Message needed. Exit!"
+	exit 1
+    fi
+    git add -A
+    git commit -a -m "$_msg"
+    #"Please tell me who you are"
+}
+
+# Initilize
+if [[ $1 = "i" ]];then
+    _who=`whoami`
+    _hostname=`hostname`
+    git config user.email "$_who@$_hostname" ; git config user.name "$_who" ; git config user.user "$_who"    
+    git config -l
+    exit 0
+fi
+
+# Pull
+echo "Pulling..."
+_pull_info=`git pull 2>&1`
+_pull_result=$?
+echo "$_pull_info"
+if [[ $_pull_result = 0 ]]; then
+    fun_commit
+else
+    if echo "$_pull_info"|grep "commit your changes or stash them before you can merge" ; then
+	echo "Need to commit first."
+    	fun_commit
+	git pull 
+	if [[ $? != 0 ]]; then
+    	    echo "Pull failed again. Exit!"
+	    exit 1
+	fi
+    else
+    	echo "Pull failed. Exit!"
+    	exit 1
+    fi
+fi
+echo
+
+#Push
+for i in `git remote`; do 
+    echo
+    echo "Push to Remote '$i' :"
+    while true; do 
+    	git push $i master && break
+    done
+done
+#End
+
+
+
+

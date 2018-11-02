@@ -7,6 +7,12 @@ if [[ -z ${EZDPL_HOME} ]]; then
 fi
 echo "EZDPL_HOME : ${EZDPL_HOME}"
 
+# Logging
+_log_file="${EZDPL_HOME}/batch.log"
+touch $_log_file
+echo                       | tee -a $_log_file
+echo "`date +%F_%T` START" | tee -a $_log_file
+
 # Read servers
 if [[ ! -f ${EZDPL_HOME}/conf/hosts.lst ]]; then
     echo "${EZDPL_HOME}/conf/hosts.lst does not exist.";exit 1
@@ -18,13 +24,15 @@ else
 fi
 
 # Confirm
-echo "$_servers"
-echo 
-echo "Commands:"
-egrep -v '^ *#' ${EZDPL_HOME}/conf/batch.include
+echo "$_servers" | tee -a $_log_file
+echo             | tee -a $_log_file
+echo "Commands:" | tee -a $_log_file
+egrep -v '(^ *#|^$)' ${EZDPL_HOME}/conf/batch.include  | tee -a $_log_file
 echo
 read -p "Press Y to continue:" _go
 if [[ $_go != Y ]]; then
+    echo "Abort!"| tee -a $_log_file
+    echo         | tee -a $_log_file
     exit 0
 fi
 
@@ -43,9 +51,11 @@ for x in $_servers ; do
     fi
     [[ -z $_user ]] && _user=root
 
-    echo "$_count [ $_ip , $_user@$_host:$_port , $_purpose ]"
-    source ${EZDPL_HOME}/conf/batch.include
-    echo
+    echo "$_count [ $_ip , $_user@$_host:$_port , $_purpose ]"  | tee -a $_log_file
+    source ${EZDPL_HOME}/conf/batch.include                     | tee -a $_log_file
+    echo                                                        | tee -a $_log_file
     ((_count++))
 done
-exit 0
+echo "`date +%F_%T` END" | tee -a $_log_file
+echo                     | tee -a $_log_file
+

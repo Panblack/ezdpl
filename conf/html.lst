@@ -1,3 +1,3 @@
-#htmlDeployName|htmlDevName|htmlPort|gitBranch|gitRepo
-sales|salesFront|80|master|ssh://user@server:sshport/path/to/salesFront.git
-portal|portalFront|80|deploybranch|ssh://user@server:sshport/path/to/portalFront.git
+#htmlName|htmlDevName|gitBranch|gitRepo|codeDir|builtPath
+sales|salesFront|master|ssh://user@server:sshport/path/to/salesFront.git||
+portal|portalFront|deploybranch|ssh://user@server:sshport/path/to/portalFront.git||dist

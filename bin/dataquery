@@ -23,10 +23,10 @@ funSql() {
     #$1=db
     #$2=sql statement or file name
     #~/.mylogin.cnf created with `mysql_config_editor` is required.
-    if [[ -f $2 ]];then
-       mysql -h $_mysql_server $1 -e "source $2" 2>/dev/null 
+    if [[ -n $_MYSQL_SERVER_READ_USER ]] && [[ -n $_MYSQL_SERVER_READ_PASS ]]; then
+    	mysql -h $_mysql_server -u$_MYSQL_SERVER_READ_USER -p"$_MYSQL_SERVER_READ_PASS" $1 -e "$2" 2>/dev/null
     else
-       mysql -h $_mysql_server $1 -e "$2"  2>/dev/null 
+    	mysql -h $_mysql_server $1 -e "$2" 2>/dev/null 
     fi
 }
 _oper=$1

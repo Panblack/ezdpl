@@ -9,10 +9,13 @@ echo "EZDPL_HOME=$EZDPL_HOME"
 
 # Main
 # 获取 _OPER_PATH _WARS_RUN _WAR_LST_FILE 变量
+
 source ${EZDPL_HOME}/conf/deploy.include
 _wars=`awk -F'|' '{print $1}' ${EZDPL_HOME}/conf/war.lst|egrep -v '(^ *#|^$)'`
-_usage="Usage: buildwar <war_name> [skip_test(Y |N)] [git_commit_id]
+_usage="Usage: buildwar <war_name> [git_commit_id]
 $_wars"
+
+# 依赖目录： ${_WARS_RUN}/${_warName} , ${EZDPL_HOME}/conf/_config/${_warName} 
 
 if [[ $# -eq 0 ]];then
     echo "$_usage"; exit 1
@@ -20,36 +23,47 @@ fi
 
 _warName=$1
 if [[ -z $2 ]]; then
-    _skipTest="Y"
-else
-    _skipTest=$2
-fi
-if [[ -z $3 ]]; then
     _commit=""
 else
-    _commit=$3
+    _commit=$2
 fi
 
 if [[ ! -d ${_WARS_RUN}/${_warName} ]]; then
-   echo "${_WARS_RUN}/${_warName} does not exist!"; echo "$_usage"; exit 1
+   echo "${_WARS_RUN}/${_warName} does not exist."; echo "$_usage"; exit 1
 fi
 
 set -u
-# 获取war信息
-#warDevName|warDeployName|needRestart|webName|webPort|configFilesPath|gitBranch|gitRepo
+# 获取war信息，如有同名warName则只取第一条
+# #warDevName|warDeployName|needRestart|webName|webPort|configFilesPath|gitBranch|gitRepo|codeDir|skipTest 已废弃! needRestart|webPort 改到webservers.lst
+#warName|warDeployName|webName|configFilesPath|gitBranch|gitRepo|codeDir|runTest
+#   1       2            3          4              5        6       7       8
 _warInfo=`cat $_WAR_LST_FILE | egrep -v "(^ *#|^$)" | awk -F'|' '{if ( $1 == "'${_warName}'" ) print $0}' | head -1`
-_gitRepo=`echo "${_warInfo}" | awk -F'|' '{print $8}'`
-_gitBranch=`echo "${_warInfo}" | awk -F'|' '{print $7}'`
-_configFiles=`echo "${_warInfo}" | awk -F'|' '{print $6}'`
+if [[ -z $_warInfo ]]; then
+    echo "$_warName not configured in $_WAR_LST_FILE ." ; exit 1
+fi
 _warDeployName=`echo "${_warInfo}" | awk -F'|' '{print $2}'`
+_webName=`      echo "${_warInfo}" | awk -F'|' '{print $3}'`
+_configFiles=`  echo "${_warInfo}" | awk -F'|' '{print $4}'`
+_gitBranch=`    echo "${_warInfo}" | awk -F'|' '{print $5}'`
+_gitRepo=`      echo "${_warInfo}" | awk -F'|' '{print $6}'`
+_codeDir=`      echo "${_warInfo}" | awk -F'|' '{print $7}'`
+_runTest=`      echo "${_warInfo}" | awk -F'|' '{print $8}'`
 _config_files_path="${EZDPL_HOME}/conf/_config/${_warName}"
 echo "warName:    $_warName"
 echo "DeployName: $_warDeployName"
-echo "configFiles:$_configFiles"
-echo "gitRepo:    $_gitRepo"
+echo "webName:    $_webName"
+echo "configFiles:$_config_files_path/${_configFiles}"
 echo "gitBranch:  $_gitBranch"
+echo "gitRepo:    $_gitRepo"
+echo "codeDir:    $_codeDir"
+echo "runTest:    $_runTest"
 echo "gitCommit:  $_commit"
-echo
+if [[ ! -d ${_config_files_path}/${_configFiles} ]]; then
+    echo "$_config_files_path/${_configFiles} does not exist. ";exit 1
+fi
+if [[ -z $_runTest ]]; then
+    _runTest="N"
+fi
 
 # 判断是否有gitRepo,如果有则获取最新代码
 if [[ -n $_gitRepo ]]; then
@@ -58,9 +72,7 @@ if [[ -n $_gitRepo ]]; then
     echo "Get the latest code..."
     rm ${_warName} -rf
     git clone $_gitRepo $_warName
-    cd $_warName
-    pwd
-    
+    cd $_warName/$_codeDir ; pwd
     git checkout $_gitBranch  
     if [[ -n $_commit ]]; then
         if git reset --hard $_commit ;then
@@ -73,9 +85,9 @@ if [[ -n $_gitRepo ]]; then
     # 获取版本信息
     _version_file="${_WARS_RUN}/${_warName}/versions" ; touch $_version_file
     _git_branch_v=`git branch -v`
-    _git_log=`git log --decorate=short -1`
-    _git_commit=`git rev-parse HEAD`
-    _git_tag=`git tag --points-at HEAD`
+    _git_log=`     git log --decorate=short -1`
+    _git_commit=`  git rev-parse HEAD`
+    _git_tag=`     git tag --points-at HEAD`
 
     # 生成部署目录名
     _datetime=`date +%Y%m%d_%H%M%S`
@@ -93,30 +105,33 @@ if [[ -n $_gitRepo ]]; then
 
     # 更换源码中的生产配置文件
     echo "Replacing config files..."
-    /bin/cp -rp ${_config_files_path}/${_configFiles}/* ${_OPER_PATH}/build/${_warName}/${_configFiles}/
-    if [[ $? != 0 ]];then
-        echo "${EZDPL_HOME}/conf/_config/${_warName} ... does not exist! ";exit 1
-    fi
+    /bin/cp -rp ${_config_files_path}/${_configFiles}/* ${_OPER_PATH}/build/${_warName}/${_codeDir}/${_configFiles}/
     
     # 构建新包 
-    if [[ $_skipTest = "Y" ]]; then
-    	echo "Building(skip test)..."
-	$MAVEN_HOME/bin/mvn -Dmaven.test.skip=true clean package
-    else
+    if [[ $_runTest = "Y" ]]; then
     	echo "Building(run test)..."
 	$MAVEN_HOME/bin/mvn clean package
+    else
+    	echo "Building(skip test)..."
+	$MAVEN_HOME/bin/mvn -Dmaven.test.skip=true clean package
     fi
     
     # 复制war包到运行目录 
-    /bin/cp ${_OPER_PATH}/build/${_warName}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war
+    echo "Copy war to deploy path."
+    if ! /bin/cp ${_OPER_PATH}/build/${_warName}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war ; then
+       	echo "war package does not exist." ; exit 1
+    fi
     md5sum  ${_OPER_PATH}/build/${_warName}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war
     echo
 
 else
     # 待发布的war包要放到 ${_OPER_PATH}/todeploy 目录
     if [[ ! -f ${_OPER_PATH}/todeploy/${_warName}.war ]]; then
-	echo "${_warName}.war does not exist in ${_OPER_PATH}/todeploy !"; exit 1
+	echo "${_warName}.war does not exist in ${_OPER_PATH}/todeploy ."; exit 1
     fi
+
+    # 创建cook 
+    mkdir -p {_OPER_PATH}/cook
 
     # 生成部署目录名
     _datetime=`date +%Y%m%d_%H%M%S`

@@ -11,6 +11,7 @@ echo "EZDPL_HOME=$EZDPL_HOME"
 # 获取 _HTML_RUN _HTML_LST_FILE 变量，引入html生产配置修正脚本
 source ${EZDPL_HOME}/conf/deploy.include
 source ${EZDPL_HOME}/conf/mkhtml.sh
+
 _usage="Usage: buildhtml <webname> [git_commit_num]"
 
 if [[ $# -eq 0 ]];then
@@ -19,7 +20,7 @@ fi
 
 _htmlName=$1
 if [[ -z $2 ]]; then
-    _commit=""
+    _commit="HEAD"
 else
     _commit=$2
 fi
@@ -29,49 +30,99 @@ if ! ls ${_HTML_RUN}/${_htmlName} &>/dev/null ; then
 fi
 
 set -u
-# 获取html信息
-_gitRepo=`egrep "^${_htmlName}\|" $_HTML_LST_FILE |awk -F'|' '{print $NF}'`
+# 获取html信息，如有同名htmlName则只取第一条
+#htmlName|htmlDevName|gitBranch|gitRepo|codeDir|builtPath
+#    1		2	   3	   4	   5	   6
+if [[ -f "$_HTML_LST_FILE" ]]; then
+    ls $_HTML_LST_FILE
+    _htmlInfo=`cat $_HTML_LST_FILE | egrep -v "(^ *#|^$)" |awk -F'|' '{if ( $1 == "'${_htmlName}'" ) print $0}' | head -1`
+else
+    echo "`date +%F_%T` $_HTML_LST_FILE does not exist." | tee -a $_log_file ; exit 1
+fi
+if [[ -z $_htmlInfo ]]; then
+    echo "`date +%F_%T` $_htmlName not configured in $_HTML_LST_FILE ."| tee -a $_log_file ; exit 1
+fi
+_htmlInfo=`   echo "$_htmlInfo" | sed 's/[ \t]//g'`
+_htmlDevName=`echo "${_htmlInfo}" | awk -F'|' '{print $2}'`
+_gitBranch=`  echo "${_htmlInfo}" | awk -F'|' '{print $3}'`
+_gitRepo=`    echo "${_htmlInfo}" | awk -F'|' '{print $4}'`
+_codeDir=`    echo "${_htmlInfo}" | awk -F'|' '{print $5}'`
+_builtPath=`  echo "${_htmlInfo}" | awk -F'|' '{print $6}'`
+_building_path="${_HTML_RUN}/${_htmlName}/building"
+mkdir -p $_building_path
+echo "htmlName:  $_htmlName"
+echo "DevName:   $_htmlDevName"
+echo "gitBranch: $_gitBranch"
+echo "gitRepo:   $_gitRepo"
+echo "codeDir:   $_codeDir"
+echo "builtPath: $_builtPath"
+echo "gitCommit: $_commit"
+echo "Generating new $_htmlName in $_building_path ...... "
+echo
+
+# 获取最新代码(building目录最好已经clone代码并checkout所有必要分支)
 if [[ -z $_gitRepo ]];then
     echo "git repo for ${_htmlName} not found!";exit 1
 fi
-_gitBranch=`egrep "^${_htmlName}\|" $_HTML_LST_FILE |awk -F'|' '{print $(NF-1)}'`
-_htmlDevName=`egrep "^${_htmlName}\|" $_HTML_LST_FILE |awk -F'|' '{print $2}'`
-_datetime=`date +%Y%m%d_%H%M%S`
-_deploy_path="${_HTML_RUN}/${_htmlName}/${_datetime}"
-
-echo "htmlName:  $_htmlName"
-echo "DevName:   $_htmlDevName"
-echo "gitRepo:   $_gitRepo"
-echo "gitBranch: $_gitBranch"
-echo "gitCommit: $_commit"
-echo "Generating new $_htmlName in $_deploy_path ...... "
-echo
-
-# 获取最新代码
-git clone $_gitRepo -b $_gitBranch $_deploy_path
-cd $_deploy_path
-git checkout $_gitBranch
-if [[ -n $_commit ]]; then
-    if git reset --hard $_commit ;then
-	echo "Reset to $_commit"
-    else
-	echo "$_commit does not exist.";exit 1
-    fi
-else
-    _commit=`git rev-parse HEAD`
+cd $_building_path
+pwd
+if ! git log -1; then
+    cd .. && git clone $_gitRepo $_building_path -b $_gitBranch 
+    cd -
 fi
-mv $_deploy_path ${_deploy_path}_${_commit}
-_deploy_path="${_deploy_path}_${_commit}"
+if ! git checkout -b $_gitBranch; then
+    git checkout $_gitBranch 
+fi
+git branch --set-upstream-to=origin/${_gitBranch} ${_gitBranch}
+git reset --hard HEAD
+git pull
 
-# 记录版本信息
-_html_version_Show_file="${_deploy_path}/html_version_Show.txt" ; touch $_html_version_Show_file
+# 如果指定 commit号
+if [[ $_commit != "HEAD" ]]; then
+    if git reset --hard $_commit ;then
+        echo "Reset to $_commit"
+    else
+        echo "$_commit does not exist.";exit 1
+    fi
+fi
+
+# 提取版本信息
+_commit=`      git rev-parse HEAD`
 _git_branch_v=`git branch -v`
-_git_log=`git log --decorate=short -1`
+_git_log=`     git log --decorate=short -1`
 
-_version_info="\n\n${_datetime}\n${_deploy_path}\n${_git_branch_v}\n${_git_log}"
-echo -e "$_version_info" | tee -a $_html_version_Show_file
+# 清除敏感内容
+if [[ -z $_builtPath ]];then
+    cd ${_building_path}
+    find ./ -type d -name .git -exec rm {} -rf  \;	2>/dev/null 
+    find ./ -type d -name .svn -exec rm {} -rf  \;	2>/dev/null
+    find ./ -type d -name .idea -exec rm {} -rf \;	2>/dev/null
+    find ./ -type f -name .project -exec rm {} -rf \;	2>/dev/null
+    find ./ -type f -name .gitignore -exec rm {} -rf \;	2>/dev/null
+    find ./ -type f -name README.md  -exec rm {} -rf \;	2>/dev/null
+fi
 
+# 更新生产配置文件，build页面
+cd ${_building_path}/${_codeDir}
 funMakeProduction $_htmlName
 echo
+
+# 发布到部署目录
+_datetime=`date +%Y%m%d_%H%M%S`
+_deploy_path="${_HTML_RUN}/${_htmlName}/${_datetime}_${_commit}"
+mkdir -p $_deploy_path
+if ! cp -r ./${_builtPath}/* $_deploy_path ; then
+    echo "${_building_path}/${_codeDir}/${_builtPath}/ DOES NOT EXIST!";exit 1 
+fi
+
+# 记录版本信息
+_html_version_Show_file="${_deploy_path}/html_version_Show.txt"
+_version_info="\n\n${_datetime}\n${_deploy_path}\n${_git_branch_v}\n${_git_log}"
+touch $_html_version_Show_file
+echo -e "$_version_info" | tee -a $_html_version_Show_file
+echo
+
+#显示部署目录
 echo "$_deploy_path"
 echo "${_datetime}_${_commit}"
+
