@@ -1,0 +1,7 @@
+set nocompatible
+set shiftwidth=4
+filetype plugin indent on
+set pastetoggle=<F9>
+nnoremap q :q
+nnoremap Q :q!
+nnoremap gq :q!

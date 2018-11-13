@@ -1,0 +1,15 @@
+#!/bin/bash
+_ssh_rsa_publicKey=$1
+if [[ -n $_ssh_rsa_publicKey ]]; then
+    echo "$_ssh_rsa_publicKey" | base64 -d | sha256sum | awk '{ print $1 }' | xxd -r -p | base64|sed 's/=$//g' 
+else
+    echo "Usage: get_pub_key_checksum <ssh-rsa PulicKey> ."
+    echo "The checksum will be found in sshd log 'Accepted publickey ... ssh2: RSA SHA256:<CheckSum>'"
+fi
+ # via https://serverfault.com/questions/888281/what-is-the-sha256-that-comes-on-the-sshd-entry-in-auth-log
+ # Remove the ssh-rsa prefix and user@host surfix. Only the actual key data without prefix or comments
+ # decode as base64
+ # SHA256 hash (returns hex)
+ # only the hex data
+ # hex to bytes
+ # encode as base64						

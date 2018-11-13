@@ -75,9 +75,9 @@ if [[ ! -d $HOME/.acme.sh/${_domain} ]]; then
     echo "${_domain} not issued yet."; exit 1
 fi
 if [[ $_wild != "Y" ]] && [[ $_wild != "N" ]]; then
-    _wild="Y"
+    _wild="N"
 fi
-if [[ ! -f $HOME/.acme.sh/dnsapi/${_dns}.sh.${_domain} ]]; then
+if [[ $_dns != "N" ]] && [[ ! -f $HOME/.acme.sh/dnsapi/${_dns}.sh.${_domain} ]]; then
     echo "$HOME/.acme.sh/dnsapi/${_dns}.sh.${_domain} does not exist."; exit 1
 fi
 echo "`date +%F_%T` Let's renew $_domain wildcard=$_wild dnsapi=$_dns ..."
