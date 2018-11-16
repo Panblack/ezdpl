@@ -31,6 +31,7 @@ funRenew() {
         echo "Restore $_target_dnsapi"
         /bin/cp -p $_backup_dnsapi $_target_dnsapi
     fi
+    sed -i '/LOG_FILE=/d' $HOME/.acme.sh/account.conf
     _cer_date=`stat --format=%y $HOME/.acme.sh/${_domain}/fullchain.cer |awk '{print $1}'`
     if [[ $_cer_date = $_today ]] ;then
         chmod 600 $HOME/.acme.sh/${_domain}/fullchain.cer

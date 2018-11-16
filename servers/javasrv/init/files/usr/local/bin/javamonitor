@@ -1,0 +1,34 @@
+#!/bin/bash
+source /usr/local/bin/japp.include
+_log_path="/data/logs/report/java_monitor"
+if ! mkdir -p $_log_path ; then
+    exit
+fi
+cd $_BASES_DIR
+for x in *; do          
+    _log_file="${_log_path}/${x}/${x}_`date +%F_%H%M%S`.log"
+    _pid=`ps aux|grep "catalina.base=${_BASES_DIR}/${x} "|grep -v grep|awk '{print $2}' `
+    mkdir -p ${_log_path}/${x}/
+    touch $_log_file
+    echo "${_BASES_DIR}/${x} Pid: $_pid "| tee -a $_log_file
+    date +%F_%T 			| tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    echo "Jmap -heap:"         		| tee -a $_log_file
+    ${JAVA_HOME}/bin/jmap -heap $_pid   | tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    echo "Jmap -histo:"        		| tee -a $_log_file
+    ${JAVA_HOME}/bin/jmap -histo $_pid  | tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    echo "Jstack -F:"        		| tee -a $_log_file
+    ${JAVA_HOME}/bin/jstack -F $_pid    | tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    echo "Jstack -l:"        		| tee -a $_log_file
+    ${JAVA_HOME}/bin/jstack -l $_pid    | tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    echo                 		| tee -a $_log_file
+    date +%F_%T 			| tee -a $_log_file
+done
+

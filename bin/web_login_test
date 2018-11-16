@@ -1,0 +1,34 @@
+#!/bin/bash
+if [[ $# -lt 2 ]]; then
+    echo "Usage: web_login_test <url_for_login> <login_post_data> [url_for_test]"
+    echo "jwt "
+    exit
+fi
+_url_for_login=$1
+_post_data_for_login=$2
+_url_for_test=$3
+
+echo "`date +%F_%T` START" 
+_page_login=`curl -sSL -X POST \
+	-H 'content-type: application/json;charset=UTF-8' \
+	-H 'accept: application/json, text/plain, */*' \
+	-d "$_post_data_for_login" "$_url_for_login";echo`
+
+echo "LoginURL: ${_url_for_login}" 
+_token=`echo "$_page_login"|awk -F'token":"' '{print $2}'|awk -F'"' '{print $1}'` 
+#echo "$_token"
+
+if [[ -n $_token ]]; then
+    echo "Login OK" 
+    if [[ -n $_url_for_test ]]; then
+	_page_test=`curl -sSL -I \
+	    -H 'content-type: application/json;charset=UTF-8' \
+	    -H 'accept: application/json, text/plain, */*' \
+	    -H "authorization: Bearer $_token" \
+	    "$_url_for_test"|head -1;echo`
+
+	echo -e "TestURL: ${_url_for_test}\n${_page_test}" 
+    fi
+else
+    echo -e "`date +%F_%T` Login FAILED" 
+fi

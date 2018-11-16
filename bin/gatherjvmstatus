@@ -1,0 +1,16 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+_servers=`grep _WEB_SERVER_ $EZDPL_HOME/conf/hosts.lst`
+IFS=$'\n'
+for x in $_servers; do
+        _ip=`echo $x|awk '{print $1}'`
+        _host=`echo $x|awk '{print $2}'`
+        _user=`echo $x|awk '{print $3}'`
+        _port=`echo $x|awk '{print $4}'`
+	ssh -p ${_port} ${_user}@${_ip} "/usr/local/bin/javamonitor" &>/dev/null
+done
