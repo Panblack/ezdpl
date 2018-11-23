@@ -3,7 +3,7 @@
 source /usr/local/bin/release.include
 echo $_RELEASE
 
-_ports="22 2222"
+_FIREWALL_PORTS
 # firewalld 
 case $_RELEASE in
     CENTOS6)
@@ -11,7 +11,7 @@ case $_RELEASE in
         chkconfig iptables on
         service iptables start
         iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
-	for x in $_ports; do
+	for x in $_FIREWALL_PORTS; do
             iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport $x -j ACCEPT
 	done
         iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
@@ -21,7 +21,7 @@ case $_RELEASE in
         # firewall
         systemctl enable firewalld
         systemctl start  firewalld
-	for x in $_ports; do 
+	for x in $_FIREWALL_PORTS; do 
 	    firewall-cmd --add-port $x/tcp --permanent
         done
         firewall-cmd --reload
@@ -30,7 +30,7 @@ case $_RELEASE in
         # firewall
         sudo ufw enable
         sudo ufw default deny
-	for x in $_ports; do
+	for x in $_FIREWALL_PORTS; do
             sudo ufw allow $x/tcp
 	done
         ;;

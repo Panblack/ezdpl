@@ -19,111 +19,135 @@ else
     _proto=udp
 fi
 
-_sshd_port=`ss -lntp|grep sshd|grep "::"|awk '{print $4}'|awk -F::: '{print $2}'`
+_sshd_port=`ss -lntp|grep sshd|grep '\*:'|awk -F':' '{print $2}'|awk '{print $1}'`
 
 # Get prepared for ajusting iptables rules
 echo "iptables-iport: $_oper '$_ports' $_proto"
 echo 
 
+funIptables() {
+
+    echo "RUNTIME:"
+    iptables -nL 
+    echo
+    echo "PERMANENT:"
+    cat /etc/sysconfig/iptables
+    echo
+    echo "Make changes..."
+    service iptables reload
+    for x in $_ports ; do 
+        # Protect sshd port
+        if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
+                echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
+                continue
+        fi
+    
+        # Remove iptables entries if any
+        sed -i /"-p *${_proto}.*--dport *${x}.*-j *ACCEPT"/d /etc/sysconfig/iptables
+    
+        # Add iptables rules
+        if [[ $_oper = a ]] && ! iptables -nL|egrep "^ACCEPT"|egrep -w "${_proto}"|egrep -w "dpt:${x}" > /dev/null  ; then
+            iptables -A INPUT -p $_proto  -m state --state NEW -m $_proto --dport $x -j ACCEPT
+        fi
+    done
+    
+    # Finalize
+    if  [[ $_oper = a ]]  ; then
+        # Adjust the position of 'INPUT REJECT' rule
+        iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
+        iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
+        # Save iptables rules
+        service iptables save
+    else
+        service iptables reload
+    fi
+    echo
+    echo "REVIEW:"
+    cat /etc/sysconfig/iptables
+    echo
+
+}
+
+funFirewalld() {
+
+    echo "RUNTIME:"
+    firewall-cmd --list-ports; firewall-cmd --list-rich-rules
+    echo
+    echo "PERMANENT:"
+    firewall-cmd --permanent --list-ports ; firewall-cmd --permanent --list-rich-rules
+    echo
+    echo "Make changes..."
+    for x in $_ports ; do 
+        # Protect sshd port
+        if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
+            echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
+            continue
+        fi
+    
+        # Remove port/proto
+        if [[ $_oper = d ]]; then
+            firewall-cmd --permanent --remove-port ${x}/${_proto}
+        fi
+    
+        # Add port/proto
+        if [[ $_oper = a ]] ; then
+            firewall-cmd --permanent --add-port ${x}/${_proto}
+        fi
+    done
+    
+    # Finalize
+    echo "Reload & Review:"
+    firewall-cmd --reload
+    firewall-cmd --list-ports; firewall-cmd --list-rich-rules
+
+}
+
+funUfw() {
+
+    echo "RUNTIME:"
+    sudo ufw status
+    echo
+    echo "Make changes..."
+    for x in $_ports ; do 
+        # Protect sshd port
+        if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
+            echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
+            continue
+        fi
+    
+        # Remove port/proto
+        if [[ $_oper = d ]]; then
+            sudo ufw disable ${x}/${_proto}
+        fi
+    
+        # Add port/proto
+        if [[ $_oper = a ]] ; then
+            sudo ufw enable ${x}/${_proto}
+        fi
+    done
+    
+    # Finalize
+    echo "REVIEW:"
+    sudo ufw status
+
+}
+
+#Main
 case $_RELEASE in
     CENTOS6)
-	echo "RUNTIME:"
-	iptables -nL 
-	echo
-	echo "PERMANENT:"
-	cat /etc/sysconfig/iptables
-	echo
-	echo "Make changes..."
-	/etc/init.d/iptables reload
-	for x in $_ports ; do 
-    	    # Protect sshd port
-	    if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
-		echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
-		continue
-    	    fi
-
-    	    # Remove iptables entries if any
-    	    sed -i /"-p *${_proto}.*--dport *${x}.*-j *ACCEPT"/d /etc/sysconfig/iptables
-
-    	    # Add iptables rules
-    	    if [[ $_oper = a ]] && ! iptables -nL|egrep "^ACCEPT"|egrep -w "${_proto}"|egrep -w "dpt:${x}" > /dev/null  ; then
-		iptables -A INPUT -p $_proto  -m state --state NEW -m $_proto --dport $x -j ACCEPT
-    	    fi
-	done
-
-	# Finalize
-	if  [[ $_oper = a ]]  ; then
-    	    # Adjust the position of 'INPUT REJECT' rule
-    	    iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
-    	    iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
-    	    # Save iptables rules
-   	    /etc/init.d/iptables save
-	else
-   	    /etc/init.d/iptables reload
-	fi
-	echo
-	echo "REVIEW:"
-	cat /etc/sysconfig/iptables
-	echo
-	;;
+        funIptables
+        ;;
     CENTOS7)
-        echo "RUNTIME:"
-	firewall-cmd --list-ports; firewall-cmd --list-rich-rules
-        echo
-        echo "PERMANENT:"
-	firewall-cmd --permanent --list-ports ; firewall-cmd --permanent --list-rich-rules
-        echo
-        echo "Make changes..."
-	for x in $_ports ; do 
-    	    # Protect sshd port
-	    if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
-		echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
-		continue
-    	    fi
-
-    	    # Remove port/proto
-	    if [[ $_oper = d ]]; then
-		firewall-cmd --permanent --remove-port ${x}/${_proto}
-	    fi
-
-    	    # Add port/proto
-    	    if [[ $_oper = a ]] ; then
-		firewall-cmd --permanent --add-port ${x}/${_proto}
-    	    fi
-	done
-
-	# Finalize
-	echo "Reload & Review:"
-	firewall-cmd --reload
-	firewall-cmd --list-ports; firewall-cmd --list-rich-rules
-	;;
+        if systemctl status iptables.service &>/dev/null; then
+            funIptables
+        elif systemctl status firewalld.service &>/dev/null; then
+            funFirewalld
+        else
+            echo "Neither iptables nor firewalld is running";exit 1
+        fi
+        ;;
     UBUNTU)
-        echo "RUNTIME:"
-	sudo ufw status
-        echo
-        echo "Make changes..."
-	for x in $_ports ; do 
-    	    # Protect sshd port
-	    if [[ $_oper = d ]] && [[ $_proto = tcp  ]] && [[ $x = $_sshd_port ]]; then
-		echo -e "\033[31msshd port ${_sshd_port}/tcp CANNOT be removed!\033[0m"
-		continue
-    	    fi
-
-    	    # Remove port/proto
-	    if [[ $_oper = d ]]; then
-		sudo ufw disable ${x}/${_proto}
-	    fi
-
-    	    # Add port/proto
-    	    if [[ $_oper = a ]] ; then
-		sudo ufw enable ${x}/${_proto}
-    	    fi
-	done
-
-	# Finalize
-	echo "REVIEW:"
-	sudo ufw status
-
-	;;
+        funUfw
+        ;;
 esac
 

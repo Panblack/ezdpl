@@ -107,6 +107,10 @@ if [[ -n $_gitRepo ]]; then
     echo "Replacing config files..."
     /bin/cp -rp ${_config_files_path}/${_configFiles}/* ${_OPER_PATH}/build/${_warName}/${_codeDir}/${_configFiles}/
     
+    # 将版本信息写入war包文件
+    echo "Touch commit info file..."
+    touch ${_OPER_PATH}/build/${_warName}/${_codeDir}/${_configFiles}/${_git_commit}
+
     # 构建新包 
     if [[ $_runTest = "Y" ]]; then
     	echo "Building(run test)..."
