@@ -17,6 +17,6 @@ d)
     /opt/activemq/bin/activemq dstat
     ;;
 *)
-    echo -e "Usage: \namq up\t\tStart\namq down\tStop\namq d\tDstat"
+    echo -e "Usage: \namq up\t\tStart\namq down\tStop\namq r\t\tRestart\namq d\t\tDstat"
 esac
 

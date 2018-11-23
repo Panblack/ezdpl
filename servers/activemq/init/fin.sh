@@ -10,6 +10,6 @@ ln -sf $_activemq ./activemq
 sed -i "s/admin:admin/admin:adminPassword/g" /opt/activemq/conf/jetty-realm.properties
 sed -i "s/user:user/user:userPassword/g" /opt/activemq/conf/jetty-realm.properties
 
-iptables-iport a "8161 61616"
+/usr/local/bin/iptables-iport a "8161 61616"
 
 echo "`date +%F_%T` activemq/init " >> /tmp/ezdpl.log
