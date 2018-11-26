@@ -12,5 +12,5 @@ for x in $_servers; do
         _host=`echo $x|awk '{print $2}'`
         _user=`echo $x|awk '{print $3}'`
         _port=`echo $x|awk '{print $4}'`
-	ssh -p ${_port} ${_user}@${_ip} "/usr/local/bin/javamonitor" &>/dev/null
+	ssh -p ${_port} ${_user}@${_ip} "/usr/local/bin/javamonitor heap" &>/dev/null
 done
