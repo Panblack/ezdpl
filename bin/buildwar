@@ -67,11 +67,15 @@ fi
 
 # 判断是否有gitRepo,如果有则获取最新代码
 if [[ -n $_gitRepo ]]; then
-    mkdir -p ${_OPER_PATH}/build/${_warName}
+    if ! mkdir ${_OPER_PATH}/build/${_warName}; then
+	echo "Unable to mkdir ${_OPER_PATH}/build/${_warName} ."; exit 1
+    fi
     cd ${_OPER_PATH}/build
     echo "Get the latest code..."
     rm ${_warName} -rf
-    git clone $_gitRepo $_warName
+    if ! git clone $_gitRepo $_warName; then
+	echo "Failed to clone $_gitRepo ." ; exit 1
+    fi
     cd $_warName/$_codeDir ; pwd
     git checkout $_gitBranch  
     if [[ -n $_commit ]]; then
@@ -94,7 +98,10 @@ if [[ -n $_gitRepo ]]; then
     _deploy_path="${_datetime}_${_git_tag}_${_git_commit}"
     
     # 创建部署目录
-    _warSharedRunningDir="${_WARS_RUN}/${_warName}/${_deploy_path}" ; mkdir -p $_warSharedRunningDir 
+    _warSharedRunningDir="${_WARS_RUN}/${_warName}/${_deploy_path}"
+    if ! mkdir $_warSharedRunningDir ; then
+	echo "Failed to mkdir $_warSharedRunningDir . " ; exit 1
+    fi
 
     # 记录版本信息
     _version_info="\n\n${_datetime}\n${_warSharedRunningDir}\n${_git_branch_v}\n${_git_log}"
@@ -112,6 +119,9 @@ if [[ -n $_gitRepo ]]; then
     touch ${_OPER_PATH}/build/${_warName}/${_codeDir}/${_configFiles}/${_git_commit}
 
     # 构建新包 
+    if ! which mvn ; then
+	echo "Maven not installed ."; exit 1
+    fi
     if [[ $_runTest = "Y" ]]; then
     	echo "Building(run test)..."
 	$MAVEN_HOME/bin/mvn clean package
