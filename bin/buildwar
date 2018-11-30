@@ -67,8 +67,8 @@ fi
 
 # 判断是否有gitRepo,如果有则获取最新代码
 if [[ -n $_gitRepo ]]; then
-    if ! mkdir ${_OPER_PATH}/build/${_warName}; then
-	echo "Unable to mkdir ${_OPER_PATH}/build/${_warName} ."; exit 1
+    if [[ ! -d ${_OPER_PATH}/build ]];then
+        mkdir  ${_OPER_PATH}/build || echo "${_OPER_PATH}/build does not exist and is unable to be created."; exit 1
     fi
     cd ${_OPER_PATH}/build
     echo "Get the latest code..."
