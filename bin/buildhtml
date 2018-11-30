@@ -64,14 +64,19 @@ echo
 if [[ -z $_gitRepo ]];then
     echo "git repo for ${_htmlName} not found!";exit 1
 fi
+if [[ ! -d $_building_path ]]; then
+    echo "$_building_path does not exist."; exit 1
+fi
 cd $_building_path
 pwd
 if ! git log -1; then
-    cd .. && git clone $_gitRepo $_building_path -b $_gitBranch 
+    echo "$_building_path is not a valid git repo. Re-clone."
+    cd .. 
+    rm ./building -rf
+    if ! git clone $_gitRepo building -b $_gitBranch; then
+        echo -e "\nRepo:$_gitRepo or Branch:$_gitBranch not valid."; exit 1
+    fi
     cd -
-fi
-if ! git checkout -b $_gitBranch; then
-    git checkout $_gitBranch 
 fi
 git branch --set-upstream-to=origin/${_gitBranch} ${_gitBranch}
 git reset --hard HEAD

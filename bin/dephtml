@@ -107,7 +107,7 @@ for x in $_servers; do
     if [[ -n $_targetPath ]];then
 	# 有_targetPath ， 删除目的_targetPath，复制新的文件为_targetPath
 	ssh -p${_htmlServerPort} ${_htmlServerUser}@${_htmlServerIp} "rm ${_targetPath} -rf"
-	scp -P${_htmlServerPort} -r ${_path_new}/${_builtPath} ${_htmlServerUser}@${_htmlServerIp}:${_targetPath}
+	scp -P${_htmlServerPort} -r ${_path_new} ${_htmlServerUser}@${_htmlServerIp}:${_targetPath}
         echo "${_htmlServerName} updated ${_htmlName} to ${_htmlServerUser}@${_htmlServerIp}:${_targetPath} ." | tee -a $_log_file ; echo
     else
 	# 没有_targetPath，删除目的_htmlName的软连接，链接到新的部署目录
