@@ -21,11 +21,12 @@ _CRON_FOR_ROOT="*/10 * * * * /usr/local/bin/ban_ssh.sh
 #*/10 * * * * /usr/sbin/ntpdate ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com
 "
 
-_LOCAL_REPO="[local]
-name=local
-baseurl=http://Host:Port/path/to/repo
-enabled=1
-gpgcheck=0"
+#_LOCAL_REPO="
+#[local]
+#name=local
+#baseurl=http://Host:Port/path/to/repo
+#enabled=1
+#gpgcheck=0"
 
 _SELINUX_OFF=1
 
@@ -59,7 +60,7 @@ _HISTORY_RECORD=1
 
 _PIP_INSTALL=""
 
-_RKHUNTER_PROPUPD=1
+_RKHUNTER_PROPUPD=0
 
 _FIREWALL_PORTS="22 2222"
 
