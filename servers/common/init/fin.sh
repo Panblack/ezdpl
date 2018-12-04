@@ -8,6 +8,10 @@ if [[ -n $_LOCAL_REPO ]]; then
     echo "$_LOCAL_REPO" > /etc/yum.repos.d/local.repo
 fi
 
+# logrotate
+/bin/cp -p /etc/logrotate.conf /etc/logrotate.conf.bak
+sed -i 's/rotate 4/rotate 5200/g' /etc/logrotate.conf
+
 # crontab 
 if [[ -n $_CRON_FOR_ROOT ]];then
     echo "Cron for root..."
@@ -71,8 +75,9 @@ case $_RELEASE in
         ;;
 esac
 
+yum -y install deltarpm
 yum update -y
-yum -y install yum-utils deltarpm telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf tcpdump bind-utils lsof sysstat dstat iftop geoip htop iotop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter unhide nethogs tcptraceroute python-pip && echo "Packages installed..."
+yum -y install yum-utils bc telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf nethogs tcpdump bind-utils lsof sysstat dstat iftop geoip htop iotop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter unhide supervisor tcptraceroute python-pip && echo "Packages installed..."
 
 if [[ -n $_VIMRC ]]; then
     echo "$_VIMRC" > ~/.vimrc
