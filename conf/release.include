@@ -6,7 +6,7 @@ if egrep '(CentOS|Red Hat)' /etc/system-release 2>/dev/null| grep 'release 7\.' 
     _RELEASE="CENTOS7"
 fi
 if grep 'Amazon Linux AMI' /etc/system-release &>/dev/null; then
-    _RELEASE="CENTOS6"
+    _RELEASE="CENTOS7"
 fi
 if cat /etc/*-release|grep -i ubuntu &>/dev/null; then
     _RELEASE="UBUNTU"
@@ -41,6 +41,7 @@ filetype plugin indent on
 set pastetoggle=<F9>
 nnoremap q :q
 nnoremap Q :q!
+nnoremap gq :q!
 "
 
 _IFTOPRC="
@@ -58,6 +59,7 @@ log-scale: yes
 
 _HISTORY_RECORD=1
 
+# pip install "$_PIP_INSTALL"
 _PIP_INSTALL=""
 
 _RKHUNTER_PROPUPD=0
@@ -65,11 +67,12 @@ _RKHUNTER_PROPUPD=0
 _FIREWALL_PORTS="22 2222"
 
 ## mysql/init
-_MYSQL_FSTAB=""
 _MYSQL_MAX_DAYS=15
 _MYSQL_BACKUP_PATH="/data/backupmysql"
 _MYSQL_DATABASES="portal sales mysql"
+_MYSQL_IGNORE_TABLES="--ignore-table db1.tb1 --ignore-table db2.tb2"
 _MYSQL_DATA_PATH="/data/mysql"
+_MYSQL_FSTAB="172.16.0.1:/backupmysql      /data/backupmysql	nfs4    defaults,soft,timeo=60,retrans=2        0 0"
 _MYSQL_RC_LOCAL="
 sleep 5
 mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr 172.16.0.1:/backupmysql      /data/backupmysql
@@ -77,7 +80,11 @@ mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr 172.16.0.1:/backupmysql   
 
 ## websrv/init
 _USE_NFS=1
-_WEBSRV_FSTAB=""
+_WEBSRV_FSTAB="
+172.16.0.1:/appLogs/`hostname -s`    /data/logs             nfs4    defaults,soft,timeo=60,retrans=2        0 0
+172.16.0.1:/webShareProduction/read  /data/webShare/read    nfs4    defaults,soft,timeo=60,retrans=2        0 0
+172.16.0.1:/webShareProduction/write /data/webShare/write   nfs4    defaults,soft,timeo=60,retrans=2        0 0
+"
 _WEBSRV_RC_LOCAL="
 sleep 5
 mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr 172.16.0.1:/appLogs/`hostname -s`    /data/logs

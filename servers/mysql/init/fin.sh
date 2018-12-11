@@ -4,7 +4,7 @@
 source /usr/local/bin/release.include
 echo $_RELEASE
 mkdir -p /data/mysql
-mkdir -p /data/backup
+mkdir -p /data/mysqlbackup
 
 case $_RELEASE in
     CENTOS6|CENTOS7)
@@ -27,7 +27,7 @@ case $_RELEASE in
 	echo;echo 
 	echo "Installing mysql-community-server..."
 	yum install -y mysql-community-server
-	mv /etc/my.cnf files/etc/my.cnf.org
+	mv /etc/my.cnf /etc/my.cnf.org
 	mv /etc/my.cnf.new /etc/my.cnf
 	chkconfig mysqld on
 	service mysqld start
