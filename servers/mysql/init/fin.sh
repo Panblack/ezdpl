@@ -3,8 +3,8 @@
 
 source /usr/local/bin/release.include
 echo $_RELEASE
-mkdir -p /data/mysql
-mkdir -p /data/mysqlbackup
+mkdir -p $_MYSQL_BACKUP_PATH
+mkdir -p $_MYSQL_DATA_PATH  
 
 case $_RELEASE in
     CENTOS6|CENTOS7)
