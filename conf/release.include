@@ -1,3 +1,4 @@
+# release.include v.20181211
 ## RELEASE CHECK
 if egrep '(CentOS|Red Hat)' /etc/system-release 2>/dev/null| grep 'release 6\.' &>/dev/null; then
     _RELEASE="CENTOS6"
@@ -66,30 +67,32 @@ _RKHUNTER_PROPUPD=0
 
 _FIREWALL_PORTS="22 2222"
 
+_NFS_SERVER_IP="192.168.0.1"
+
 ## mysql/init
+_MYSQL_DATABASES="mysql portal sales"
+_MYSQL_DUMP_OPTIONS="--ignore-table=db1.tb1 --ignore-table=db2.tb2"
 _MYSQL_MAX_DAYS=15
 _MYSQL_BACKUP_PATH="/data/backupmysql"
-_MYSQL_DATABASES="portal sales mysql"
-_MYSQL_IGNORE_TABLES="--ignore-table db1.tb1 --ignore-table db2.tb2"
 _MYSQL_DATA_PATH="/data/mysql"
-_MYSQL_FSTAB="172.16.0.1:/backupmysql      /data/backupmysql	nfs4    defaults,soft,timeo=60,retrans=2        0 0"
+_MYSQL_FSTAB="${_NFS_SERVER_IP}:/backupmysql      /data/backupmysql	nfs4    defaults,soft,timeo=60,retrans=2        0 0"
 _MYSQL_RC_LOCAL="
 sleep 5
-mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr 172.16.0.1:/backupmysql      /data/backupmysql
+mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr ${_NFS_SERVER_IP}:/backupmysql      /data/backupmysql
 "
 
 ## websrv/init
-_USE_NFS=1
+_USE_NFS=0
 _WEBSRV_FSTAB="
-172.16.0.1:/appLogs/`hostname -s`    /data/logs             nfs4    defaults,soft,timeo=60,retrans=2        0 0
-172.16.0.1:/webShareProduction/read  /data/webShare/read    nfs4    defaults,soft,timeo=60,retrans=2        0 0
-172.16.0.1:/webShareProduction/write /data/webShare/write   nfs4    defaults,soft,timeo=60,retrans=2        0 0
+${_NFS_SERVER_IP}:/appLogs/`hostname -s`    /data/logs             nfs4    defaults,soft,timeo=60,retrans=2        0 0
+${_NFS_SERVER_IP}:/webShareProduction/read  /data/webShare/read    nfs4    defaults,soft,timeo=60,retrans=2        0 0
+${_NFS_SERVER_IP}:/webShareProduction/write /data/webShare/write   nfs4    defaults,soft,timeo=60,retrans=2        0 0
 "
 _WEBSRV_RC_LOCAL="
 sleep 5
-mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr 172.16.0.1:/appLogs/`hostname -s`    /data/logs
-mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr 172.16.0.1:/webShareProduction/read  /data/webShare/read
-mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr 172.16.0.1:/webShareProduction/write /data/webShare/write
+mount -t nfs4 -o defaults,soft,timeo=60,retrans=2 ${_NFS_SERVER_IP}:/appLogs/`hostname -s`    /data/logs
+mount -t nfs4 -o defaults,soft,timeo=60,retrans=2 ${_NFS_SERVER_IP}:/webShareProduction/read  /data/webShare/read
+mount -t nfs4 -o defaults,soft,timeo=60,retrans=2 ${_NFS_SERVER_IP}:/webShareProduction/write /data/webShare/write
 "
 
 _LOCAL_DIRS_FOR_NFS="/data/logs/nginx /data/webShare/read /data/webShare/write"
