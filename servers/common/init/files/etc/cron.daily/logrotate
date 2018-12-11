@@ -1,0 +1,10 @@
+#!/bin/sh
+touch /var/log/logrotate.out
+echo -e '\n\n' | tee -a /var/log/logrotate.out
+date +%F_%T    | tee -a /var/log/logrotate.out
+/usr/sbin/logrotate -v -s /var/lib/logrotate/logrotate.status /etc/logrotate.conf 2>&1 | tee -a /var/log/logrotate.out
+EXITVALUE=$?
+if [ $EXITVALUE != 0 ]; then
+    /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE]"
+fi
+exit 0
