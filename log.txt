@@ -3,3 +3,9 @@ root@c48:/tmp/pre.sh OK!
 Start to copy ./servers/mysql/init/files/*  OK!
 root@c48:/tmp/fin.sh OK!
 Target Server: c48 done!
+
+2018-12-13_11:10:46 ./ezdpl c19:22 common/init N root
+root@c19:/tmp/pre.sh OK!
+Start to copy ./servers/common/init/files/*  OK!
+root@c19:/tmp/fin.sh OK!
+Target Server: c19 done!
