@@ -57,8 +57,8 @@ if [ ! -d "./servers/$_server_oper" ]; then
 fi
 
 # Everything seems OK. Go!
-echo >> log.txt
-echo "`date +%Y-%m-%d_%H:%M:%S` ./ezdpl $_ipaddress:$_port $_server_oper $_reboot $_username" >> log.txt
+echo >> ezdpl.log
+echo "`date +%Y-%m-%d_%H:%M:%S` ./ezdpl $_ipaddress:$_port $_server_oper $_reboot $_username" >> ezdpl.log
 
 # Run pre.sh on the target server
 if [ -f "./servers/$_server_oper/pre.sh" ]; then
@@ -66,21 +66,21 @@ if [ -f "./servers/$_server_oper/pre.sh" ]; then
   ssh -p$_port $_username@$_ipaddress 'source /etc/profile; bash -l /tmp/pre.sh'
   _pre=$?
   if [[ $_pre != 0 ]];then 
-    echo "$_username@$_ipaddress:/tmp/pre.sh exit code $_pre . EXIT!!" | tee -a log.txt
+    echo "$_username@$_ipaddress:/tmp/pre.sh exit code $_pre . EXIT!!" | tee -a ezdpl.log
     exit 1
   else
-    echo "$_username@$_ipaddress:/tmp/pre.sh OK!" | tee -a log.txt
+    echo "$_username@$_ipaddress:/tmp/pre.sh OK!" | tee -a ezdpl.log
   fi
 fi
 
 # Start copy app/version/files/*
 if [ -d ./servers/$_server_oper/files  ]; then 
-  echo -n "Start to copy ./servers/$_server_oper/files/*  "| tee -a log.txt
+  echo -n "Start to copy ./servers/$_server_oper/files/*  "| tee -a ezdpl.log
   echo -n "......"
   if /usr/bin/scp -rq -P$_port ./servers/$_server_oper/files/* $_username@$_ipaddress:/ ; then
-      echo "OK!"      | tee -a log.txt
+      echo "OK!"      | tee -a ezdpl.log
   else
-      echo "Failed!"  | tee -a log.txt
+      echo "Failed!"  | tee -a ezdpl.log
   fi
 fi
 
@@ -90,20 +90,20 @@ if [ -f "./servers/$_server_oper/fin.sh" ]; then
   ssh -p$_port $_username@$_ipaddress 'source /etc/profile; bash -l /tmp/fin.sh'
   _fin=$?
   if [[ $_fin != 0 ]];then
-    echo "$_username@$_ipaddress:/tmp/fin.sh exit code $_fin . EXIT!!" | tee -a log.txt
+    echo "$_username@$_ipaddress:/tmp/fin.sh exit code $_fin . EXIT!!" | tee -a ezdpl.log
     exit 1
   else
-    echo "$_username@$_ipaddress:/tmp/fin.sh OK!" | tee -a log.txt
+    echo "$_username@$_ipaddress:/tmp/fin.sh OK!" | tee -a ezdpl.log
   fi
 fi
 
 # Reboot target server.
 if [ "$_reboot" = "Y" ]; then
   echo
-  echo "Target server will reboot..." | tee -a log.txt
+  echo "Target server will reboot..." | tee -a ezdpl.log
   echo
   ssh -p $_port $_username@$_ipaddress reboot
 fi
-echo "Target Server: ${_ipaddress} done!" | tee -a log.txt
+echo "Target Server: ${_ipaddress} done!" | tee -a ezdpl.log
 echo
 # End of ezdpl

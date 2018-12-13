@@ -1,0 +1,69 @@
+
+# Create image, project, user,role,quota,network(external) as admin
+source keystonerc_admin
+openstack image create --container-format bare --disk-format qcow2 --min-disk 5 --min-ram 1024 --file /opt/kvm/c7.qcow2 --public --tag "root/centos,ops/centos, ezdpl common/init" c7
+openstack project create yaguit 
+openstack user create --project yaguit --password yaguit super
+openstack role add --project yaguit --user super admin
+openstack quota set --cores 32 --floating-ips 32 --ram 48000 yaguit
+openstack network create yaguitNetwork --external --share --provider-network-type flat --provider-physical-network physnet1
+
+# Create resources in project yaguit as super
+source keystonerc_super
+openstack subnet create yaguitSubnet --subnet-range 192.168.31.0/24 --allocation-pool start=192.168.31.11,end=192.168.31.30 --dhcp --network yaguitNetwork --gateway 192.168.31.1 --dns-nameserver 192.168.1.1
+openstack router create yaguitRouter
+openstack router set yaguitRouter --external-gateway yaguitNetwork --fixed-ip subnet=yaguitSubnet,ip-address=192.168.31.2 --enable-snat 
+#neutron router-gateway-set yaguitRouter yaguitNetwork  --fixed-ip ip_address=192.168.31.2 # deprecated!
+openstack router add subnet yaguitRouter yaguitSubnet
+openstack keypair create key_c7 > key_c7.pem; chmod 400 key_c7.pem
+openstack security group create --description "ssh,imcp,http,https" sg_default
+openstack security group rule create --proto tcp --src-ip 0.0.0.0/0 --dst-port 22:22 sg_default
+openstack security group rule create --proto tcp --src-ip 0.0.0.0/0 --dst-port 80:80 sg_default
+openstack security group rule create --proto tcp --src-ip 0.0.0.0/0 --dst-port 443:443 sg_default
+openstack security group rule create --proto tcp --src-ip 0.0.0.0/0 --dst-port 8080:8080 sg_default
+openstack security group rule create --proto icmp --src-ip 0.0.0.0/0 --dst-port -1 sg_default
+
+openstack volume create --size 30 --description "30G multi-attach volume" volume_30_ma
+openstack server create --flavor m1.medium --image c7 --security-group sg_default --key-name key_c7_projectsdemo --user-data script_c7_http --nic net-id=yaguitNetwork --wait c7_http
+openstack server create c7_projectsdemo --flavor m1.large --image c7 --security-group sg_default --key-name key_c7_projectsdemo --user-data ~/script_c7_http --network yaguitNetwork --wait
+
+# change user super's role
+openstack role remove --project yaguit --user super admin
+openstack role add    --project yaguit --user super _member_
+
+# Failed to create internal network and floating ip...
+#source keystonerc_admin
+#Create bridge br-prv over em2 first.
+#sed -i '/bridge_mappings=physnet1:br-ex/a\bridge_mappings=physnet2:br-prv' /etc/neutron/plugins/ml2/openvswitch_agent.ini
+#openstack network create privateNetwork --internal --share --provider-network-type flat --provider-physical-network physnet2
+
+#source keystonerc_super
+#openstack subnet create --subnet-range 172.16.31.0/24 --allocation-pool start=172.16.31.101,end=172.16.31.250 --dhcp --network privateNetwork --gateway 172.16.31.1 --dns-nameserver 114.114.114.114 --gateway none privateSubnet
+
+##openstack router create privateRouter
+##neutron router-gateway-set privateRouter privateNetwork  #not an external network!!
+##openstack router add subnet privateRouter privateSubnet
+
+#openstack router add subnet yaguitRouter privateSubnet
+#openstack server create --flavor m1.medium --image c7 --security-group sg_default --key-name key_c7 --user-data ~/script_c7_http --nic net-id=privateNetwork --wait c7_http
+#openstack floating ip create yaguitNetwork 
+#openstack server add floating ip c7_http 192.168.31.12
+
+#set Port router_gateway security-group(no use! external network cannot ping router gateway and floating ips )
+#openstack port list
+#openstack port show 7ac59020-713c-41f9-954e-1b69313a09b1
+#openstack port set --enable-port-security --security-group sg_default 7ac59020-713c-41f9-954e-1b69313a09b1
+#openstack port set --disable 7ac59020-713c-41f9-954e-1b69313a09b1
+#openstack port set --enable 7ac59020-713c-41f9-954e-1b69313a09b1
+
+
+
+
+
+
+C:\ProgramFiles\CloudbaseSolutions\Cloudbase-Init\conf\cloudbase-init 
+plugins=cloudbaseinit.plugins.common.mtu.MTUPlugin,
+        cloudbaseinit.plugins.common.sethostname.SetHostNamePlugin,
+	cloudbaseinit.plugins.windows.extendvolumes.ExtendVolumesPlugin
+		
+
