@@ -18,8 +18,7 @@ fi
 # set a fancy prompt (non-color, overwrite the one in /etc/profile)
 # but only if not SUDOing and have SUDO_PS1 set; then assume smart user.
 if ! [ -n "${SUDO_USER}" -a -n "${SUDO_PS1}" ]; then
-  #PS1='${debian_chroot:+($debian_chroot)}\u@\h\w\$ '
-  PS1='[${debian_chroot:+($debian_chroot)}\u@\h \t \w]\$ '
+  PS1='${debian_chroot:+($debian_chroot)}\u@\h \t \w\$ '
 fi
 
 # Commented out, don't overwrite xterm -T "title" -n "icontitle" by default.
