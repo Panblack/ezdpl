@@ -7,7 +7,7 @@ echo "Upgrade & install necessary packages"
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y -m \
-dconf-editor gnome-tweaks \
+dconf-editor gnome-tweaks ibus-pinyin\
 leafpad tree p7zip-full p7zip-rar telnet ssh vim nmap lynx iftop iptraf convmv enca sysstat dstat curl xclip \
 git meld subversion chromium-browser \ 
 python-pip wireshark \
