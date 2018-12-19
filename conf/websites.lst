@@ -1,0 +1,5 @@
+#scheme|target|port|path
+https|www.yahoo.com||/user/account
+http|www.github.com||
+tcp|www.twitter.com|443|
+udp|dns.internic.net|53|
