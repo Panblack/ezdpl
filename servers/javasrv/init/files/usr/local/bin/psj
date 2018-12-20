@@ -11,7 +11,7 @@ for x in $_psinfo; do
     _psline=`echo -e "$_psline" | sed 's/ '$_WORK_USER' /\n'$_WORK_USER' /g'`
     _pid=`echo $x|awk '{print $2}'`
     echo -e "$_psline" | egrep -w 'java|/java'
-    echo -e "$_psline" | egrep '\.home|\.base|classPath|-jar'
+    echo -e "$_psline" | egrep '\.home|\.base|classPath|-jar|Xms|Xmx'
     echo "$_netstat"   | grep "$_pid/java" | sort
     echo "OOM_SCORE: `cat /proc/${_pid}/oom_score`"
     echo

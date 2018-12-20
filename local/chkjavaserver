@@ -1,0 +1,55 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+_servers=`egrep -v '(^ *#|^$)' ${EZDPL_HOME}/conf/hosts.lst|grep _JAVA_ `
+IFS=$'\n' 
+
+
+echo "1) java ps and Xmx ------"
+for x in $_servers;do
+    _host=`echo $x|awk '{print $2}'`
+    ${EZDPL_HOME}/bin/scs $_host e "/usr/local/bin/psj"
+
+    _webs=`${EZDPL_HOME}/bin/scs $_host e "ls -1 /opt/webs"|grep -v '\[.*\]'`
+    for i in $_webs; do
+	#keep the first 16 chars
+	i=${i:0:16}
+        echo -en "$_host\t"
+	if [[ ${#i} -ge 8 ]] && [[ ${#i} -le 16 ]]; then
+	    _tab="\t"
+	else
+	    _tab="\t\t"
+	fi
+	echo -en "${i}${_tab}`${EZDPL_HOME}/bin/scs $_host e "grep 'JAVA_OPTS' /opt/webs/${i}/bin/setenv.sh"|grep -v '\[.*\]' ` "
+	echo
+    done
+    echo
+done
+unset x
+
+echo "2) tomcat oom log ------"
+for x in $_servers;do
+    _host=`echo $x|awk '{print $2}'`
+    ${EZDPL_HOME}/bin/scs $_host e "find /opt/webs/ -name hs_err* -exec ls -l --time-style=long-iso {} \;"
+done
+unset x
+
+echo "3) system oom log ------"
+for x in $_servers;do
+    _host=`echo $x|awk '{print $2}'`
+    ${EZDPL_HOME}/bin/scs $_host e "grep 'Out of memory' /var/log/messages"
+done
+unset x
+
+echo "4) java heap ------"
+for x in $_servers;do
+    _host=`echo $x|awk '{print $2}'`
+    ${EZDPL_HOME}/bin/scs $_host e "/usr/local/bin/javamonitor heap 2>/dev/null|egrep 'Pid:|G1 Heap:|Eden Space:|Survivor Space:|G1 Old Generation:|% used'|sed '/Pid:/i\   ';echo"
+    echo
+done
+exit
+

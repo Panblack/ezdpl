@@ -5,6 +5,7 @@ if ! mkdir -p $_log_path ; then
     exit
 fi
 _chk=$1
+_brief=$3
 if [[ -z $_chk ]]; then
     echo "Usage: javamonitor all|heap|map|stack";exit 
 fi
@@ -13,31 +14,35 @@ cd $_BASES_DIR
 for x in *; do          
     _log_file="${_log_path}/${x}/${x}_`date +%F_%H%M%S`.log"
     _pid=`ps aux|grep "catalina.base=${_BASES_DIR}/${x} "|grep -v grep|awk '{print $2}' `
-    mkdir -p ${_log_path}/${x}/
-    touch $_log_file
-    echo "${_BASES_DIR}/${x} Pid:$_pid "| tee -a $_log_file
-    date +%F_%T 			| tee -a $_log_file
-    echo                 		| tee -a $_log_file
-    if [[ $_chk = "all" ]] || [[ $_chk = "heap" ]]; then
-	echo "Jmap -heap:"         	| tee -a $_log_file
-    	${JAVA_HOME}/bin/jmap -heap $_pid|tee -a $_log_file
-    	echo                 		| tee -a $_log_file
+    if [[ -n $_pid ]]; then
+        mkdir -p ${_log_path}/${x}/
+        touch $_log_file
+        echo "${_BASES_DIR}/${x} Pid:$_pid "	| tee -a $_log_file
+        date +%F_%T 				| tee -a $_log_file
+        echo                 			| tee -a $_log_file
+        if [[ $_chk = "all" ]] || [[ $_chk = "heap" ]]; then
+            echo "Jmap -heap:"         		| tee -a $_log_file
+        	${JAVA_HOME}/bin/jmap -heap $_pid|tee -a $_log_file
+        	echo                 		| tee -a $_log_file
+        fi
+        if [[ $_chk = "all" ]] || [[ $_chk = "map" ]]; then
+        	echo "Jmap -histo:"   		| tee -a $_log_file
+        	${JAVA_HOME}/bin/jmap -histo $_pid|tee -a $_log_file
+        	echo                 		| tee -a $_log_file
+        fi
+        if [[ $_chk = "all" ]] || [[ $_chk = "stack" ]]; then
+        	echo "Jstack -F:"        	| tee -a $_log_file
+        	${JAVA_HOME}/bin/jstack -F $_pid| tee -a $_log_file
+        	echo                 		| tee -a $_log_file
+        	echo "Jstack -l:"     		| tee -a $_log_file
+        	${JAVA_HOME}/bin/jstack -l $_pid| tee -a $_log_file
+        	echo                 		| tee -a $_log_file
+        fi
+        date +%F_%T 				| tee -a $_log_file
+    else
+	echo "${_BASES_DIR}/${x} Pid:$_pid(N/A)"| tee -a $_log_file
     fi
-    if [[ $_chk = "all" ]] || [[ $_chk = "map" ]]; then
-    	echo "Jmap -histo:"   		| tee -a $_log_file
-    	${JAVA_HOME}/bin/jmap -histo $_pid|tee -a $_log_file
-    	echo                 		| tee -a $_log_file
-    fi
-    if [[ $_chk = "all" ]] || [[ $_chk = "stack" ]]; then
-    	echo "Jstack -F:"        	| tee -a $_log_file
-    	${JAVA_HOME}/bin/jstack -F $_pid| tee -a $_log_file
-    	echo                 		| tee -a $_log_file
-    	echo "Jstack -l:"     		| tee -a $_log_file
-    	${JAVA_HOME}/bin/jstack -l $_pid| tee -a $_log_file
-    	echo                 		| tee -a $_log_file
-    fi
-    date +%F_%T 			| tee -a $_log_file
-    echo				| tee -a $_log_file
-    echo				| tee -a $_log_file
+    echo					| tee -a $_log_file
+    echo					| tee -a $_log_file
 done
 
