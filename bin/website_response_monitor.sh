@@ -38,13 +38,13 @@ for x in $_targets ;do
             echo "`date +%T.%N`"                | tee -a $_log_file
             ;;
         tcp)
-            nc -zv  $_target $_port 2>&1 | tee -a $_log_file
+            nc -zv  $_target $_port 2>&1        | tee -a $_log_file
             ;;
         udp)
-            nc -uzv $_target $_port 2>&1 | tee -a $_log_file
+            nc -uzv $_target $_port 2>&1        | tee -a $_log_file
             ;;
         *)
-            echo "Scheme $_scheme not valid."   |grep real | tee -a $_log_file
+            echo "Scheme $_scheme not valid."   | tee -a $_log_file
             ;;
     esac
     echo    | tee -a $_log_file
