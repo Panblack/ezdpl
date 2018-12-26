@@ -132,10 +132,10 @@ if [[ -n $_gitRepo ]]; then
     
     # 复制war包到运行目录 
     echo "Copy war to deploy path."
-    if ! /bin/cp ${_OPER_PATH}/build/${_warName}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war ; then
+    if ! /bin/cp ${_OPER_PATH}/build/${_warName}/${_codeDir}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war ; then
        	echo "war package does not exist." ; exit 1
     fi
-    md5sum  ${_OPER_PATH}/build/${_warName}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war
+    md5sum  ${_OPER_PATH}/build/${_warName}/${_codeDir}/target/*.war ${_warSharedRunningDir}/${_warDeployName}.war
     echo
 
 else
