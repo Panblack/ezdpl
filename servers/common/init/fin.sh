@@ -77,7 +77,7 @@ esac
 
 yum -y install deltarpm
 yum update -y
-yum -y install yum-utils bc telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf nethogs tcpdump bind-utils lsof sysstat dstat iftop geoip htop iotop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter unhide supervisor tcptraceroute python-pip && echo "Packages installed..."
+yum -y install yum-utils bc telnet dos2unix man nmap vim wget zip unzip ntpdate tree gcc iptraf nethogs tcpdump bind-utils lsof sysstat dstat iftop geoip htop iotop openssl openssl-devel openssh bash mailx lynx git net-tools psmisc rkhunter unhide supervisor tcptraceroute python-pip jq && echo "Packages installed..."
 
 if [[ -n $_VIMRC ]]; then
     echo "$_VIMRC" > ~/.vimrc
