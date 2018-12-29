@@ -10,13 +10,14 @@ fi
 source ${EZDPL_HOME}/conf/ezdpl.include
 
 if [[ $# -eq 0 ]];then
-    echo "Query all servers' resources and listening ports in hosts.lst, ports defined in ezdpl.include      
+    echo "Query resources/listening ports/yumInfo in servers tagged '_CHKRES_' in hosts.lst. 
+MEM_WATER_MARK defined in ezdpl.include.
 Usage:    
 chkres r					Query resources only
 chkres p					Query ports only
 chkres y					Query yum updateinfo security only
 chkres						Show this help
-chkres r|p|y 'IP HostName UserName SSHPort'	Qurey one server"
+chkres r|p|y 'IP Host User SSHPort LsnPorts'	Qurey one server"
     exit 0
 fi
 _oper=$1
@@ -30,7 +31,7 @@ if [[ -n $_target ]]; then
     # _target='x.x.x.x web-02 root 22'
     _servers=$_target
 else
-    _servers=`egrep -v '(^ *#|^$)' ${EZDPL_HOME}/conf/hosts.lst|grep $'\t'root$'\t'`
+    _servers=`egrep -v '(^ *#|^$)' ${EZDPL_HOME}/conf/hosts.lst|grep '_CHKRES_' `
 fi
 
 IFS=$'\n'
