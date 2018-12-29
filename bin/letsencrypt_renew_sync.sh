@@ -34,7 +34,7 @@ funRenew() {
     sed -i '/LOG_FILE=/d' $HOME/.acme.sh/account.conf
     _cer_date=`stat --format=%y $HOME/.acme.sh/${_domain}/fullchain.cer |awk '{print $1}'`
     if [[ $_cer_date = $_today ]] ;then
-        chmod 600 $HOME/.acme.sh/${_domain}/fullchain.cer
+        chmod 600 $HOME/.acme.sh/${_domain}/*
     else
 	echo "Renew failed"
 	return 1 
@@ -53,9 +53,10 @@ funSyncCerts() {
 	    _port=`echo $x|awk '{print $4}'`
 	    echo "${_host} ${_user}@${_ip}:${_port}"
 	    ssh -p${_port} ${_user}@${_ip} "mkdir -p /root/.acme.sh"
-    	    scp -P${_port} -p $HOME/.acme.sh/${_domain_to_sync}/fullchain.cer   ${_user}@${_ip}:/root/.acme.sh/${_domain_to_sync}/
-    	    echo "Reloading nginx ..."
+    	    scp -P${_port} -r $HOME/.acme.sh/${_domain_to_sync}/ ${_user}@${_ip}:/root/.acme.sh/
+	    echo "[$_host $_user@$_ip:$_port] Test & reloading nginx ..."
     	    ssh -p${_port} ${_user}@${_ip} "nginx -t && systemctl reload nginx"
+	    echo "Done."
 	    echo 
 	done
     fi
