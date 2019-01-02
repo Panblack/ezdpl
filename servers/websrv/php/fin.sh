@@ -14,7 +14,7 @@ fi
 
 echo
 echo "Install/Update dependencies ..."
-yum install gcc autoconf openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel -y
+yum install gcc autoconf re2c bison bison-devel openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel -y
 yum update  libxml2 libxml2-devel openssl openssl-devel -y
 echo
 echo "Download php..."
@@ -34,8 +34,7 @@ tar zxf ${_PHP_VERSION}.tar.gz
 cd /opt/${_PHP_VERSION} 
 pwd
 echo "Configure ${_PHP_VERSION}..."
-./configure -q   \
-    --prefix=/usr \
+./configure    \
     --enable-fpm   \
     --enable-pcntl  \
     --enable-sockets \
@@ -44,14 +43,13 @@ echo "Configure ${_PHP_VERSION}..."
     --with-curl         \
     --with-openssl       \
     --with-mysqli         \
-    --with-fpm-systemd     \
     --with-fpm-user=${_PHP_USER} \
     --with-fpm-group=${_PHP_USER} \
     --with-config-file-path=/etc   \
 
 echo
 echo "Make & Install ${_PHP_VERSION}..."
-if make; then
+if make --quiet ; then
     make install
     echo
     echo "${_PHP_VERSION} installed successfully."
@@ -82,7 +80,7 @@ sed -i 's/create 640 nginx adm/create 640 '${_PHP_USER}' adm/g' /etc/logrotate.d
 chmod -R 770 $_PHP_ROO
 
 # Change nginx user
-sed -i '/user *nginx;/d' /etc/nginx/nginx.conf
+sed -i '/^user /d' /etc/nginx/nginx.conf
 sed -i '1i\user '${_PHP_USER}';' /etc/nginx/nginx.conf
 nginx -t && service nginx restart
 
