@@ -21,9 +21,15 @@ pip install ngxtop
 # Replace nginx confs
 _backup_dir="/etc/nginx/backup/`date +%F_%H%M%S`"
 mkdir -p $_backup_dir
-/bin/mv /etc/nginx/nginx.conf          $_backup_dir
-/bin/mv /etc/nginx/conf.d/default.conf $_backup_dir
-/bin/cp /tmp/nginx/*   		       /etc/nginx/
+/bin/mv /etc/nginx/nginx.conf $_backup_dir
+/bin/mv /etc/nginx/conf.d/*   $_backup_dir
+/bin/cp -r /tmp/nginx/*       /etc/nginx/
+
+mkdir -p /opt/html/example
+echo example >> /opt/html/example/index.html
+mkdir -p /opt/html/whichami
+hostname -s >> /opt/html/whichami/index.html
+
 chkconfig nginx on
 nginx -t && service nginx start
 

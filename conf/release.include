@@ -111,6 +111,6 @@ rule family='ipv4' destination address='224.2.2.3' port port='54328' protocol='u
 
 
 _PHP_VERSION="php-7.3.0"
-_PHP_ROOT="/data/website"
+_PHP_ROOT="/opt/html"
 _PHP_USER="phpuser"
 

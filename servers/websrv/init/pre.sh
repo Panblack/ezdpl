@@ -14,12 +14,20 @@ if ! umount -af -t nfs4 ;then
   exit 1
 fi
 
-_backup_dir="/opt/backup_`date +%Y%m%d_%H%M%S`"
-cd /opt/ && mv -f jdk* logs* libs* app* webs* html* wars* $_backup_dir
-cd /data && mv -f webShare* $_backup_dir
+_backup_dir="/opt/backup/`date +%Y%m%d_%H%M%S`"
+mkdir -p $_backup_dir
+cd /opt  && /bin/mv -f html* app* webs* javaapp* logs* wars* jdk* $_backup_dir
+cd /data && /bin/mv -f webShare* $_backup_dir
 
-mkdir -p $_NFS_DIRS_INIT
+#_LOCAL_DIRS_FOR_NFS="/data/logs/nginx /data/webShare/read /data/webShare/write"
+#_NFS_DIRS_INIT="/data/webShare/read/html /data/webShare/read/webapps /data/webShare/read/download /data/webShare/read/config "
+#
+#_LOCAL_DIRS_FOR_APPS="/opt/html /opt/app /opt/webs /opt/javaapp /opt/logs"
+#_LOCAL_DIRS_FOR_DEPLOY="/opt/wars/build /opt/wars/todeploy /opt/wars/cook /opt/wars/archive /opt/wars/_config"
+#
 mkdir -p $_LOCAL_DIRS_FOR_NFS
+mkdir -p $_LOCAL_DIRS_FOR_APPS
+mkdir -p $_LOCAL_DIRS_FOR_DEPLOY
 
 killall -9 yum
 yum clean all
@@ -48,12 +56,20 @@ case $_RELEASE in
 	systemctl disable rpcgssd.service
 	systemctl disable rpcidmapd.service
 	systemctl disable rpcsvcgssd.service
-	systemctl stop  nfs.service
-	systemctl stop  nfslock.service
-	systemctl stop  rpcbind.service
-	systemctl stop  rpcgssd.service
-	systemctl stop  rpcidmapd.service
-	systemctl stop  rpcsvcgssd.service
+        systemctl disable rpc-gssd.service
+        systemctl disable rpc-rquotad.service     
+        systemctl disable rpc-statd-notify.service
+        systemctl disable rpc-statd.service       
+	systemctl stop nfs.service
+	systemctl stop nfslock.service
+	systemctl stop rpcbind.service
+	systemctl stop rpcgssd.service
+	systemctl stop rpcidmapd.service
+	systemctl stop rpcsvcgssd.service
+        systemctl stop rpc-gssd.service          
+        systemctl stop rpc-rquotad.service
+        systemctl stop rpc-statd-notify.service
+        systemctl stop rpc-statd.service
 	;;
     UBUNTU)
 	;;
