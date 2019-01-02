@@ -3,9 +3,8 @@ source /usr/local/bin/release.include
 echo $_RELEASE
 
 # Get dirs ready
-mkdir -p /opt/logs
-mkdir -p /opt/app
-mkdir -p /opt/webs
+mkdir -p /opt/logs /opt/app /opt/webs
+mkdir -p /opt/wars/cook /opt/wars/build /opt/wars/todeploy /opt/wars/_config /opt/wars/archive /opt/wars/backup
 
 # jdk and symbolic link
 cd /opt
@@ -76,24 +75,8 @@ done
 _tomcat=`find -type d -name "apache-tomcat-*"|sort -V|tail -1`
 ln -sf $_tomcat ./tomcat
 
-# Get nginx ready
-case $_RELEASE in
-    CENTOS6)
-        sed -i 's/X/6/g' /etc/yum.repos.d/nginx.repo
-        ;;
-    CENTOS7)
-        sed -i 's/X/7/g' /etc/yum.repos.d/nginx.repo
-        ;;
-esac
-yum clean all
-yum install nginx python-pip -y
-chkconfig nginx on
-service start nginx
-pip install --upgrade pip
-pip install ngxtop
-
 # Install rpms
 cd /opt/packages
 yum localinstall *.rpm
 
-echo "`date +%F_%T` javasrv/init " >> /tmp/ezdpl.log
+echo "`date +%F_%T` websrv/javasrv " >> /tmp/ezdpl.log

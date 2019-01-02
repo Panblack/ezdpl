@@ -1,6 +1,0 @@
-#!/bin/bash
-_psinfo=`ps aux|egrep '(/nginx|/node|/httpd)' |grep -v grep`
-_netstatinfo=`netstat -lntp |egrep '(/nginx|/node|/httpd)'`
-echo "Nginx/Node Process & Listening Ports..."
-echo "$_psinfo"
-echo "$_netstatinfo"
