@@ -10,8 +10,15 @@ if ! umount -af -t nfs4 ;then
   exit 1
 fi
 
-cd /opt/ && rm jdk* logs* libs*  -rf 
-cd /opt/ && rm app/* webs/* -rf 
+_backup_dir="/opt/backup/`date +%Y%m%d_%H%M%S`"
+mkdir -p $_backup_dir
+cd /opt  && /bin/mv -f app* webs* javaapp* logs* wars* jdk* libs* $_backup_dir
+
+#_LOCAL_DIRS_FOR_APPS="/opt/html /opt/app /opt/webs /opt/javaapp /opt/logs /opt/libs"
+#_LOCAL_DIRS_FOR_DEPLOY="/opt/wars/build /opt/wars/todeploy /opt/wars/cook /opt/wars/archive /opt/wars/_config"
+#
+mkdir -p $_LOCAL_DIRS_FOR_APPS
+mkdir -p $_LOCAL_DIRS_FOR_DEPLOY
 
 killall -9 java
 killall -9 yum

@@ -2,6 +2,10 @@
 source /usr/local/bin/release.include
 echo $_RELEASE
 
+if [[ $_USE_NFS = 0 ]]; then
+    exit 
+fi
+
 # release nfs4 mounts
 for x in `mount -t nfs4|awk '{print $3}'`; do 
     fuser -km $x
@@ -16,18 +20,17 @@ fi
 
 _backup_dir="/opt/backup/`date +%Y%m%d_%H%M%S`"
 mkdir -p $_backup_dir
-cd /opt  && /bin/mv -f html* app* webs* javaapp* logs* wars* jdk* $_backup_dir
+cd /opt  && /bin/mv -f html* $_backup_dir
 cd /data && /bin/mv -f webShare* $_backup_dir
 
 #_LOCAL_DIRS_FOR_NFS="/data/logs/nginx /data/webShare/read /data/webShare/write"
 #_NFS_DIRS_INIT="/data/webShare/read/html /data/webShare/read/webapps /data/webShare/read/download /data/webShare/read/config "
 #
-#_LOCAL_DIRS_FOR_APPS="/opt/html /opt/app /opt/webs /opt/javaapp /opt/logs"
-#_LOCAL_DIRS_FOR_DEPLOY="/opt/wars/build /opt/wars/todeploy /opt/wars/cook /opt/wars/archive /opt/wars/_config"
-#
 mkdir -p $_LOCAL_DIRS_FOR_NFS
-mkdir -p $_LOCAL_DIRS_FOR_APPS
-mkdir -p $_LOCAL_DIRS_FOR_DEPLOY
+
+/bin/cp /etc/fstab $_backup_dir
+echo "$_WEBSRV_FSTAB" >> /etc/fstab
+mount -a -t nfs4
 
 killall -9 yum
 yum clean all

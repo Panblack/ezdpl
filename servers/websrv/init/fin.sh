@@ -12,6 +12,8 @@ case $_RELEASE in
         ;;
 esac
 
+mkdir -p /opt/html
+
 # Install nginx & ngxtop 
 yum clean all
 yum install nginx python-pip -y
@@ -29,6 +31,10 @@ mkdir -p /opt/html/example
 echo example >> /opt/html/example/index.html
 mkdir -p /opt/html/whichami
 hostname -s >> /opt/html/whichami/index.html
+
+# /etc/hosts 
+sed -i '/www.example.com/d'             /etc/hosts
+echo '127.0.0.1     www.example.com' >> /etc/hosts 
 
 chkconfig nginx on
 nginx -t && service nginx start

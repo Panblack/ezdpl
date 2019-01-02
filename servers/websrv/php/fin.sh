@@ -72,10 +72,6 @@ echo "<?php phpinfo(); ?>" >> ${_PHP_ROOT}/example/index.info.php
 chown -R ${_PHP_USER}:${_PHP_USER} $_PHP_ROOT
 chmod -R 770 $_PHP_ROOT
 
-# /etc/hosts 
-sed -i '/www.example.com/d'             /etc/hosts
-echo '127.0.0.1     www.example.com' >> /etc/hosts 
-
 # Change nginx user
 sed -i '/user *nginx;/d' /etc/nginx/nginx.conf
 sed -i '1i\user '${_PHP_USER}';' /etc/nginx/nginx.conf
