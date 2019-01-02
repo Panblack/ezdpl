@@ -1,0 +1,54 @@
+#!/bin/bash
+_oper=$1
+_ver=$2
+_usage="upwpwm li		List all versions.
+upwpwm wp		Update wordpress to the latest version.
+upwpwm wp <dir_name>	Update wordpress to version <dir_name>.
+upwpwm wm 		Update workerman-chat to the latest version & restart.
+upwpwm wm <dir_name>	Update workerman-chat to version <dir_name> & restart.
+Note: 
+new version of wordpress      dir should be like 'wordpress_20181218_1045'
+new version of workerman-chat dir should be like 'workerman-chat_20181218_1045'
+"
+source /usr/local/bin/release.include
+cd $_PHP_ROOT
+
+case $_oper in
+    wp)
+	if [[ -n $_ver ]] && [[ -d $_ver ]]; then
+	    _new_version="$_ver"
+	else
+	    _new_version=`ls -1dtr wordpress_* |tail -1`
+	    echo "$_ver does not exist. Use the latest $_new_version"
+	fi
+	sudo rm ./html -f
+	sudo rm ./html/snapshot_img -f 
+	sudo ln -sf $_new_version html
+	sudo ln -sf /data/snapshot_img ./html/snapshot_img 
+	sudo chown -R ${_PHP_USER}:${_PHP_USER} ./html/
+	sudo chmod -R 770 ./html/
+	;;
+    wm)
+	if [[ -n $_ver ]] && [[ -d $_ver ]]; then
+	    _new_version="$_ver"
+	else
+	    _new_version=`ls -1dtr workerman-chat_* |tail -1`
+	    echo "$_ver does not exist. Use the latest $_new_version"
+	fi
+	rm ./workerman-chat -f
+	ln -sf $_new_version workerman-chat
+	sudo chown -R ${_PHP_USER}:${_PHP_USER} workerman-chat
+	sudo chmod -R 770 workerman-chat
+	sudo /usr/local/bin/workerman.chat.sh d
+	sudo /usr/local/bin/workerman.chat.sh u
+	sleep 2
+	sudo /usr/local/bin/workerman.chat.sh s
+	;;
+    li)
+	ls -1dtr wordpress_*      ; echo
+       	ls -1dtr workerman-chat_* ; echo
+	;;
+    *)
+	echo "$_usage"
+	;;
+esac

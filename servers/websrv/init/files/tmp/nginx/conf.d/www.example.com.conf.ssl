@@ -1,0 +1,46 @@
+server {
+    listen              80;
+    listen              [::]:80;
+    server_name         www.example.com;
+    location / {
+        rewrite ^/(.*) https://www.example.com/$1 permanent;
+    }
+}
+
+server {
+    listen 	         443      ssl;
+    listen	         [::]:443 ssl;
+    server_name          www.example.com;
+    ssl_certificate      /root/.acme.sh/www.example.com/fullchain.cer;
+    ssl_certificate_key  /root/.acme.sh/www.example.com/www.example.com.key;
+    include              /etc/nginx/default.d/*.conf;
+    access_log           /var/log/nginx/www.example.com.ssl.log  slb;
+
+    location / {
+        root      /data/website/html;
+        expires -1;
+    }
+    location /whichami {
+	alias /data/website/whichami;
+        expires -1;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #error_page   500 502 503 504  /50x.html;
+    #location = /50x.html {
+    #    root   /data/website/html;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    location ~ \.php$ {
+        root           /data/website/html;
+        fastcgi_pass   phpfpm:9000;
+        fastcgi_index  index.php;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+
+}
+

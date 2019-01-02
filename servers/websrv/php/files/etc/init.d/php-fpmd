@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# php-fpm.service     Bring up/down php-fpm
+#
+# chkconfig: 2345 10 90
+# description: Activates/Deactivates php-fpm process \
+#              start at boot time.
+#
+. /etc/init.d/functions
+funStop() {
+    _pid=`ps aux|egrep --color=always ' php-fpm:' |grep 'master process'|awk '{print $2}'`
+    if ! kill $_pid ; then
+	echo "php-fpm process not properly stopped. Force kill..."
+	kill -9 $_pid
+    fi
+}
+
+funStatus() {
+    if ! ps aux|egrep --color=always ' php-fpm:' |grep -v grep; then
+	echo "php-fpm process not found."
+    fi
+    echo "TCP listening ports:"
+    if which netstat &>/dev/null; then
+	netstat -lntp |egrep --color=always '/php-fpm' 
+    else
+	ss -lntp |egrep --color=always '"php-fpm"'
+    fi
+}
+
+case "$1" in
+start)
+    /usr/local/bin/php-fpm
+    funStatus
+    ;;
+stop)
+    funStop
+    funStatus
+    ;;
+status)
+    funStatus
+    ;;
+restart)
+    funStop
+    /usr/local/bin/php-fpm
+    funStatus
+    ;;
+*)
+    echo $"Usage: $0 {start|stop|status|restart}"
+    exit 2
+    ;;
+esac

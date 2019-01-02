@@ -2,7 +2,11 @@
 source /usr/local/bin/release.include
 echo $_RELEASE
 
-#  umount nfs
+# release nfs4 mounts
+for x in `mount -t nfs4|awk '{print $3}'`; do 
+    fuser -km $x
+done
+
 if ! umount -af -t nfs4 ;then
   echo 
   echo "Failed to 'umount -af -t nfs4'. EXIT!"
@@ -10,13 +14,17 @@ if ! umount -af -t nfs4 ;then
   exit 1
 fi
 
-cd /opt/ && rm jdk* logs* libs*  -rf 
-cd /opt/ && rm app/* webs/* -rf 
+_backup_dir="/opt/backup_`date +%Y%m%d_%H%M%S`"
+cd /opt/ && mv -f jdk* logs* libs* app* webs* html* wars* $_backup_dir
+cd /data && mv -f webShare* $_backup_dir
 
-killall -9 java
+mkdir -p $_NFS_DIRS_INIT
+mkdir -p $_LOCAL_DIRS_FOR_NFS
+
 killall -9 yum
 yum clean all
-yum -y install nfs-utils gcc bash openssh openssl openssl-devel 
+yum -y install nfs-utils
+yum -y update  nfs-utils
 
 case $_RELEASE in
     CENTOS6)
