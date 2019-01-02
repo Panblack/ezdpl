@@ -70,7 +70,10 @@ sed -i 's/include=NONE/include=\/usr\/local/g'     /usr/local/etc/php-fpm.conf
 
 echo "<?php phpinfo(); ?>" >> ${_PHP_ROOT}/example/index.info.php
 chown -R ${_PHP_USER}:${_PHP_USER} $_PHP_ROOT
-chmod -R 770 $_PHP_ROOT
+chown -R ${_PHP_USER}:${_PHP_USER} /var/log/nginx
+chown -R ${_PHP_USER}:${_PHP_USER} /var/cache/nginx
+sed -i 's/create 640 nginx adm/create 640 '${_PHP_USER}' adm/g' /etc/logrotate.d/nginx
+chmod -R 770 $_PHP_ROO
 
 # Change nginx user
 sed -i '/user *nginx;/d' /etc/nginx/nginx.conf
