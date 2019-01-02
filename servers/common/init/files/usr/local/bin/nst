@@ -24,8 +24,15 @@ case $_type in
 	        iptables -nvL
 		;;
 	    CENTOS7)
-	        firewall-cmd --list-ports
-	        firewall-cmd --list-rich-rules
+	        if systemctl status iptables.service &>/dev/null; then
+	            iptables -nvL 
+	        elif systemctl status firewalld.service &>/dev/null; then
+	            firewall-cmd --list-ports
+	            firewall-cmd --list-rich-rules
+	        else
+	            echo "Neither iptables nor firewalld is running";exit 1
+	        fi
+		
 		;;
 	    UBUNTU)
 		sudo ufw status | grep -v "(v6)"
