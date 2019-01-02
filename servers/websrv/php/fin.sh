@@ -15,7 +15,7 @@ fi
 echo
 echo "Install/Update dependencies ..."
 yum install gcc autoconf openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel -y
-yum update  libxml2 libxml2-devel -y
+yum update  libxml2 libxml2-devel openssl openssl-devel -y
 echo
 echo "Download php..."
 cd /opt/
@@ -25,7 +25,7 @@ mkdir -p $_backup_dir
 if [[ -d ${_PHP_VERSION} ]]; then
     /bin/mv ${_PHP_VERSION} $_backup_dir
     /bin/cp -p /etc/nginx/nginx.conf $_backup_dir
-    /bin/cp -p /usr/local/php/php.ini $_backup_dir
+    /bin/cp -p /usr/local/lib/php.ini $_backup_dir
     /bin/cp -p /usr/local/etc/php-fpm.conf $_backup_dir
     /bin/cp -p /usr/local/etc/php-fpm.d/www.conf $_backup_dir
 fi
@@ -34,15 +34,21 @@ tar zxf ${_PHP_VERSION}.tar.gz
 cd /opt/${_PHP_VERSION} 
 pwd
 echo "Configure ${_PHP_VERSION}..."
-./configure \
-    --enable-fpm \
-    --enable-pcntl \
+./configure -q   \
+    --prefix=/usr \
+    --enable-fpm   \
+    --enable-pcntl  \
     --enable-sockets \
-    --with-mysqli \
+    --enable-mbstring \
+    --with-zlib        \
+    --with-curl         \
+    --with-openssl       \
+    --with-mysqli         \
+    --with-fpm-systemd     \
     --with-fpm-user=${_PHP_USER} \
     --with-fpm-group=${_PHP_USER} \
-    --with-zlib \
-    --with-curl 
+    --with-config-file-path=/etc   \
+
 echo
 echo "Make & Install ${_PHP_VERSION}..."
 if make; then
@@ -58,10 +64,10 @@ fi
 echo
 echo "Prepare ${_PHP_VERSION} config files..."
 /bin/cp /opt/${_PHP_VERSION}/sapi/fpm/php-fpm      /usr/local/bin
-/bin/cp /opt/${_PHP_VERSION}/php.ini-production    /usr/local/php/php.ini
+/bin/cp /opt/${_PHP_VERSION}/php.ini-production    /usr/local/lib/php.ini
 /bin/cp /usr/local/etc/php-fpm.conf.default        /usr/local/etc/php-fpm.conf
 /bin/cp /usr/local/etc/php-fpm.d/www.conf.default  /usr/local/etc/php-fpm.d/www.conf
-sed -i 's/zlib.output_compression = Off/zlib.output_compression = On/g' /usr/local/php/php.ini
+sed -i 's/zlib.output_compression = Off/zlib.output_compression = On/g' /usr/local/lib/php.ini
 sed -i 's/user = nobody/user = '${_PHP_USER}'/g'   /usr/local/etc/php-fpm.d/www.conf
 sed -i 's/group = nobody/group = '${_PHP_USER}'/g' /usr/local/etc/php-fpm.d/www.conf
 sed -i 's/user = nginx/user = '${_PHP_USER}'/g'    /usr/local/etc/php-fpm.d/www.conf
@@ -92,7 +98,7 @@ echo "Check if workerman compatible"
 php /tmp/workerman.check.php
 echo 
 echo "php info"
-curl -s http://www.example.com/index.info.php | grep enabled
+curl -s http://www.example.com/index.info.php
 echo "Finished."
 
 ### php ext ###
@@ -108,10 +114,12 @@ echo "Finished."
 # cp config0.m4 config.m4
 # phpize && ./configure --with-php-config=/usr/local/bin/php-config
 # make && make install
+### php.ini ###
+# ls -l /usr/local/lib/php/extensions/no-debug-non-zts-*/
+# echo "extension=mbstring.so" >> /usr/local/lib/php.ini
+# echo "extension=openssl.so" >> /usr/local/lib/php.ini
 #
 ### restart php ###
-# echo 'extension=mbstring.so' >> /usr/local/php/php.ini
-# echo 'extension=openssl.so'  >> /usr/local/php/php.ini
 # service php-fpmd restart
 #
 ###############
