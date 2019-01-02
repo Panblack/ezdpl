@@ -14,7 +14,7 @@ fi
 
 echo
 echo "Install/Update dependencies ..."
-yum install gcc openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel -y
+yum install gcc autoconf openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel -y
 yum update  libxml2 libxml2-devel -y
 echo
 echo "Download php..."
@@ -94,4 +94,25 @@ echo
 echo "php info"
 curl -s http://www.example.com/index.info.php | grep enabled
 echo "Finished."
+
+### php ext ###
+# yum install -y autoconf
+#
+### mbstring ###
+# cd /opt/php-7.3.0/ext/mbstring
+# phpize && ./configure --with-php-config=/usr/local/bin/php-config
+# make && make install
+# 
+### openssl ### 
+# cd /opt/php-7.3.0/ext/openssl
+# cp config0.m4 config.m4
+# phpize && ./configure --with-php-config=/usr/local/bin/php-config
+# make && make install
+#
+### restart php ###
+# echo 'extension=mbstring.so' >> /usr/local/php/php.ini
+# echo 'extension=openssl.so'  >> /usr/local/php/php.ini
+# service php-fpmd restart
+#
+###############
 
