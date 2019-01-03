@@ -29,7 +29,7 @@ _CRON_FOR_ROOT="*/10 * * * * /usr/local/bin/ban_ssh.sh
 #enabled=1
 #gpgcheck=0"
 
-_SELINUX_OFF=1
+_SELINUX_OFF=0
 
 _TIMEZONE_INFO="Asia/Shanghai"
 

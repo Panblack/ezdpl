@@ -45,7 +45,6 @@ echo "Configure ${_PHP_VERSION}..."
     --with-mysqli         \
     --with-fpm-user=${_PHP_USER} \
     --with-fpm-group=${_PHP_USER} \
-    --with-config-file-path=/etc   \
 
 echo
 echo "Make & Install ${_PHP_VERSION}..."
@@ -76,8 +75,10 @@ echo "<?php phpinfo(); ?>" >> ${_PHP_ROOT}/example/index.info.php
 chown -R ${_PHP_USER}:${_PHP_USER} $_PHP_ROOT
 chown -R ${_PHP_USER}:${_PHP_USER} /var/log/nginx
 chown -R ${_PHP_USER}:${_PHP_USER} /var/cache/nginx
+chown -R ${_PHP_USER}:${_PHP_USER} /usr/share/nginx/html
 sed -i 's/create 640 nginx adm/create 640 '${_PHP_USER}' adm/g' /etc/logrotate.d/nginx
-chmod -R 770 $_PHP_ROO
+chmod -R 770 $_PHP_ROOT
+chmod -R 770 /usr/share/nginx/html
 
 # Change nginx user
 sed -i '/^user /d' /etc/nginx/nginx.conf
