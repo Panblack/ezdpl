@@ -1,6 +1,11 @@
 #!/bin/bash
 source /usr/local/bin/release.include
 echo $_RELEASE
+if [[ -z $_PHP_USER ]]; then
+    # Only applies to lnmp. 
+    # For apache _PHP_USER=apache or _PHP_USER=www-data
+    _PHP_USER=nginx
+fi
 
 # Prepare php root path & user
 if [[ -n $_PHP_ROOT ]] && [[ -n $_PHP_USER ]] && [[ -n $_PHP_VERSION ]]; then

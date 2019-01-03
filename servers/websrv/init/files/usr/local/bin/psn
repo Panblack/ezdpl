@@ -1,5 +1,5 @@
 #!/bin/bash
-_psinfo=`ps aux|egrep --color=always '( nginx| node| httpd| php-fpm)' |grep -v grep`
+_psinfo=`ps aux|egrep --color=always '( nginx|/nginx| node|/node| httpd|/httpd| php-fpm|/php-fpm)' |grep -v grep`
 _netstatinfo=`netstat -lntp |egrep --color=always '(/nginx|/node|/httpd|/php-fpm)'`
 echo "Nginx/Node/Httpd/PHP Process & Listening Ports..."
 echo "$_psinfo"

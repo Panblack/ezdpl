@@ -57,10 +57,18 @@ for tm in apache-tomcat-*/ ; do
     
     # context
     sed -i '/<Context>/a\    <Resources allowLinking="true" cachingAllowed="true" cacheMaxSize="102400" \/>' ./conf/context.xml
+
     # accesslog
+    # pattern="%h %l %u %t &quot;%r&quot; %s %b %D %S %{X-Forwarded-For}i %{Referer}i" />
+    # %h - Remote host name, %l - Remote logical username, %u - Remote user that was authenticated, %t - Date and time
+    # %r - First line of the request (method and request URI), %s - HTTP status code, %b - Bytes sent 
+    # %D - Time taken to process the request, in millis 
+    # %S - User session ID
     sed -i 's/%s %b/%s %b %D %S %{X-Forwarded-For}i %{Referer}i/g' ./conf/server.xml
+
     # http protocol 
     sed -i 's/protocol="HTTP\/1.1"/protocol=\"org.apache.coyote.http11.Http11Nio2Protocol\"/g' ./conf/server.xml
+
     # tomcat optimization
     sed -i '/maxThreads=.* minSpareThreads=.* acceptCount=.* enableLookups=/d' ./conf/server.xml
     sed -i '/Connector port=\".*\" protocol=\"org.apache.coyote.http11.Http11Nio2Protocol\"/a\               maxThreads=\"640\" minSpareThreads=\"128\" acceptCount=\"768\" enableLookups=\"false\" ' ./conf/server.xml
