@@ -19,7 +19,7 @@ fi
 
 echo
 echo "Install/Update dependencies ..."
-yum install gcc autoconf re2c bison bison-devel openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel -y
+yum install gcc autoconf re2c bison bison-devel libzip libzip-devel openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel -y
 yum update  libxml2 libxml2-devel openssl openssl-devel -y
 echo
 echo "Download php..."
@@ -40,7 +40,8 @@ cd /opt/${_PHP_VERSION}
 pwd
 echo "Configure ${_PHP_VERSION}..."
 ./configure    \
-    --enable-fpm   \
+    --enable-fpm  \
+    --enable-zip   \
     --enable-pcntl  \
     --enable-sockets \
     --enable-mbstring \
@@ -118,6 +119,14 @@ echo "Finished."
 # cp config0.m4 config.m4
 # phpize && ./configure --with-php-config=/usr/local/bin/php-config
 # make && make install
+#
+### zipArchive ###
+# libzip >=0.11 for WP Duplicator plug-in
+# libzip libzip-devel 0.11: https://koji.fedoraproject.org/koji/buildinfo?buildID=622762
+# cd /opt/php-7.3.0/ext/mbstring
+# phpize && ./configure --with-php-config=/usr/local/bin/php-config
+# make && make install
+# 
 ### php.ini ###
 # ls -l /usr/local/lib/php/extensions/no-debug-non-zts-*/
 # echo "extension=mbstring.so" >> /usr/local/lib/php.ini
