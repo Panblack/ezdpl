@@ -16,9 +16,7 @@ case $_oper in
     	echo "
 Usage: 
 dataquery stat			table stat and critical table data.
-dataquery person  Name/Mobile	Query user's invest/loan/repayment info
-dataquery duedate Name/Mobile	Query user's repayment duedate
-dataquery deposit Name/Mobile	Query user's repayment duedate"
+"
     	;;
 
 esac
