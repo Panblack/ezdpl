@@ -5,6 +5,17 @@ source /usr/local/bin/release.include
 echo $_RELEASE
 mkdir -p $_MYSQL_BACKUP_PATH
 mkdir -p $_MYSQL_DATA_PATH  
+if [[ $_MYSQL_USE_NFS = 1 ]]; then
+    /bin/cp -p /etc/fstab /etc/fstab.bak
+    sed '/nfs4/d' /etc/fstab
+    echo "$_MYSQL_FSTAB" >> /etc/fstab
+    if ! umount -af -t nfs4 ;then
+  	echo 
+  	echo "Failed to 'umount -af -t nfs4'. EXIT!"
+    else
+       mount  -a -t nfs4
+   fi
+fi
 
 case $_RELEASE in
     CENTOS6|CENTOS7)
