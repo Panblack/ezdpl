@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -x
 # get EZDPL_HOME
 if [[ -z ${EZDPL_HOME} ]]; then
     _dir=$(dirname `readlink -f $0`)
@@ -25,10 +26,10 @@ _target=$2
 if [[ -z $_target ]]; then
    _target=""
 fi 
-set -u 
+#set -u 
 
 if [[ -n $_target ]]; then
-    # _target='x.x.x.x web-02 root 22'
+    # _target='x.x.x.x web-02 root 22 80:443:3306'
     _servers=$_target
 else
     _servers=`egrep -v '(^ *#|^$)' ${EZDPL_HOME}/conf/hosts.lst|grep '_CHKRES_' `
@@ -39,12 +40,9 @@ IFS=$'\n'
 case $_oper in
     r)
     echo "Server Resource:"
-    echo -e "Host\tOS\tCPUs\tCPU_load\tMemTotal\tMemUsed%\tDiskUsage"
+    echo -e "Host\tSystem\tCPUs\tUpTime\tCPU_load_1_5_15min\tMem\tUsed%\tDiskUsage"
     for x in $_servers;do
-    	_centos6=""
-	_centos7=""
-	_os=""
-    	_ip=`echo $x|awk '{print $1}'`
+    	_ip=`  echo $x|awk '{print $1}'`
     	_host=`echo $x|awk '{print $2}'`
 	_user=`echo $x|awk '{print $3}'`
     	_port=`echo $x|awk '{print $4}'`
@@ -52,51 +50,53 @@ case $_oper in
 	    echo "Host/Port missing"
 	    continue
 	fi
-	_raw_df=`ssh $_user@$_ip -p $_port "df -hTPl |egrep '(5.%|6.%|7.%|8.%|9.%|100%)'" 2>/dev/null`
-  	_str=`ssh $_user@$_ip -p $_port "\
-	nproc ;\
-	echo '|' ;\
-	uptime|grep 'load average' ;\
-	echo '|' ;\
-	egrep '(CentOS|Red Hat)' /etc/redhat-release | grep 'release 6\.' ;\
-	echo '|' ;\
-	egrep '(CentOS|Red Hat)' /etc/redhat-release | grep 'release 7\.' ;\
-	echo '|' ;\
-      	free -tm |grep "Mem:" ;\
-	" 2>/dev/null`
+	_raw_df=`ssh $_user@$_ip -p $_port "df -hTPl |grep -v '/dev/loop'|egrep '(5.%|6.%|7.%|8.%|9.%|100%)'" 2>/dev/null`
+  	_str=`ssh $_user@$_ip -p $_port "nproc;echo '|';uptime;echo '|';egrep '^NAME=|^VERSION_ID=' /etc/os-release|tr -d '\n';echo '|';free -tm|grep Mem:" 2>/dev/null`
 	if [[ $? != 0 ]]; then
 	    echo "$_host($_ip) unreachable."
 	    continue
 	fi
+
 	#Extract data
 	_cpu_count=`echo $_str|awk -F'|' '{print $1}'`
 	_cpu_load=` echo $_str|awk -F'|' '{print $2}'|awk -F': ' '{print $2}'`
-	_centos6=`  echo $_str|awk -F'|' '{print $3}'|tr -d [:blank:]`
-	_centos7=`  echo $_str|awk -F'|' '{print $4}'|tr -d [:blank:]`
-	_mem_info=` echo $_str|awk -F'|' '{print $5}'`
+	_uptime=`   echo $_str|awk -F'|' '{print $2}'|awk        '{print $3}'|tr -d ','` 
+	_release=`  echo $_str|awk -F'|' '{print $3}'|awk -F \"  '{print $2}'`
+	_version=`  echo $_str|awk -F'|' '{print $3}'|awk -F \"  '{print $4}'`
+	_mem_info=` echo $_str|awk -F'|' '{print $4}'`
 	_load_1=`   echo $_cpu_load|awk -F', ' '{print $1}'`
 	_load_5=`   echo $_cpu_load|awk -F', ' '{print $2}'`
 	_load_15=`  echo $_cpu_load|awk -F', ' '{print $3}'`
-	_mem_total=`echo $_mem_info|awk        '{print $2}'`
-	_mem_used_raw=`echo $_mem_info | awk   '{print $3}'`
-
-	if [[ -n $_centos6 ]]; then
-	    _os=c6
-	    _mem_buffers=`echo $_mem_info |awk '{print $6}'`
-	    _mem_cached=` echo $_mem_info |awk '{print $7}'` 
-	    _mem_used=`echo "$_mem_used_raw - $_mem_buffers - $_mem_cached"|bc`
-	elif [[ -n $_centos7 ]]; then
-	    _os=c7
-	    _mem_used=$_mem_used_raw
+	_mem_total=`echo $_mem_info   |awk     '{print $2}'`
+	_mem_used_raw=`echo $_mem_info|awk     '{print $3}'`
+	if [[ $_release = "CentOS Linux" ]] || \
+	    [[ $_release = "Red Hat Enterprise Linux Server" ]] || \
+	    [[ $_release = "Fedora" ]] || \
+	    [[ $_release = "Amazon Linux" ]]; then
+	    if [[ $_version = '6' ]]; then
+	    	_os="C6"
+	    	_mem_buffers=`echo $_mem_info |awk '{print $6}'`
+	    	_mem_cached=` echo $_mem_info |awk '{print $7}'` 
+	    	_mem_used=`   echo "$_mem_used_raw - $_mem_buffers - $_mem_cached"|bc`
+	    else
+	    	_os="C7"
+	    	_mem_used=$_mem_used_raw
+	    fi
+	elif [[ $_release = "Ubuntu" ]]; then
+            _os="U${_version}"
+            _mem_used=$_mem_used_raw
+	else
+	    _os="${_release:0:7}${_version}"
+            _mem_used=$_mem_used_raw
 	fi
-	_mem_percent=`echo "scale=2;ibase=10;obase=10;$_mem_used/$_mem_total*100"|bc|sed 's/.00//g'`
+	_mem_percent=`echo "scale=2;ibase=10;obase=10;${_mem_used}/${_mem_total}*100"|bc|sed 's/.00//g'`
 
 	if [[ $_mem_percent -gt $_MEM_WATER_MARK ]]; then
 	    _mem_percent="\033[31m$_mem_percent\033[0m"
 	fi
 
-	_df=`echo "$_raw_df"|awk '{print $7" "$6"  "}'|tr -d ['\n']`
-	echo -e "${_host}\t${_os}\t${_cpu_count}\t${_cpu_load}\t${_mem_total}\t${_mem_percent}%\t${_df}"
+	_df=`echo "$_raw_df"|awk '{print $7,$6"  "}'|tr -d ['\n']`
+	echo -e "${_host:0:7}\t${_os}\t${_cpu_count}\t${_uptime}\t${_cpu_load}\t${_mem_total}\t${_mem_percent}%\t${_df}"
 
     done
     ;;
@@ -105,10 +105,7 @@ case $_oper in
     echo "Server Ports:"
     echo -e "Host(Ip address)\tListeningPorts"
     for x in $_servers;do
-        _centos6=""
-        _centos7=""
-        _os=""
-        _ip=`echo $x|awk '{print $1}'`
+        _ip=`  echo $x|awk '{print $1}'`
         _host=`echo $x|awk '{print $2}'`
         _user=`echo $x|awk '{print $3}'`
         _port=`echo $x|awk '{print $4}'`
@@ -136,10 +133,7 @@ case $_oper in
     y)
     echo "Server yum updateinfo"
     for x in $_servers;do 
-        _centos6=""
-        _centos7=""
-        _os=""
-        _ip=`echo $x|awk '{print $1}'`
+        _ip=`  echo $x|awk '{print $1}'`
         _host=`echo $x|awk '{print $2}'`
         _user=`echo $x|awk '{print $3}'`
         _port=`echo $x|awk '{print $4}'`

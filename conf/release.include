@@ -1,21 +1,41 @@
 # release.include v.20181211
 ## RELEASE CHECK
-if egrep '(CentOS|Red Hat)' /etc/system-release 2>/dev/null| grep 'release 6\.' &>/dev/null; then
-    _RELEASE="CENTOS6"
-fi
-if egrep '(CentOS|Red Hat)' /etc/system-release 2>/dev/null| grep 'release 7\.' &>/dev/null; then
-    _RELEASE="CENTOS7"
-fi
-if grep 'Amazon Linux AMI' /etc/system-release &>/dev/null; then
-    _RELEASE="CENTOS7"
-fi
-if cat /etc/*-release|grep -i ubuntu &>/dev/null; then
-    _RELEASE="UBUNTU"
-    if [[ -f /etc/lsb-release ]]; then
-	_UBUNTU_VERSION=`grep DISTRIB_RELEASE /etc/lsb-release|awk -F= '{print $2}'`
+_os_release=`egrep '^NAME=|^VERSION_ID=' /etc/os-release|tr -d '\n'`
+_release=`echo $_os_release|awk -F \"  '{print $2}'`
+_version=`echo $_os_release|awk -F \"  '{print $4}'|awk -F'.' '{print $1}'`
+
+if [[ $_release = "CentOS Linux" ]] || [[ $_release = "Red Hat Enterprise Linux Server" ]]; then
+    if [[ $_version = '6' ]]; then
+	_RELEASE="CENTOS6"
+    elif [[ $_version = '7' ]]; then
+        _RELEASE="CENTOS7"
+    else 
+	_RELEASE="CENTOS7"
     fi
+elif [[ $_release = "Amazon Linux" ]] || [[ $_release = "Fedora" ]]; then
+    _RELEASE="CENTOS7"
+elif [[ $_release = "Ubuntu" ]]; then
+    _RELEASE="UBUNTU"
+else
+    _RELEASE="${_release}${_version}"
 fi
 
+#if egrep '(CentOS|Red Hat)' /etc/system-release 2>/dev/null| grep 'release 6\.' &>/dev/null; then
+#    _RELEASE="CENTOS6"
+#fi
+#if egrep '(CentOS|Red Hat)' /etc/system-release 2>/dev/null| grep 'release 7\.' &>/dev/null; then
+#    _RELEASE="CENTOS7"
+#fi
+#if grep 'Amazon Linux AMI' /etc/system-release &>/dev/null; then
+#    _RELEASE="CENTOS7"
+#fi
+#if cat /etc/*-release|grep -i ubuntu &>/dev/null; then
+#    _RELEASE="UBUNTU"
+#    if [[ -f /etc/lsb-release ]]; then
+#	_UBUNTU_VERSION=`grep DISTRIB_RELEASE /etc/lsb-release|awk -F= '{print $2}'`
+#    fi
+#fi
+#
 
 ## common/init
 _CRON_FOR_ROOT="*/10 * * * * /usr/local/bin/ban_ssh.sh
@@ -70,6 +90,7 @@ _FIREWALL_PORTS="22 2222"
 _NFS_SERVER_IP="192.168.0.1"
 
 ## mysql/init
+_MYSQL_USE_NFS=0
 _MYSQL_DATABASES="mysql portal sales"
 _MYSQL_DUMP_OPTIONS="--ignore-table=db1.tb1 --ignore-table=db2.tb2"
 _MYSQL_MAX_DAYS=15
