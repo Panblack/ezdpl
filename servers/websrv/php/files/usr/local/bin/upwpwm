@@ -11,9 +11,6 @@ new version of wordpress      dir should be like 'wordpress_20181218_1045'
 new version of workerman-chat dir should be like 'workerman-chat_20181218_1045'
 "
 source /usr/local/bin/release.include
-if [[ `whoami` != $_PHP_USER ]]; then
-    echo "su - $_PHP_USER  first.";exit 1
-fi
 cd $_PHP_ROOT
 
 case $_oper in
@@ -24,12 +21,12 @@ case $_oper in
 	    _new_version=`ls -1dtr wordpress_* |tail -1`
 	    echo "$_ver does not exist. Use the latest $_new_version"
 	fi
-	rm ./html -f
-	rm ./html/snapshot_img -f 
-	ln -sf $_new_version html
-	ln -sf /data/snapshot_img ./html/snapshot_img 
-	chown -R kly:kly ./html/
-	chmod -R 770 ./html/
+	sudo rm ./html -f
+	sudo rm ./html/snapshot_img -f 
+	sudo ln -sf $_new_version html
+	sudo ln -sf /data/snapshot_img ./html/snapshot_img 
+	sudo chown -R ${_PHP_USER}:${_PHP_USER} ./html/
+	sudo chmod -R 770 ./html/
 	;;
     wm)
 	if [[ -n $_ver ]] && [[ -d $_ver ]]; then
@@ -40,12 +37,12 @@ case $_oper in
 	fi
 	rm ./workerman-chat -f
 	ln -sf $_new_version workerman-chat
-	chown -R kly:kly workerman-chat
-	chmod -R 770 workerman-chat
-	/usr/local/bin/workerman.chat.sh d
-	/usr/local/bin/workerman.chat.sh u
+	sudo chown -R ${_PHP_USER}:${_PHP_USER} workerman-chat
+	sudo chmod -R 770 workerman-chat
+	sudo /usr/local/bin/workerman.chat.sh d
+	sudo /usr/local/bin/workerman.chat.sh u
 	sleep 2
-	/usr/local/bin/workerman.chat.sh s
+	sudo /usr/local/bin/workerman.chat.sh s
 	;;
     li)
 	ls -1dtr wordpress_*      ; echo

@@ -19,8 +19,9 @@ fi
 
 echo
 echo "Install/Update dependencies ..."
-yum install gcc autoconf re2c bison bison-devel libzip libzip-devel openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel -y
-yum update  libxml2 libxml2-devel openssl openssl-devel -y
+yum install -y gcc autoconf re2c bison bison-devel libzip libzip-devel openssl openssl-devel libcurl libcurl-devel libxml2 libxml2-devel libevent libevent-devel   libXpm-devel zlib-devel libwebp-devel libjpeg-devel libpng-devel freetype-devel gd-devel
+yum update -y libxml2 libxml2-devel openssl openssl-devel
+
 echo
 echo "Download php..."
 cd /opt/
@@ -34,12 +35,14 @@ if [[ -d ${_PHP_VERSION} ]]; then
     /bin/cp -p /usr/local/etc/php-fpm.conf $_backup_dir
     /bin/cp -p /usr/local/etc/php-fpm.d/www.conf $_backup_dir
 fi
-wget -rq -O ${_PHP_VERSION}.tar.gz http://cn2.php.net/get/${_PHP_VERSION}.tar.gz/from/this/mirror
+curl -O ${_PHP_VERSION}.tar.gz http://cn2.php.net/get/${_PHP_VERSION}.tar.gz/from/this/mirror
 tar zxf ${_PHP_VERSION}.tar.gz
 cd /opt/${_PHP_VERSION} 
 pwd
 echo "Configure ${_PHP_VERSION}..."
-./configure    \
+echo        >> /tmp/php-configure.log
+date +%F_%T >> /tmp/php-configure.log
+./configure      \
     --enable-fpm  \
     --enable-zip   \
     --enable-pcntl  \
@@ -49,18 +52,27 @@ echo "Configure ${_PHP_VERSION}..."
     --with-curl         \
     --with-openssl       \
     --with-mysqli         \
-    --with-fpm-user=${_PHP_USER} \
-    --with-fpm-group=${_PHP_USER} \
+    --with-gd                \
+    --with-zlib-dir=/usr      \
+    --with-webp-dir=/usr/lib64 \
+    --with-png-dir=/usr/lib64   \
+    --with-jpeg-dir=/usr/lib64   \
+    --with-xpm-dir=/usr/lib64     \
+    --with-freetype-dir=/usr/lib64 \
+    --with-fpm-user=${_PHP_USER} --with-fpm-group=${_PHP_USER} 2>&1 |tee -a /tmp/php-configure.log   
 
+echo "php configure finished. See log /tmp/php-configure.log"
 echo
 echo "Make & Install ${_PHP_VERSION}..."
 if make --quiet ; then
-    make install
+    echo        >> /tmp/php-install.log
+    date +%F_%T >> /tmp/php-install.log
+    make install 2>&1 | tee -a /tmp/php-install.log
     echo
-    echo "${_PHP_VERSION} installed successfully."
+    echo "${_PHP_VERSION} installed. See log /tmp/php-install.log"
 else
     echo 
-    echo "failed to install ${_PHP_VERSION}."
+    echo "failed to make ${_PHP_VERSION}."
     exit 1
 fi
 
@@ -75,9 +87,25 @@ sed -i 's/user = nobody/user = '${_PHP_USER}'/g'   /usr/local/etc/php-fpm.d/www.
 sed -i 's/group = nobody/group = '${_PHP_USER}'/g' /usr/local/etc/php-fpm.d/www.conf
 sed -i 's/user = nginx/user = '${_PHP_USER}'/g'    /usr/local/etc/php-fpm.d/www.conf
 sed -i 's/group = nginx/group = '${_PHP_USER}'/g'  /usr/local/etc/php-fpm.d/www.conf
+sed -i '/access.log =/a\access.log = \/usr\/local\/var\/log\/$pool.access.log' /usr/local/etc/php-fpm.d/www.conf
 sed -i 's/include=NONE/include=\/usr\/local/g'     /usr/local/etc/php-fpm.conf
 
-echo "<?php phpinfo(); ?>" >> ${_PHP_ROOT}/example/index.info.php
+_php_info='
+<p align="center">Good Luck!! :)</p>
+<?php phpinfo(); ?>
+<p>
+<p>GD INFO</p>
+<?php
+if (extension_loaded("gd")) {
+   echo "gd ok<br>";
+   foreach(gd_info() as $cate=>$value)
+       echo "$cate: $value<br>";
+}else
+    echo "gd not ok";
+?>
+'
+
+echo "$_php_info" >> ${_PHP_ROOT}/example/index.info.php
 chown -R ${_PHP_USER}:${_PHP_USER} $_PHP_ROOT
 chown -R ${_PHP_USER}:${_PHP_USER} /var/log/nginx
 chown -R ${_PHP_USER}:${_PHP_USER} /var/cache/nginx
