@@ -35,7 +35,7 @@ if [[ -d ${_PHP_VERSION} ]]; then
     /bin/cp -p /usr/local/etc/php-fpm.conf $_backup_dir
     /bin/cp -p /usr/local/etc/php-fpm.d/www.conf $_backup_dir
 fi
-curl -O ${_PHP_VERSION}.tar.gz http://cn2.php.net/get/${_PHP_VERSION}.tar.gz/from/this/mirror
+wget -rq -O ${_PHP_VERSION}.tar.gz http://cn2.php.net/get/${_PHP_VERSION}.tar.gz/from/this/mirror
 tar zxf ${_PHP_VERSION}.tar.gz
 cd /opt/${_PHP_VERSION} 
 pwd
