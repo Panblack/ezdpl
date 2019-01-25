@@ -134,7 +134,7 @@ ClientAliveCountMax 1"
 echo "$_sshd_config" >> /etc/ssh/sshd_config
 
 echo "`date +%F_%T` common/init " >> /tmp/ezdpl.log
-systemctl restart sshd
+service sshd restart
 
 
 
