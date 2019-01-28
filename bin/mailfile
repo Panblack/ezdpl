@@ -1,0 +1,17 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`
+fi
+source $EZDPL_HOME/conf/ezdpl.include
+
+_to_email=$1
+_file=$2
+_sender_pass=`echo $_NOTIFY_SENDER_PASS|base64 -d`
+if [[ -n $_to_email ]] && [[ -n $_file ]]; then
+    /usr/local/bin/pymail.py -f $_NOTIFY_SENDER -t $_to_email -s $_NOTIFY_SENDER_SMTP -u $_NOTIFY_SENDER_USER -p $_sender_pass -S "$_file" -m "See attachment." -F $_file
+else
+    echo "Usage: mailfile <receiver's email> <attached file>"
+fi
