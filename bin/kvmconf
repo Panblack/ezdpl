@@ -1,0 +1,85 @@
+#!/bin/bash
+# get EZDPL_HOME
+if [[ -z ${EZDPL_HOME} ]]; then
+    _dir=$(dirname `readlink -f $0`)
+    _last_dir=` echo "$_dir"|awk -F'/' '{print $NF}'`
+    EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
+fi
+_usage="
+Usage: 
+kvmconf hosts				List  hosts
+kvmconf nodes				List  hosts nodeinfo & memstats
+kvmconf xml [domain]			List  qemu/*.xml, cat domain.xml
+kvmconf list				List  defined domains
+kvmconf view <host> <domain>		View  <domain> on <host>
+kvmconf start|shutdown|reboot|reset <host>  <domain>	Start|Shutdown|Reboot|Reset <domain> on <host>
+kvmconf mig   <host1> <domain> <host2>	Live migrate <domain> from <host1> to <host2>
+"
+if [[ $# -eq 0 ]]; then
+    echo "$_usage"
+    exit 
+fi
+
+_kvm_servers=`grep '_KVM_' ${EZDPL_HOME}/conf/hosts.lst|egrep -v ^#`
+IFS=$'\n'
+_oper=$1
+
+for x in $_kvm_servers ; do 
+    _ip=`echo "$x"|awk '{print $1}'`
+    _host=`echo "$x"|awk '{print $2}'`
+    _user=`echo "$x"|awk '{print $3}'`
+    _sshport=`echo "$x"|awk '{print $4}'`
+    echo -e "[${_host} ${_user}@${_ip}:${_sshport}]"
+    case $_oper in 
+        hosts)
+  	    continue
+  	    ;;
+        nodes)
+  	    ssh -p${_sshport} ${_user}@${_ip} "virsh nodeinfo; virsh nodememstats "
+	    ;;
+        xml)
+  	    _domain=$2
+  	    if [[ -n $_domain ]]; then
+  	        _ssh_command="test -f /etc/libvirt/qemu/${_domain}.xml && cat /etc/libvirt/qemu/${_domain}.xml";echo
+  	    else
+  	        _ssh_command="cd /etc/libvirt/qemu/ && ls -1 *.xml 2>/dev/null"
+  	    fi
+  	    ssh -p${_sshport} ${_user}@${_ip} "$_ssh_command"
+  	    echo
+  	    ;;
+        list)
+  	    ssh -p${_sshport} ${_user}@${_ip} "virsh list --all"
+  	    ;;
+        view)
+  	    _host_hyper=$2
+  	    _domain=$3
+  	    if [[ $_host = $_host_hyper ]]; then
+  	        virt-viewer -c qemu+ssh://root@${_host_hyper}/system $_domain & 
+  	        break
+  	    fi
+  	    ;;
+        start|shutdown|reboot|reset)
+  	    _host_hyper=$2
+  	    _domain=$3
+  	    if [[ $_host = $_host_hyper ]]; then
+  	        echo "found domain ${_domain}@${_host_hyper}"
+  	        ssh -p${_sshport} ${_user}@${_ip} "virsh ${_oper} ${_domain}"
+  	    fi
+  	    ;;
+        mig)
+  	    _host1=$2
+  	    _domain=$3
+  	    _host2=$4
+  	    if [[ -z $_host1 ]] && [[ -z $_domain ]] && [[ -z $_host2 ]]; then
+      	        echo "$_usage"
+      	        exit 
+  	    fi
+  	    if [[ $_host = $_host1 ]]; then
+  	        _ssh_command="virsh migrate --live --verbose --persistent --undefinesource $_domain qemu+ssh://root@${_host2}/system"
+  	        ssh -p${_sshport} ${_user}@${_ip} "$_ssh_command"
+  	    fi
+  	    ;;
+        *)
+  	;;
+      esac
+done
