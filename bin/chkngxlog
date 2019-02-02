@@ -6,10 +6,10 @@ if [[ -z ${EZDPL_HOME} ]]; then
     EZDPL_HOME=`echo "$_dir"|sed 's/\/'$_last_dir'//g'`    
 fi
 _usageInfo="Usage: chkngxlog <status|url> <nginx_access_log_file>
-status: Statistics for all http status
-url   : Statistics for URL and X-Forwarded-For IP
-url45 : Statistics for URL and X-Forwarded-For IP of none 20x/30x requests
-trans : Statistics total data transfered in MB
+status       : Statistics for all http status
+url/urlr     : Statistics for URL and X-Forwarded-For IP
+url45/url45r : Statistics for URL and X-Forwarded-For IP of none 20x/30x requests
+trans        : Statistics total data transfered in MB
 "
 
 if [[ $# -lt 2 ]];then
@@ -26,6 +26,11 @@ case $_oper in
 	# with $request_body
         echo -e "Count\tHost\tURL\tMTHD\tIp\tXF_IP\tStatus"
 	cat $_access_log |awk '{for (i=1;i<=NF;i++) if($i ~ /HTTP\/1.?/ && $(i+1) !~ /20?/ && $(i+1) !~ /30?/ && $(i+1) !~ /10?/) print $(NF-5)$(i-1)"\t"$(i-2)"\t"$1"\t"$(NF-6)"\t"$(i+1)}'|sort|uniq -c|sort -h|sed 's/\"//g'
+        ;;
+    urlr)
+	# with $request_body
+        echo -e "Count\tHost\tURL\tMTHD\tIp\tXF_IP\tStatus"
+	cat $_access_log |awk '{for (i=1;i<=NF;i++) if($i ~ /HTTP\/1.?/) print $(NF-5)$(i-1)"\t"$(i-2)"\t"$1"\t"$(NF-6)"\t"$(i+1)}'|sort|uniq -c|sort -h|sed 's/\"//g'
         ;;
     url45)
         echo -e "Count\tHost\tURL\tMTHD\tIp\tXF_IP\tStatus"
