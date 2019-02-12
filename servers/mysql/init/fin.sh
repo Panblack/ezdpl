@@ -54,3 +54,34 @@ case $_RELEASE in
 	fi
 	;;
 esac
+
+################ replication ################
+# https://dev.mysql.com/doc/refman/5.6/en/replication.html
+# # master
+# mysql> create user 'repl'@'192.168.1.2' identified by 'pass4repl';
+# mysql> grant replication slave on *.* to 'repl'@'192.168.1.2';
+# mysql> FLUSH TABLES WITH READ LOCK;
+# mysql> SHOW MASTER STATUS;
+# $ mysqldump ...
+# mysql> UNLOCK TABLES;
+# 
+# 
+# # slave
+# mysql> CHANGE MASTER TO
+#        MASTER_HOST='192.168.1.1',
+#        MASTER_USER='repl',
+#        MASTER_PASSWORD='pass4repl',
+#        MASTER_LOG_FILE='mysql-binary-log.000001',
+#        MASTER_LOG_POS=106;
+# mysql> START SLAVE; 
+# 
+# # check
+# mysql> SHOW MASTER STATUS;
+# mysql> SHOW SLAVE STATUS \G
+# mysql> STOP SLAVE IO_THREAD;
+# mysql> START SLAVE;
+# 
+################ replication ################
+
+
+

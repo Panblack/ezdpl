@@ -12,6 +12,7 @@ pidfile "/var/run/redis-6379.pid"
 port 6379
 requirepass MyPassWord
 slave-read-only yes
+#slaveof 192.168.1.45 6379
 
 ``` 
 
@@ -26,6 +27,9 @@ sentinel auth-pass mymaster MyPassWord
 sentinel client-reconfig-script mymaster /opt/data-6379/redis-client-reconfig.sh
 sentinel down-after-milliseconds mymaster 3000
 
-
 ```
+
+### Jedis
+http://www.cnblogs.com/xujishou/p/6511111.html
+
 
