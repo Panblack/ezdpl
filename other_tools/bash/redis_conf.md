@@ -18,6 +18,8 @@ slave-read-only yes
 
 ### sentinel.conf
 ```
+bind 172.17.123.104 127.0.0.1 ::1
+protected-mode no
 daemonize yes
 dir "/opt/data-6379"
 logfile "/var/log/redis-sentinel.log"
