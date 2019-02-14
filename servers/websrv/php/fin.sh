@@ -64,7 +64,8 @@ date +%F_%T >> /tmp/php-configure.log
 echo "php configure finished. See log /tmp/php-configure.log"
 echo
 echo "Make & Install ${_PHP_VERSION}..."
-if make --quiet ; then
+_cpu_num=`lscpu|grep '^CPU(s):'|awk '{print $2}'`
+if make -j $_cpu_num --quiet ; then
     echo        >> /tmp/php-install.log
     date +%F_%T >> /tmp/php-install.log
     make install 2>&1 | tee -a /tmp/php-install.log
