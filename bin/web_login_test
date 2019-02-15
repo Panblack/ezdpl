@@ -10,25 +10,25 @@ _url_for_test=$3
 
 echo "`date +%F_%T` START" 
 _page_login=`curl -sSL -X POST \
-	-H 'content-type: application/json;charset=UTF-8' \
-	-H 'accept: application/json, text/plain, */*' \
+	-H 'Content-Type: application/json; charset=UTF-8' \
+	-H 'Accept: */*' \
 	-d "$_post_data_for_login" "$_url_for_login";echo`
 
-echo "LoginURL: ${_url_for_login}" 
+echo "LOGIN URL: ${_url_for_login}" 
 _token=`echo "$_page_login"|awk -F'token":"' '{print $2}'|awk -F'"' '{print $1}'` 
-#echo "$_token"
+echo "TOKEN: $_token"
 
 if [[ -n $_token ]]; then
-    echo "Login OK" 
+    echo "LOGIN OK" 
     if [[ -n $_url_for_test ]]; then
 	_page_test=`curl -sSL -I \
-	    -H 'content-type: application/json;charset=UTF-8' \
-	    -H 'accept: application/json, text/plain, */*' \
-	    -H "authorization: Bearer $_token" \
+	    -H 'Content-type: application/json; charset=UTF-8' \
+	    -H 'Accept: */*' \
+	    -H "Authorization: Bearer $_token" \
 	    "$_url_for_test"|head -1;echo`
-
-	echo -e "TestURL: ${_url_for_test}\n${_page_test}" 
+	echo -e "TEST URL: ${_url_for_test}\n${_page_test}" 
     fi
 else
-    echo -e "`date +%F_%T` Login FAILED" 
+    echo -e "`date +%F_%T` LOGIN FAILED" 
 fi
+

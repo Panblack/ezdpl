@@ -81,6 +81,12 @@ esac
 # mysql> STOP SLAVE IO_THREAD;
 # mysql> START SLAVE;
 # 
+#Warnings:
+#Message: Sending passwords in plain text without SSL/TLS is extremely insecure.
+#Message: Storing MySQL user name or password information in the master info repository is not secure and is therefore not recommended. Please consider using the USER and PASSWORD connection options for START SLAVE; see the 'START SLAVE Syntax' in the MySQL Manual for more information.
+#[Warning] Neither --relay-log nor --relay-log-index were used; so replication may break when this MySQL server acts as a slave and has his hostname changed!! Please use '--relay-log=mysqld-relay-bin' to avoid this problem.
+#[Warning] Slave SQL: If a crash happens this configuration does not guarantee that the relay log info will be consistent, Error_code: 0
+#
 ################ replication ################
 
 
