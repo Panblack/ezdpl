@@ -585,16 +585,22 @@ grep -P "\t" t.xml
 
 
 ## Mysql-ce for ubuntu 
+```
 /etc/mysql/mysql.conf.d/mysqld.cnf
 /etc/mysql/conf.d/mysql.cnf
+```
 
 ## Term2svg
 `pip3 install pyte python-xlib svgwrite termtosvg`
 
 ## RabbitMQ 
+```
 `rabbitmqctl eval 'rabbit_amqqueue:declare({resource, <<"/">>, queue, <<"queue_command">>}, true, false, [], none).' `
 `rabbitmqctl eval 'rabbit_exchange:declare({resource, <<"/">>, exchange, <<"amqpExchangeWeb">>}, fanout, true, false, false, []).' `
 `rabbitmqctl eval 'rabbit_binding:add({binding, {resource, <<"/">>, exchange, <<"test-topic">>}, <<"*.com.cn">>, {resource, <<"/">>, queue, <<"test-queue">>}, []}).'  `
 
+```
 
+## IP 
+` ip a show enp0s25 |grep 'inet '|awk -F'/' '{print $1}'|awk '{print $2}' `
 
