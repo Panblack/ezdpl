@@ -13,6 +13,8 @@ case $_RELEASE in
 esac
 
 mkdir -p /opt/html
+chown -R root:root /opt/html
+chmod 755 /opt/html
 
 # Install nginx & ngxtop 
 yum clean all
@@ -28,9 +30,9 @@ mkdir -p $_backup_dir
 /bin/cp -r /tmp/nginx/*       /etc/nginx/
 
 mkdir -p /opt/html/example
-echo example >> /opt/html/example/index.html
+echo example > /opt/html/example/index.html
 mkdir -p /opt/html/whichami
-hostname -s >> /opt/html/whichami/index.html
+hostname -s > /opt/html/whichami/index.html
 
 # /etc/hosts 
 sed -i '/www.example.com/d'             /etc/hosts
