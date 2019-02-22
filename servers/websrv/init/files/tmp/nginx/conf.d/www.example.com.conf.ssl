@@ -14,7 +14,7 @@ server {
     ssl_certificate      /root/.acme.sh/www.example.com/fullchain.cer;
     ssl_certificate_key  /root/.acme.sh/www.example.com/www.example.com.key;
     include              /etc/nginx/default.d/*.conf;
-    access_log           /var/log/nginx/www.example.com.ssl.log  slb;
+    access_log           /var/log/nginx/www.example.com.ssl.log slb if=$loggable;
 
     location / {
         root      /opt/html/example;
