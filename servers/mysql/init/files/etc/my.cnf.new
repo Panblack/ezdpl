@@ -2,20 +2,22 @@
 # http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
 
 [mysqld]
-#
+
 user = mysql
 default-storage-engine = InnoDB
-# Remove leading # and set to the amount of RAM for the most important data
+#datadir=/var/lib/mysql
+datadir = /data/mysql
+socket = /var/lib/mysql/mysql.sock
+log-error = /var/log/mysqld.log
+pid-file = /var/run/mysqld/mysqld.pid
+
 # cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
 innodb_buffer_pool_size = 512M
 innodb_file_per_table =1
 innodb_data_file_path = ibdata1:16M:autoextend
 innodb_log_file_size = 128M
 innodb_log_files_in_group = 2
-
 innodb_flush_log_at_trx_commit = 1
-sync_binlog = 1
-long_query_time = 0.10
 
 max_connections = 1000
 max_connect_errors=100000
@@ -23,18 +25,19 @@ open_files_limit = 10000
 innodb_open_files = 10000
 table_open_cache = 10000
 table_definition_cache = 10000
+max_allowed_packet = 32M
 
-#32MB
-max_allowed_packet = 33554432
+long_query_time = 0.50
 
-#
-# Remove leading # to turn on a very important data integrity option: logging
-# changes to the binary log between backups.
+# Replication
 # Note: auto_increment_increment = 2 for Master-Master Replication
-# 
 log_bin = logbin
-binlog_format = row
+binlog_format = mixed
+sync_binlog = 1
 server-id = 1
+#read_only=1
+relay_log_recovery=on
+relay_log_info_repository=FILE
 slave_skip_errors = all
 log_slave_updates = 1
 auto_increment_increment = 1
@@ -44,8 +47,6 @@ replicate_wild_ignore_table=performance_schema.%
 replicate_wild_ignore_table=information_schema.%
 
 
-#
-# Remove leading # to set options mainly useful for reporting servers.
 # The server defaults are faster for transactions and fast SELECTs.
 # Adjust sizes as needed, experiment to find the optimal values.
 join_buffer_size = 128M
@@ -56,22 +57,33 @@ key_buffer_size = 32M
 query_cache_size = 0
 query_cache_type = 0
 
-#datadir=/var/lib/mysql
-datadir = /data/mysql
-socket = /var/lib/mysql/mysql.sock
-
 # Disabling symbolic-links is recommended to prevent assorted security risks
 symbolic-links = 0
-character-set-server = utf8
 lower_case_table_names=1
 
-log-error = /var/log/mysqld.log
-pid-file = /var/run/mysqld/mysqld.pid
+# Character Sets
+
+#character-set-server = utf8
+#character-set-client-handshake = FALSE
+#character-set-server = utf8
+#collation-server = utf8_general_ci
+
+character-set-client-handshake = FALSE
+character-set-server = utf8mb4
+collation-server = utf8mb4_general_ci
+init_connect='SET NAMES utf8mb4'
 
 skip-name-resolve
 #skip-grant-tables
 
+
+
+[client]
+#default-character-set=utf8
+default-character-set=utf8mb4
+
 [mysql]
-default_character_set = utf8
+#default-character-set = utf8
+default-character-set = utf8mb4
 prompt = '\u@\h(\R:\m)\d> '
 
