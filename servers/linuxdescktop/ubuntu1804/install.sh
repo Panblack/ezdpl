@@ -7,13 +7,13 @@ echo "Upgrade & install necessary packages"
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y -m \
-dconf-editor gnome-tweaks ibus-pinyin\
+dconf-editor gnome-tweaks ibus-pinyin fcitx-googlepinyin \
 leafpad tree p7zip-full p7zip-rar telnet ssh vim nmap lynx iftop iptraf convmv enca sysstat dstat curl xclip \
-git meld subversion chromium-browser \ 
+git meld subversion chromium-browser jq \ 
 python-pip wireshark \
 smplayer ubuntu-restricted-extras gstreamer-plugins* openshot gimp gthumb graphicsmagick ffmpeg ffmpeg-doc kazam gaupol xchm kolourpaint \
 psensor indicator-cpufreq rdesktop virt-manager virt-viewer \
-apache2 apache2-utils apache2-doc nginx \
+apache2-utils nginx \
 openvpn network-manager-openvpn network-manager-openvpn-gnome tigervnc-viewer \
 ttf-wqy-microhei
 
@@ -21,7 +21,7 @@ ttf-wqy-microhei
 #libsdl1.2debian libqt4-opengl lua5.2 lua-bitop \
 #vlc vlc-* rkhunter docker-io cgroup-bin
 
-sudo snap install  mdview
+#sudo snap install  mdview
 sudo pip install --upgrade pip
 
 echo "Make wireshark able to capture packets with non-root user."
@@ -53,4 +53,8 @@ sudo ufw allow 22/tcp
 sudo ufw allow 80/tcp
 sudo ufw allow 8080/tcp
 sudo ufw allow 1080/tcp
+sudo ufw allow 3306/tcp
+
+echo "Check qimpanel"
+dpkg --list | grep qimpanel
 

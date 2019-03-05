@@ -1,0 +1,6 @@
+
+sudo apt remove ibus-* fcitx*
+sudo apt autoremove --purge
+sudo apt -y install ibus-pinyin fcitx-googlepinyin
+dpkg --list | grep qimpanel
+
