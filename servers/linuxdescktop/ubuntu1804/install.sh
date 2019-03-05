@@ -2,6 +2,16 @@
 # Initial script for ubuntu 14.04 fresh installation, by panblack@126.com
 #
 read -p "Your username:" _user_name
+if [[ -z $_user_name ]]; then 
+    exit 
+fi
+
+echo "Deb packages need to be installed: mysql-apt-config, virtualbox "
+read -p "Path for Deb files: " _deb_files
+if [[ -n $_deb_files ]]; then
+    cd $_deb_files
+    sudo dpkg -i *.deb
+fi
 
 echo "Upgrade & install necessary packages"
 sudo apt-get update
@@ -9,18 +19,13 @@ sudo apt-get upgrade -y
 sudo apt-get install -y -m \
 dconf-editor gnome-tweaks ibus-pinyin fcitx-googlepinyin \
 leafpad tree p7zip-full p7zip-rar telnet ssh vim nmap lynx iftop iptraf convmv enca sysstat dstat curl xclip \
-git meld subversion chromium-browser jq \ 
-python-pip wireshark \
+git meld subversion chromium-browser jq whois calibre python-pip wireshark net-tools ansible \
 smplayer ubuntu-restricted-extras gstreamer-plugins* openshot gimp gthumb graphicsmagick ffmpeg ffmpeg-doc kazam gaupol xchm kolourpaint \
 psensor indicator-cpufreq rdesktop virt-manager virt-viewer \
-apache2-utils nginx \
-openvpn network-manager-openvpn network-manager-openvpn-gnome tigervnc-viewer \
-ttf-wqy-microhei
+apache2-utils nginx openvpn network-manager-openvpn network-manager-openvpn-gnome tigervnc-viewer \
+ttf-wqy-microhei mysql-workbench-community 
 
-#gnome-tweak-tool unity-tweak-tool sysv-rc-conf \
-#libsdl1.2debian libqt4-opengl lua5.2 lua-bitop \
 #vlc vlc-* rkhunter docker-io cgroup-bin
-
 #sudo snap install  mdview
 sudo pip install --upgrade pip
 
@@ -36,14 +41,19 @@ echo "Disable dash"
 sudo dpkg-reconfigure dash
 echo 
 
-echo "Disable Embed preedit text ..."
+echo "Disable 'Embed preedit text'"
 ibus-setup
 echo 
 
-echo "Modify org.gnome.gnome-screenshot"
-dconf-editor
+echo "Configure fcitx"
+fcitx-config-gtk3
+echo 
 
-cd
+echo "Check qimpanel"
+dpkg --list | grep qimpanel
+
+#echo "Modify org.gnome.gnome-screenshot"
+#dconf-editor
 
 # ufw settings
 echo "ufw"
@@ -55,6 +65,6 @@ sudo ufw allow 8080/tcp
 sudo ufw allow 1080/tcp
 sudo ufw allow 3306/tcp
 
-echo "Check qimpanel"
-dpkg --list | grep qimpanel
+echo "Finished."
+cd
 
