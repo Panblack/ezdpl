@@ -19,7 +19,7 @@ sudo apt-get upgrade -y
 sudo apt-get install -y -m \
 dconf-editor gnome-tweaks ibus-pinyin fcitx-googlepinyin \
 leafpad tree p7zip-full p7zip-rar telnet ssh vim nmap lynx iftop iptraf convmv enca sysstat dstat curl xclip \
-git meld subversion chromium-browser jq whois calibre python-pip wireshark net-tools ansible \
+git meld subversion chromium-browser jq whois calibre python-pip python3-pip wireshark net-tools ansible \
 smplayer ubuntu-restricted-extras gstreamer-plugins* openshot gimp gthumb graphicsmagick ffmpeg ffmpeg-doc kazam gaupol xchm kolourpaint \
 psensor indicator-cpufreq rdesktop virt-manager virt-viewer \
 apache2-utils nginx openvpn network-manager-openvpn network-manager-openvpn-gnome tigervnc-viewer \
@@ -27,7 +27,11 @@ fonts-wqy-microhei mysql-workbench-community
 
 #vlc vlc-* rkhunter docker-io cgroup-bin
 #sudo snap install  mdview
-sudo pip install --upgrade pip
+
+echo "Upgrade pip, install termtosvg"
+sudo pip2 install --upgrade pip
+sudo pip3 install --upgrade pip
+sudo pip3 install termtosvg 
 
 echo "Make wireshark able to capture packets with non-root user."
 sudo chmod u+s /usr/bin/dumpcap
