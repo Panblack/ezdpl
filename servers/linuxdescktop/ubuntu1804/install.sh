@@ -23,7 +23,7 @@ git meld subversion chromium-browser jq whois calibre python-pip wireshark net-t
 smplayer ubuntu-restricted-extras gstreamer-plugins* openshot gimp gthumb graphicsmagick ffmpeg ffmpeg-doc kazam gaupol xchm kolourpaint \
 psensor indicator-cpufreq rdesktop virt-manager virt-viewer \
 apache2-utils nginx openvpn network-manager-openvpn network-manager-openvpn-gnome tigervnc-viewer \
-ttf-wqy-microhei mysql-workbench-community 
+fonts-wqy-microhei mysql-workbench-community 
 
 #vlc vlc-* rkhunter docker-io cgroup-bin
 #sudo snap install  mdview

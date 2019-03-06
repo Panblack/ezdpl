@@ -1,0 +1,30 @@
+#!/bin/bash
+_log_file="/tmp/.ssh-forward.log"
+touch $_log_file
+
+#Add remote ssh-server ip to /etc/hosts with hostname 'sshtunnel'
+_ip=`host -t ANY sshtunnel|awk '{print $NF}'`
+_port="22"
+_user="ec2-user"
+_pid=`ss -lntp|grep '0.0.0.0:1080' | awk -F'pid=' '{print $2}'|awk -F, '{print $1}'`
+_oper=$1
+case $_oper in
+    d)
+        for x in $_pid; do 
+            kill $x || kill -9 $x
+            echo "Pid: $x killed."
+        done
+        ;;
+    u)
+        if [[ -n $_pid ]];then
+            echo "ssht already started, pid: $_pid "
+        else
+            ssh -Nf -D 0.0.0.0:1080 -E $_log_file -p $_port ${_user}@${_ip}
+        fi
+        sleep 2
+        ;;
+    *)
+	echo "Usage: ssht.sh u|d	Up|Down"
+	;;
+esac
+ss -antp|grep ESTAB|grep "${_ip}:${_port}"
