@@ -72,3 +72,5 @@ sudo ufw allow 3306/tcp
 echo "Finished."
 cd
 
+git config --global core.quotedpath false
+
