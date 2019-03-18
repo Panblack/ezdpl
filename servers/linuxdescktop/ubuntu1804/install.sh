@@ -23,7 +23,7 @@ git meld subversion chromium-browser jq whois calibre python-pip python3-pip wir
 smplayer ubuntu-restricted-extras gstreamer-plugins* openshot gimp gthumb graphicsmagick ffmpeg ffmpeg-doc kazam gaupol xchm kolourpaint \
 psensor indicator-cpufreq rdesktop virt-manager virt-viewer \
 apache2-utils nginx openvpn network-manager-openvpn network-manager-openvpn-gnome tigervnc-viewer \
-fonts-wqy-microhei mysql-workbench-community 
+fonts-wqy-microhei mysql-workbench-community smbclient python3-smbc 
 
 #vlc vlc-* rkhunter docker-io cgroup-bin
 #sudo snap install  mdview
@@ -59,6 +59,8 @@ dpkg --list | grep qimpanel
 #echo "Modify org.gnome.gnome-screenshot"
 #dconf-editor
 
+git config --global core.quotedpath false
+
 # ufw settings
 echo "ufw"
 sudo ufw enable
@@ -71,6 +73,4 @@ sudo ufw allow 3306/tcp
 
 echo "Finished."
 cd
-
-git config --global core.quotedpath false
 
