@@ -486,6 +486,7 @@ nc -uzv <HOST> <PORT>
 
 ## Partition grow
 ```
+yum install -y cloud-utils-growpart
 lsblk ; df -h
 growpart /dev/xvdf 1
 resize2fs /dev/xvdf1
