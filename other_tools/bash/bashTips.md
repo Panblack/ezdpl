@@ -484,6 +484,13 @@ nc -zv  <HOST> <PORT>
 nc -uzv <HOST> <PORT>
 ```
 
+## Partition grow
+```
+lsblk ; df -h
+growpart /dev/xvdf 1
+resize2fs /dev/xvdf1
+xfs_growfs -d /mnt/2g
+```
 
 ## lv extend
 ```
