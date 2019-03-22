@@ -42,9 +42,9 @@ case $_type in
 	;;
     *)
 	echo "
-$0 a  [u]	netstat -anpt[u]
-$0 e  [u]	netstat -anpt[u] ESTAB
-$0 l  [u]	netstat -lnpt[u]
-$0 li [u]	netstat -anpt[u] ; firewall info
+${0##*/} a  [u]	netstat -anpt[u]
+${0##*/} e  [u]	netstat -anpt[u] ESTAB
+${0##*/} l  [u]	netstat -lnpt[u]
+${0##*/} li [u]	netstat -anpt[u] ; firewall info
 "
 esac
