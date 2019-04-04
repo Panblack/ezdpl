@@ -59,7 +59,7 @@ dpkg --list | grep qimpanel
 #echo "Modify org.gnome.gnome-screenshot"
 #dconf-editor
 
-git config --global core.quotedpath false
+git config --global core.quotepath false
 
 # ufw settings
 echo "ufw"
