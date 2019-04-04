@@ -1,5 +1,7 @@
 # Bash Tips 
 
+## Zombie process
+`ps -A -ostat,ppid,pid,cmd | grep -e '^[Zz]'`
 
 ## lsof
 ```
