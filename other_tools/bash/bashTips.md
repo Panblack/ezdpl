@@ -1,5 +1,8 @@
 # Bash Tips 
 
+## Record iotop 
+`nohup iotop -o -b -t > iotop.log &`
+
 ## clear dns cache
 `sudo systemctl restart systemd-resolved.service`
 `sudo systemctl restart dnsmasq.service`
