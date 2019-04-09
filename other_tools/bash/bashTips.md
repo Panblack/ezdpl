@@ -1,5 +1,9 @@
 # Bash Tips 
 
+## clear dns cache
+`sudo systemctl restart systemd-resolved.service`
+`sudo systemctl restart dnsmasq.service`
+
 ## Zombie process
 `ps -A -ostat,ppid,pid,cmd | grep -e '^[Zz]'`
 
