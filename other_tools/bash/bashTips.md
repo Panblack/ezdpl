@@ -491,6 +491,7 @@ nc -v -w 1 150.95.132.152 -z 1-9000
 #检测TCP/UDP
 nc -zv  <HOST> <PORT>
 nc -uzv <HOST> <PORT>
+echo -n "foo" | nc -4unv -w1 <host> <udpport>
 ```
 
 ## Partition grow
