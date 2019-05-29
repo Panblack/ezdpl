@@ -55,6 +55,7 @@ case $_RELEASE in
     CENTOS7)
 	systemctl disable nfs.service
 	systemctl disable nfslock.service
+	systemctl disable nfs-mountd.service
 	systemctl disable rpcbind.service
 	systemctl disable rpcgssd.service
 	systemctl disable rpcidmapd.service
@@ -65,6 +66,7 @@ case $_RELEASE in
         systemctl disable rpc-statd.service       
 	systemctl stop nfs.service
 	systemctl stop nfslock.service
+	systemctl stop nfs-mountd.service
 	systemctl stop rpcbind.service
 	systemctl stop rpcgssd.service
 	systemctl stop rpcidmapd.service
