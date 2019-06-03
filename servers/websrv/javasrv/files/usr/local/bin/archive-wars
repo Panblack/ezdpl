@@ -1,7 +1,0 @@
-#!/bin/bash
-# pick the latest war files from $_OPER_PATH/archive, copy them to $_OPER_PATH/prod
-source /usr/local/bin/japp.include
-cd $_OPER_PATH/archive
-_allwars=`find -name "*.war"|awk -F/ '{print $(NF)}'|sort|uniq`
-for x in `echo $_allwars` ;do find -name $x |sort |tail -1; done > latest.txt
-for x in `cat latest.txt `;do echo $x; cp -p $x $_OPER_PATH/prod/; done
