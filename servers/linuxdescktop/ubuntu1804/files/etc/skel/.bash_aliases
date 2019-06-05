@@ -1,6 +1,7 @@
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
+alias .1='cd ..'
+alias .2='cd ../..'
+alias .3='cd ../../..'
+alias .4='cd ../../../..'
 alias rm='rm -i'
 alias mv='mv -i'
 alias cp='/bin/cp -i --preserve=timestamps'
@@ -13,8 +14,8 @@ alias mysql='mysql --default-character-set=utf8'
 alias less='less -R'
 alias tless='less -R `ls -tr1|tail -1`'
 alias ttail='tail -f `ls -tr1|tail -1`'
-alias ftail='tail -f'
-alias grep='grep --color=auto'
+alias tailf='tail -f'
+alias grep='grep --color=always'
 alias rlf='readlink -f'
 alias tree='tree -N'
 alias stl='systemctl'
@@ -24,16 +25,4 @@ alias stlr='systemctl restart'
 alias stlrl='systemctl reload'
 alias stlst='systemctl status'
 alias stll='systemctl list-unit-files'
-
-umask 0022
-export HISTTIMEFORMAT="%F %T `whoami` "
-
-export JAVA_HOME=/home/app/jdk
-export JRE_HOME=$JAVA_HOME/jre
-export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
-export MAVEN_HOME="/home/app/maven"
-export M2_HOME="$MAVEN_HOME"
-export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$MAVEN_HOME/bin
-export PATH=$PATH:/home/app/sqldeveloper/sqldeveloper/bin
-export PATH=$PATH:/home/app/node/bin
 
