@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 # A simple program to send tcp/udp payload to target server
+# via Unkown...
 
 import time
 import sys,socket,getopt  
