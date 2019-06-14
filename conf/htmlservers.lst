@@ -1,4 +1,4 @@
-#htmlDeployName|serverName|serverIp|serverUser|serverPort|targetPath|htmlPort
+#htmlName|serverName|serverIp|serverUser|serverPort|targetPath|htmlPort
 sales|webs01|172.16.2.1|root|22|/opt/html/sales|80
 sales|webs01|172.16.2.2|root|22|/opt/html/sales|80
 sales|webs01|172.16.2.3|root|22|/opt/html/sales|80

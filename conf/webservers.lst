@@ -1,4 +1,3 @@
-#webName|serverName|serverUser|serverPort
 #webName|serverName|ServerIp|serverUser|serverPort|targetPath|deployMode(war/xml)|needRestart|webPort
 Sales|webs01|172.16.2.1|root|22|/opt/webs/sales|war|N|8080
 Sales|webs02|172.16.2.2|root|22|/opt/webs/sales|war|N|8080

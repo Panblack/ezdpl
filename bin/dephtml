@@ -66,7 +66,7 @@ _htmlInfo=` echo "$_htmlInfo" | sed 's/[ \t]//g'`
 _builtPath=`echo "$_htmlInfo" | awk -F'|' '{print $6}'`
 
 # 获取htmlservers信息，去掉所有空格和TAB
-#htmlDeployName|serverName|serverIp|serverUser|serverPort|targetPath|htmlPort
+#htmlName|serverName|serverIp|serverUser|serverPort|targetPath|htmlPort
 #	1	   2	     3		 4	  5		6	7
 if [[ -f "$_HTMLSERVERS_LST_FILE" ]]; then
     ls $_HTMLSERVERS_LST_FILE
