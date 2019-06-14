@@ -67,7 +67,7 @@ _builtPath=`echo "$_htmlInfo" | awk -F'|' '{print $6}'`
 
 # 获取htmlservers信息，去掉所有空格和TAB
 #htmlName|serverName|serverIp|serverUser|serverPort|targetPath|htmlPort
-#	1	   2	     3		 4	  5		6	7
+#	1	2	 3	  4	    5		6	7
 if [[ -f "$_HTMLSERVERS_LST_FILE" ]]; then
     ls $_HTMLSERVERS_LST_FILE
     _servers=`cat $_HTMLSERVERS_LST_FILE | egrep -v '(^ *#|^$)' | awk -F'|' '{if ( $1 == "'${_htmlName}'" ) print $0}' `

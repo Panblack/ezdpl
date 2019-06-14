@@ -10,11 +10,6 @@ _OPER_PATH="/opt/wars"
 _WARS_RUN="/data/webShare/read/webapps"
 _HTML_RUN="/data/webShare/read/html"
 
-_WAR_LST_HEADER="#warName|warDeployName|webName|configFilesPath|gitBranch|gitRepo|codeDir|runTest"
-_SERVERS_LST_HEADER="#webName|serverName|ServerIp|serverUser|serverPort|targetPath|deployMode(war/xml)|needRestart|webPort"
-_HTML_LST_HEADER="#htmlName|htmlDevName|gitBranch|gitRepo|codeDir|builtPath"
-_HTMLSERVERS_LST_HEADER="#htmlDeployName|serverName|serverIp|serverUser|serverPort|targetPath|htmlPort"
-
 _WAR_LST_FILE="${EZDPL_HOME}/conf/war.lst"
 _WEBSERVERS_LST_FILE="${EZDPL_HOME}/conf/webservers.lst"
 _WAR_DEPLOY_DELAY=10
