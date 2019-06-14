@@ -11,14 +11,17 @@ echo "EZDPL_HOME=$EZDPL_HOME"
 # 获取 _OPER_PATH _WARS_RUN _WAR_LST_FILE 变量
 
 source ${EZDPL_HOME}/conf/deploy.include
-_wars=`awk -F'|' '{print $1}' ${EZDPL_HOME}/conf/war.lst|egrep -v '(^ *#|^$)'`
-_usage="Usage: buildwar <war_name> [git_commit_id]
-$_wars"
+if [[ -f "$_WAR_LST_FILE" ]]; then
+    _wars=`awk -F'|' '{print $1}' $_WAR_LST_FILE|egrep -v '(^ *#|^$)'`
+    _usage="Usage: buildwar <war_name> [git_commit_id]\n$_wars"
+else
+    echo "$_WAR_LST_FILE does not exist."; exit 1
+fi
 
 # 依赖目录： ${_WARS_RUN}/${_warName} , ${EZDPL_HOME}/conf/_config/${_warName} 
 
 if [[ $# -eq 0 ]];then
-    echo "$_usage"; exit 1
+    echo -e "$_usage"; exit 1
 fi
 
 _warName=$1
@@ -28,18 +31,13 @@ else
     _commit=$2
 fi
 
-if [[ ! -d ${_WARS_RUN}/${_warName} ]]; then
-   echo "${_WARS_RUN}/${_warName} does not exist."; echo "$_usage"; exit 1
-fi
-
 set -u
 # 获取war信息，如有同名warName则只取第一条
-# #warDevName|warDeployName|needRestart|webName|webPort|configFilesPath|gitBranch|gitRepo|codeDir|skipTest 已废弃! needRestart|webPort 改到webservers.lst
 #warName|warDeployName|webName|configFilesPath|gitBranch|gitRepo|codeDir|runTest
 #   1       2            3          4              5        6       7       8
 _warInfo=`cat $_WAR_LST_FILE | egrep -v "(^ *#|^$)" | awk -F'|' '{if ( $1 == "'${_warName}'" ) print $0}' | head -1`
 if [[ -z $_warInfo ]]; then
-    echo "$_warName not configured in $_WAR_LST_FILE ." ; exit 1
+    echo "$_warName not configured in $_WAR_LST_FILE .";echo ; exit 1
 fi
 _warDeployName=`echo "${_warInfo}" | awk -F'|' '{print $2}'`
 _webName=`      echo "${_warInfo}" | awk -F'|' '{print $3}'`
@@ -63,6 +61,11 @@ if [[ ! -d ${_config_files_path}/${_configFiles} ]]; then
 fi
 if [[ -z $_runTest ]]; then
     _runTest="N"
+fi
+
+if [[ ! -d ${_WARS_RUN}/${_warName} ]]; then
+   echo "${_WARS_RUN}/${_warName} does not exist."; echo
+   echo -e "$_usage"; exit 1
 fi
 
 # 判断是否有gitRepo,如果有则获取最新代码
