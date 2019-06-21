@@ -1,10 +1,10 @@
 # 服务器配置工具 ezdpl
 
-## 简介
+## 一. 简介
 
 ### ezdpl 实现原理
 
-ezdpl 是一套批量配置/管理/监控服务器的脚本工具
+ezdpl 是一套在操作机/堡垒机上批量配置/管理/监控服务器的脚本工具
 
 - 借鉴了Ansible的实现
 - scp 上传/下载服务器上的重要文件
@@ -25,7 +25,7 @@ ezdpl 是一套批量配置/管理/监控服务器的脚本工具
 - 如果不能完全理解各脚本和配置文件的工作方式，不建议配置到生产环境。
 - 任何使用者需要完全对脚本的使用自担风险，对产生的后果自行负责。
 
-## 文件和目录
+## 二. 文件和目录
 
 ### 主目录
 
@@ -33,9 +33,9 @@ ezdpl 是一套批量配置/管理/监控服务器的脚本工具
 ------------ | ------------------
 `bin/`       | 通用管理脚本
 `conf/`      | 配置文件
-`ezdpl`      | 服务器初始化配置脚本
+`ezdpl`      | `ezdpl`脚本，服务器初始化配置脚本
 `local/`     | 项目独有的管理脚本
-`ezdpl.log`    | ezdpl执行日志
+`ezdpl.log`  | ezdpl执行日志
 `operation/` | 运维文件
 `README.md`  | 手册
 `servers/`   | 服务器配置信息（ezpdl脚本使用）
@@ -43,60 +43,71 @@ ezdpl 是一套批量配置/管理/监控服务器的脚本工具
 
 #### bin/ 通用管理脚本
 
+ezdpl公用脚本，任何ezdpl管理的项目里，必须保证此目录下的文件完全一致！
+
 脚本                 | 说明
 ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-`batch.sh`           | 服务器批量处理，从`conf/hosts.lst`读取服务器信息，执行 `conf/batch.include` 里编写的命令
+`batch.sh`           | 服务器批量处理，从`conf/hosts.lst`读取服务器信息，执行 `conf/batch.include` 里编写的命令（#开头的不会执行）。错误的配置将造成重大灾难，**慎用！**
 `buildhtml`          | 构建静态页web应用，从 `conf/html.lst` 和 `conf/htmlservers.lst` 读取html项目信息和对应的服务器信息，从git服务器拉取代码并修改参数（执行 `conf/mkhtml.sh` 内的命令），部署到 `conf/deploy.include` 文件定义的目录
 `buildwar`           | 构建war包应用，从 `conf/war.lst` 和 `conf/webserver.lst` 读取java项目信息和对应的服务器信息，从git服务器拉取代码，将`conf/_config/` 下的生产配置文件替换后，构建java web应用；或从待发布目录复制已构建的war包，替换war包内的配置文件，部署到 `conf/deploy.include` 文件定义的目录。
-`chkngxlog`         | 统计指定nginx 访问日志的状态码和URL，IP
-`chkres`             | 从 `conf/hosts.lst`读取服务器信息，检查服务器的资源状况和监听端口
-`chktcp`             | 从 `conf/hosts.lst`读取服务器信息，检查服务器是否有大量未关闭的TCP连接
+`chkngxlog`         | 分析nginx 访问日志，不带参数时显示帮助说明： 如 `chkngxlog status 日志文件` --- 统计http状态码
+`chkres`             | 检测项目内服务器的资源、监听端口和yum重要更新，依赖 `conf/hosts.lst` `conf/ezdpl.include`
+`chktcp`             | 从 `conf/hosts.lst`读取服务器信息，检查带有`_WEB_SERVER_`标签的服务器是否有大量未关闭的TCP连接
 `dephtml`            | 从 `conf/html.lst` 和 `conf/htmlservers.lst` 读取html项目信息和对应的服务器信息，将指定目录的静态页项目发布到对应的服务器。
 `depwar`             | 从 `conf/war.lst` 和 `conf/webservers.lst` 读取java web项目信息和对应的服务器信息，将指定目录的java web项目发布到对应的服务器。
-`monitor_webapps.sh` | 从 `conf/war.lst` 和 `conf/webservers.lst` 读取java web项目信息和对应的服务器信息，监控java web应用是否处于运行状态，可根据情况启动相应的应用。
-`readsql`            | 从 `ezdpl.include` 读取mysql服务器信息，以只读方式访问。
+`monitor_webapps.sh` | 从 `conf/war.lst` 和 `conf/webservers.lst` 读取java web项目信息和对应的服务器信息，监控java web应用是否处于运行状态，可根据情况启动相应的应用。（已废弃，**勿用！**）
+`readsql`            | 项目中对数据库的只读访问，依赖`conf/ezdpl.include`，需要提前用`mysql_config_editor`配置Mysql免密码访问
 `scs`                | ssh 登录其他服务器，或上传/下载文件。
+`ssht`               | ssh 隧道工具
+`tail_ngx_log`       | 跟踪nginx访问日志，过滤特定关键字和http状态码，不带参数时显示帮助说明
+`web_login_test`     | jwt web 登录测试，不带参数时显示帮助说明
+`website_response_monitor.sh` | 监测网站反应，依赖`conf/websites.lst`
 
 #### conf/ 配置文件
 
 配置文件               | 说明
 ------------------ | -------------------------------
-`batch.include`    | `bin/batch.sh`执行的具体指令
-`_config/`         | web应用的生产配置文件，部署前注入到目的war包中
-`deploy.include`   | `bin/` 构建、部署脚本的共享变量
-`ezdpl.home.sh`    | 获取`EZDPL_HOME`的脚本片段，很多脚本需要这个功能
-`ezdpl.include`    | 通用管理脚本的共享变量
-`hosts.lst`        | 需要管理的主机、IP、用户名、端口等信息
-`html.lst`         | 静态网页部署信息
-`htmlservers.lst`  | 静态网页的服务器信息
-`japp.include`     | java应用管理脚本（japp,tmc)的共享变量
-`mkhtml.sh`        | 静态网页部署前的参数替换脚本，由bin/buildhtml调用
-`nginx.lst`        | nginx配置文件信息
-`nginxservers.lst` | nginx服务器信息
-`release.include`  | 待管理的服务器基础共享变量，在目标服务器上运行
-`war.lst`          | war包部署信息
-`webservers.lst`   | war包对应的服务器信息
+`batch.include`    | 操作机上的`bin/batch.sh`执行的具体指令。错误的配置将造成重大灾难，**慎用！**
+`_config/`         | 操作机上的web应用的生产配置文件，部署前替换到代码中，或者注入到war包中
+`deploy.include`   | 操作机上的构建、部署脚本的共享变量
+`ezdpl.home.sh`    | 操作机上的获取`EZDPL_HOME`的脚本片段，很多脚本需要这个功能
+`ezdpl.include`    | 操作机上的脚本的共享变量
+`hosts.lst`        | 操作机上的需要管理的主机、IP、用户名、端口等信息
+`html.lst`         | 操作机上的静态网页部署信息
+`htmlservers.lst`  | 操作机上的静态网页对应的服务器信息
+`mkhtml.sh`        | 操作机上的静态网页部署前的参数替换脚本，由`bin/buildhtml`调用
+`war.lst`          | 操作机上的war包部署信息
+`webservers.lst`   | 操作机上的war包对应的服务器信息
+`japp.include`     | 应用服务器上的java应用管理脚本，`japp`,`tmc` 的共享变量，初始化服务器时会上传到目标服务器的/usr/local/bin/
+`release.include`  | 应用服务器上的基础共享变量，初始化服务器时会上传到目标服务器的/usr/local/bin/
 
 #### 其他辅助目录
 
-脚本运行中需要的工作目录，以下为惯常使用的目录名。完全可以使用其他目录名，但必须与 conf/ 配置文件设定的一致。
+操作机需要的工作目录
 
-目录                     | 说明
+目录                    | 说明
 ---------------------- | ---------------------------------------
-`/opt/html`            | 静态页面目录
-`/opt/javaapp`         | jar包运行目录（japp.include配置，japp管理）
-`/opt/jdk`             | 默认jdk链接
-`/opt/logs`            | 应用日志目录（本地）
-`/opt/report`          | 报告、计划任务日志
-`/opt/wars`            | war包处理目录
-`/opt/webs`            | tomcat 目录（japp.include配置，tmc管理）
-`/data/backupmysql`    | mysql备份（nfs)
-`/data/logs`           | 应用日志目录 (nfs)
-`/data/mysql`          | mysql数据目录
-`/data/webShare/read`  | web应用程序共享的只读目录，含共享的配置文件、html、war包等(nfs)
-`/data/webShare/write` | web应用程序共享的读写目录，含用户上传的各种文件(nfs)
+`/opt/report`          | 操作机的报告、计划任务日志
+`/opt/wars`            | 操作机的war包处理目录，deploy.include 中的 `_OPER_PATH`
+`/data/webShare/read`  | 操作机的部署目录，含发布的html、war包等(NFS)
 
-## 使用和配置方法
+
+目标服务器需要的工作目录，以下为惯常使用的目录名。完全可以使用其他目录名，但必须与 `conf/*` 配置文件设定的一致。
+
+目录                    | 说明
+---------------------- | ---------------------------------------
+`/opt/html`            | 应用服务器上的静态页面目录，固定目录，目前无法配置
+`/opt/javaapp`         | 应用服务器上的jar包运行目录（japp.include配置，由`japp`使用）
+`/opt/jdk`             | 应用服务器上的默认jdk链接，可由japp.include重新配置
+`/opt/logs`            | 应用服务器上的日志目录，可由japp.include重新配置
+`/opt/webs`            | 应用服务器上的tomcat 目录（japp.include中的`_BASES_DIR`，由`tmc`使用）
+`/data/logs`           | 应用服务器上的日志目录 (NFS共享目录)
+`/data/webShare/read`  | 应用程序共享的只读目录，含共享的配置文件、html、war包等(NFS)
+`/data/webShare/write` | 应用程序共享的读写目录，含用户上传的各种文件(NFS)
+`/data/backupmysql`    | 数据库服务器上的mysql备份（可以是NFS共享目录)
+`/data/mysql`          | 数据库服务器上的mysql数据目录
+
+## 三. 使用和配置方法
 
 ### 1\. ezdpl 使用方法
 
@@ -127,10 +138,10 @@ servers/common/init
 └── pre.sh
 ```
 
-ezdpl脚本 对目标服务器做三件事：
+`ezdpl`脚本 对目标服务器做三件事：
 
-1. 上传 `pre.sh` 脚本并执行，再上传 files 下的文件前做些准备
-2. 上传 `files` 下的所有文件到根目录，文件主要包含一些配置文件和通用的脚本
+1. 上传 `pre.sh` 脚本并执行，为上传 `files` 下的文件做些准备
+2. 上传 `files` 下的所有文件到根目录，文件主要包含一些配置文件和通用的脚本，files下的文件目录结构要完全与`/`相符合
 3. 上传 `fin.sh` 脚本并执行，一般是进行主要配置工作
 
 注意事项：
@@ -189,32 +200,35 @@ servers/
 - 其中的`$_ip $_port $_user`从 `conf/hosts.lst` 中读取
 - `bin/batch.sh` 默认会对 hosts.lst 中的所有服务器执行命令，如果只需要批量操作部分服务器，需要在batch.include中自行添加 if 条件
 - 可以后面添加TAG参数，比如 `batch.sh _WEB_SERVER_`，即挑选所有带 `_WEB_SERVER_`的 host 进行操作
-- 这里可以单独写 ssh/scp 指令，也可以使用`${EZDPL_HOME}/ezdpl`进行服务器初始部署
+- 这里可以单独写 ssh/scp 指令，也可以使用`ezdpl`脚本进行服务器初始部署
+- 错误的配置将造成重大灾难，**慎用！**
 
 #### `_config/目录`
 
 这里保存war包生产配置文件。
 
-目录结构为：
-- warName/src/main/resources/，以项目代码为准
-- warName/WEB-INF/classes ，以war包为准
+目录结构例子：
+- warName/src/main/resources/，从项目代码构建时使用，以实际代码目录为准。
+- warName/WEB-INF/classes ，重新打war包时使用，以war包目录为准。
 
 #### deploy.include
 
+操作机上的部署配置文件
+
 变量                     | 说明
 ----------------------- | ------------------------
-`_DEP_WORK_USER`        | 构建和部署脚本的运行帐号
-`export JAVA_HOME=`     | 设置java运行环境变量（非常重要！）
-`export JRE_HOME=`      | 设置java运行环境变量（非常重要！）
-`export PATH=`          | 设置java运行环境变量（非常重要！）
+`_DEP_WORK_USER`        | 构建和部署脚本的运行用户，一般就是操作机/堡垒机上使用 `ezdpl` 的用户
+`export JAVA_HOME=`     | 设置操作机的java运行环境变量（非常重要！）
+`export JRE_HOME=`      | 设置操作机的java运行环境变量（非常重要！）
+`export PATH=`          | 设置操作机的java运行环境变量（非常重要！）
 `_OPER_PATH`            | war包处理目录，主要有 `$_OPER_PATH/build` 构建，`$_OPER_PATH/todeploy` 待发布包，`$_OPER_PATH/cook`重新打包
-`_WARS_RUN`             | 生产war包保存目录
-`_HTML_RUN`             | 生产html静态页保存目录
-`_WAR_LST_FILE`         | 指定 war.lst 文件的位置
-`_WEBSERVERS_LST_FILE`  | 指定 webservers.lst 文件的位置
+`_WARS_RUN`             | 生产war包保存目录，一般是NFS共享的挂载目录
+`_HTML_RUN`             | 生产html静态页保存目录，一般是NFS共享的挂载目录
+`_WAR_LST_FILE`         | 指定 war.lst 文件路径，默认是 $EZDPL_HOME/conf/war.lst
+`_WEBSERVERS_LST_FILE`  | 指定 webservers.lst 文件路径，默认是 $EZDPL_HOME/conf/webservers.lst
 `_WAR_DEPLOY_DELAY`     | web服务器部署war包后的等待时间（秒）
-`_HTML_LST_FILE`        | 指定 html.lst 文件的位置
-`_HTMLSERVERS_LST_FILE` | 指定 htmlservers.lst 文件的位置
+`_HTML_LST_FILE`        | 指定 html.lst 文件路径，默认是 $EZDPL_HOME/conf/html.lst
+`_HTMLSERVERS_LST_FILE` | 指定 htmlservers.lst 文件路径，默认是 $EZDPL_HOME/conf/htmlservers.lst
 `_HTML_DEPLOY_DELAY`    | web服务器部署html文件后的等待时间（秒）
 
 #### `ezdpl.home.sh`
@@ -225,7 +239,7 @@ servers/
 
 #### ezdpl.include
 
-管理脚本需要的通用变量
+操作机脚本需要的通用变量
 
 变量                   | 说明
 -------------------- | -----------------------------
@@ -359,32 +373,4 @@ BackEnd|backs01|172.16.3.1|root|22||xml|Y|8080
 - `webPort`    ： web服务器监听端口（暂时仅起到记录作用）
 
 
-### bin/ 脚本使用方法
-
-ezdpl公用脚本，任何ezdpl管理的项目里，必须保证此目录下的文件完全一致！
-
-
-脚本                   | 说明
---------------------- | ----------------
-`batch.sh`		| 批量处理项目内的所有/部分服务器，执行 conf/batch.include 里编写的脚本（#开头的不会执行），错误的配置将造成重大灾难，**慎用！**
-`buildhtml`		| 构建静态页项目，需要配合 `conf/deploy.incude` ,`conf/html.lst`
-`buildwar`		| 构建java war包，需要配合 `conf/deploy.incude` ,`conf/war.lst`
-`chkngxlog`		| 分析nginx 访问日志，不带参数时显示帮助说明： 如 `chkngxlog` `status` 日志文件 , 统计http状态码
-`chkres`			| 检测项目内服务器的资源、监听端口和yum重要更新，依赖 `conf/hosts.lst` `conf/ezdpl.include`
-`chktcp`			| 检测项目内web服务器的“异常”TCP状态，依赖`conf/hosts.lst`，检测的是带有 _WEB_SERVER_ 标签的主机
-`dataquery`		| 项目日常MYSQL查询，依赖 `conf/dataquery.sql.sh` ，公用查询是统计行数最多的12个表
-`dephtml`			| 部署静态页项目，需要配合 `conf/deploy.incude` , `conf/html.lst` , `conf/htmlserver.lst`
-`depwar`			| 部署java war包，需要配合 `conf/deploy.incude` , `conf/war.lst` , `conf/webservers.lst`
-`gatherjvmstatus`		| 检测所有 带有 `_WEB_SERVER_` 标签的主机的 java heap 状态
-`how_to_prevent_a_cronjob_from_running_redundantly.sh`  |  长时间运行的cron job脚本建议添加这里的代码
-`kvmconf`			| 简易kvm虚拟机配置和管理
-`letsencrypt_renew_sync.sh`  | 更新letsencrypt免费SSL证书
-`mailfile`		| 命令行发送文件到邮件
-`monitor_webapps.sh` | 	监测tomcat是否运行正常，自动启动意外关闭的tomcat（已废弃，**勿用！**）
-`pysocket.py`		| 简易socket测试工具，不带参数时显示帮助说明
-`readsql`			  | 项目中对数据库的只读访问，依赖`conf/ezdpl.include`，需要提前用`mysql_config_editor`配置Mysql免密码访问
-`scs`			      | 针对项目内服务器的 ssh/scp 工具
-`ssht`			    | ssh 隧道工具
-`tail_ngx_log`	| 跟踪nginx访问日志，过滤特定关键字和http状态码，不带参数时显示帮助说明
-`web_login_test`	| jwt web 登录测试，不带参数时显示帮助说明
-`website_response_monitor.sh` | 监测网站反应，依赖`conf/websites.lst`
+### 4\. bin/ 脚本使用方法
