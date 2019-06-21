@@ -3,8 +3,6 @@ _MEM_WATER_MARK=80
 
 ## readsql
 _MYSQL_SERVER_READ=mydb1
-_MYSQL_SERVER_READ_USER=sqlread
-_MYSQL_SERVER_READ_PASS=sqlreadPassword
 
 # Notify email config
 _NOTIFY_SENDER="alert@example.com"

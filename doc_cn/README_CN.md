@@ -35,7 +35,7 @@ ezdpl 是一套批量配置/管理/监控服务器的脚本工具
 `conf/`      | 配置文件
 `ezdpl`      | 服务器初始化配置脚本
 `local/`     | 项目独有的管理脚本
-`log.txt`    | ezdpl执行日志
+`ezdpl.log`    | ezdpl执行日志
 `operation/` | 运维文件
 `README.md`  | 手册
 `servers/`   | 服务器配置信息（ezpdl脚本使用）
@@ -127,18 +127,18 @@ servers/common/init
 └── pre.sh
 ```
 
-ezdpl 对目标服务器做三件事：
+ezdpl脚本 对目标服务器做三件事：
 
-1. 上传 pre.sh 脚本并执行，在上传 files 下的文件前做些准备
-2. 上传 files 下的所有文件到根目录，文件主要包含一些配置文件和通用的脚本
-3. 上传 fin.sh 脚本并执行，一般是进行主要配置工作
+1. 上传 `pre.sh` 脚本并执行，再上传 files 下的文件前做些准备
+2. 上传 `files` 下的所有文件到根目录，文件主要包含一些配置文件和通用的脚本
+3. 上传 `fin.sh` 脚本并执行，一般是进行主要配置工作
 
 注意事项：
 
-1. 如果某个目录下没有可上传的文件，则只需要写 pre.sh 或 fin.sh 两者其一。
-2. pre.sh 和 fin.sh 都属于通过ssh远程执行的脚本，所以脚本中的命令最好使用全路径，并且绝不可带有交互命令（比如 read），或者其他需要确认、填写信息的命令（比如 yum install 不带 -y 选项）。
+1. 如果某个目录下没有可上传的文件，则只需要写 `pre.sh` 或 `fin.sh` 两者其一。
+2. `pre.sh` 和 `fin.sh` 都属于通过ssh远程执行的脚本，所以脚本中的命令最好使用全路径，不可使用alias，并且绝不可带有交互命令（比如 read），或者其他需要确认、填写信息的命令（比如 yum install 不带 -y 选项）。
 
-servers目录举例（文件和pre.sh fin.sh 脚本请参考代码）
+servers目录举例（文件和 `pre.sh` `fin.sh` 脚本请参考代码）
 
 ```
 servers/
@@ -161,10 +161,12 @@ servers/
 │       ├── files
 │       ├── fin.sh
 │       └── pre.sh
-└── javasrv/
-    ├── firewall/
-    │   └── pre.sh
+└── websrv/
     ├── init/
+    │   ├── files
+    │   ├── fin.sh
+    │   └── pre.sh
+    ├── javasrv/
     │   ├── files
     │   ├── fin.sh
     │   └── pre.sh
@@ -181,22 +183,31 @@ servers/
 #ssh -p$_port $_user@$_ip "crontab -l"
 #scp -P$_port $_user@$_ip:/var/log/iptraf/* .
 #ssh -p$_port $_user@$_ip "egrep '(DNS|GSS)' /etc/ssh/sshd_config"
+#scs $_host e "SOME COMMANDS;;;"
 ```
 
 - 其中的`$_ip $_port $_user`从 `conf/hosts.lst` 中读取
 - `bin/batch.sh` 默认会对 hosts.lst 中的所有服务器执行命令，如果只需要批量操作部分服务器，需要在batch.include中自行添加 if 条件
+- 可以后面添加TAG参数，比如 `batch.sh _WEB_SERVER_`，即挑选所有带 `_WEB_SERVER_`的 host 进行操作
 - 这里可以单独写 ssh/scp 指令，也可以使用`${EZDPL_HOME}/ezdpl`进行服务器初始部署
 
 #### `_config/目录`
 
-这里保存war包生产配置文件，目录结构为 warName/src/main/resources
+这里保存war包生产配置文件。
+
+目录结构为：
+- warName/src/main/resources/，以项目代码为准
+- warName/WEB-INF/classes ，以war包为准
 
 #### deploy.include
 
-变量                      | 说明
+变量                     | 说明
 ----------------------- | ------------------------
 `_DEP_WORK_USER`        | 构建和部署脚本的运行帐号
-`_OPER_PATH`            | war包处理目录
+`export JAVA_HOME=`     | 设置java运行环境变量（非常重要！）
+`export JRE_HOME=`      | 设置java运行环境变量（非常重要！）
+`export PATH=`          | 设置java运行环境变量（非常重要！）
+`_OPER_PATH`            | war包处理目录，主要有 `$_OPER_PATH/build` 构建，`$_OPER_PATH/todeploy` 待发布包，`$_OPER_PATH/cook`重新打包
 `_WARS_RUN`             | 生产war包保存目录
 `_HTML_RUN`             | 生产html静态页保存目录
 `_WAR_LST_FILE`         | 指定 war.lst 文件的位置
@@ -206,7 +217,7 @@ servers/
 `_HTMLSERVERS_LST_FILE` | 指定 htmlservers.lst 文件的位置
 `_HTML_DEPLOY_DELAY`    | web服务器部署html文件后的等待时间（秒）
 
-#### ezdpl.home.sh
+#### `ezdpl.home.sh`
 
 很多脚本需要判断自己所在ezdpl项目的根目录，来确定 `$EZDPL_HOME` 变量，这段代码需要放在脚本最开头。
 
@@ -220,11 +231,11 @@ servers/
 -------------------- | -----------------------------
 `_MEM_WATER_MARK`    | `bin/chkres` 脚本中，服务器内存的水位值（%）
 `_MYSQL_SERVER_READ` | `bin/readsql` 脚本中的默认MYSQL服务器
-`_NOTIFY_*`          | 警报脚本中需要的发送邮件参数
+`_NOTIFY_*`          | 警报脚本中需要的发送邮件参数，`_NOTIFY_SENDER_PASS`的加密方式是BASE64
 
 #### hosts.lst
 
-服务器信息
+服务器信息，由 `scs`,`batch.sh`等使用。
 
 ```
 #ip   #host    #user    #port    #Listening ports    #purpose    #TAG
@@ -238,83 +249,142 @@ servers/
 
 #### html.list
 
-html信息
+html信息，由 `buildhtml`和`dephtml` 使用。
 
 ```
-#htmlDeployName|htmlDevName|htmlPort|gitBranch|gitRepo
-sales|salesFront|80|master|http://server:port/path/to/salesFront.git
-portal|portalFront|80|deploybranch|ssh://user@server:sshport/path/to/portalFront.git
+#htmlName|htmlDevName|gitBranch|gitRepo|codeDir|builtPath
+sales|salesFront|master|`http://server:port/path/to/salesFront.git`|html|dist
+portal|portalFront|deploybranch|ssh://user@server:22/path/to/portalFront.git||
 ```
 
 - 字段间用`|`分隔
-- `htmlDeployName` ： 部署名称（`$_HTML_RUN/html/`下的目录名称）,buildhtml和dephtml脚本以本字段作为参数
+- `htmlName`   ： 部署名称（`$_HTML_RUN/html/`下的目录名称）,buildhtml和dephtml脚本以本字段作为参数
 - `htmlDevName`： 开发名称（一般与git代码库目录名相同，暂时仅起到记录作用）
-- `htmlPort` ： web服务器监听端口（暂时仅起到记录作用）
 - `gitBranch` ： git分支名称
-- `gitRepo` : git 代码库地址
+- `gitRepo`   ： git 代码库地址
+- `codeDir`   ： git 代码库中真正代码的子目录
+- `builtPath` ： node web 项目运行`npm run build`之后生成的目标目录，一般为`dist`
 
 #### htmlservers.lst
 
-html服务器信息
+html服务器信息，由`dephtml` 使用，定义html项目的发布服务器。
 
 ```
-  #htmlDeployName|serverIp|serverUser|serverPort
-  sales|172.16.2.1|root|22
-```
-
-`htmlDeployName` 必须与 `html.list` 中对应。
-
-#### japp.include
-
-java共通配置信息，为tmc,japp脚本所使用。
-
-默认部署位置为java应用服务器`/usr/local/bin/`目录。
-
-变量                    | 说明
---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-`_WORK_USER`          | java 应用运行帐号
-`_HOME_DIR`           | tomcat公用`CATALINA_HOME`目录，适合一台服务器部署多个tomcat时共享一套`CATALINA_HOME`。（灵活度不足，拟废弃）
-`_BASES_DIR`          | tomcat`CATALINA_BASE`部署目录，tmc脚本会在此目录查找tomcat，每个tomcat使用一个子目录，子目录名即war.lst中的webName。子目录之前仅包含`CATALINA_BASE`部分，目前应为完整tomcat。子目录可以包含`java_env`文件，用于指定不同于 `japp.include` 的JAVA环境变量（使用export命令）；可以包含`home_def`文件，用于单独指定 `CATALINA_HOME`（完整路径写在文件第一行）。
-`_WAR_RUNNING_PATH`   | 应用服务器上war包部署的路径，由`deployWebxml`使用。
-`_MAX_SHUTDOWN_RETRY` | tomcat 无法正常关闭时的最大重试次数，由 `tmc`使用。
-`_MAX_TRY`            | jar包应用启动时的最大重试次数，
-`_MAX_WAIT`           | jar包应用启动时重试间隔
-`_LANG`               | 环境变量LANG
-`_LC_ALL`             | 环境变量`LC_ALL`
-`_APP_PATH`           | jar包部署目录，每个jar包使用一个目录，目录名和jar包名必须一致（不含`.jar`扩展名）。子目录可以包含`java_env`文件，用于指定不同于 `japp.include` 的JAVA环境变量（使用export命令）；可以包含`java_opts`文件，用于指定单独的`JAVA_OPTS`（完整选项写在文件第一行，比如 `-Djava.ext.dirs=$JRE_HOME/lib/ext:/opt/javaapp/a/lib` ）。
-`_LOG_PATH`           | jar包日志目录
-`_JAVA_OPTS`          | 公用的`JAVA_OPS`
-
-#### war.list
-
-war包信息
-
-```
-#warDevName|warDeployName|needRestart|webName|webPort|configFilesPath|gitBranch|gitRepo
-salesweb|ROOT|Y|Sales|8090|WEB-INF/classes||
-backendapi|api|Y|BackEnd|8080|src/main/resources|master|ssh://user@server:sshport/path/to/backendapi.git
+#htmlName|serverName|serverIp|serverUser|serverPort|targetPath|htmlPort
+sales|webs01|172.16.2.1|root|22|/opt/html/sales|80
+sales|webs01|172.16.2.4|root|22|/opt/html/sales|80
+portal|backs01|172.16.3.1|root|22||80
 ```
 
 - 字段间用`|`分隔
-- `warDevName`： 开发名称，buildwar和depwar脚本以本字段作为参数
-- `warDeployName` ： 部署名称（`$_WARS_RUN/webapps/webName/` 下的目录名称）
-- `needRestart` ： 部署war包后是否需要重启tomcat（Y是，N否）
-- `webPort` ： web服务器监听端口（暂时仅起到记录作用）
+- `htmlName`   ： 部署名称，同上，必须与 `html.list` 中对应，多个相同的`htmlName`代表一个项目要部署到多个服务器上
+- `serverName` ： 目标服务器名称，仅起到记录作用
+- `serverIp`   ： 目标服务器IP
+- `serverUser` ： 目标服务器SSH用户名
+- `serverPort` ： 目标服务器SSH端口
+- `targetPath` ： 目标服务器静态页发布目录，如果有值，则替换目标目录；如果留空，则使用共享目录发布，在目的服务器上建立指向共享目录的软链接
+- `htmlPort`   ： 目标服务器本项目http监听端口（仅起到记录作用）
+
+#### japp.include
+
+java共通配置信息，初始化服务器时会上传到应用服务器上的`/usr/local/bin/`目录，由`tmc`,`japp`脚本所使用。
+
+变量                   | 说明
+--------------------- | ----------------
+`_WORK_USER`          | java 应用运行帐号
+`_HOME_DIR`           | tomcat公用`CATALINA_HOME`目录，适合一台服务器部署多个tomcat时共享一套`CATALINA_HOME`。（灵活度不足，已废弃！），默认为空`""`
+`_BASES_DIR`          | tomcat`CATALINA_HOME`和`CATALINA_BASE`部署目录，tmc脚本会认为此目录中每个子目录为一个tomcat，子目录名即war.lst中的`webName`。子目录之前仅包含`CATALINA_BASE`部分，目前应为完整tomcat。子目录可以包含`java_env`文件，用于指定不同于 `japp.include` 的JAVA环境变量（使用export命令配置JAVA环境变量）。    
+`_LANG`               | 环境变量LANG
+`_LC_ALL`             | 环境变量`LC_ALL`
+`_WAR_RUNNING_PATH`   | 应用服务器上war包保存的路径，由应用服务器上的`deployWebxml`使用。默认为挂载的共享目录`/data/webShare/read/webapps`，与`deploy.include`中`_WARS_RUN`必须指向同一个共享存储，在操作机和应用服务器上一般使用相同的目录名。
+`_MAX_SHUTDOWN_RETRY` | tomcat 无法正常关闭时的最大重试次数，由 `tmc`使用。
+`_MAX_TRY`            | `japp`使用，jar包应用启动时的最大重试次数，
+`_MAX_WAIT`           | `japp`使用，jar包应用启动时重试间隔
+`_APP_PATH`           | `japp`使用，jar包部署目录，每个jar包使用一个目录，目录名和jar包名必须一致（不含`.jar`扩展名）。子目录可以包含`java_env`文件，用于指定不同于 `japp.include` 的JAVA环境变量（使用export命令）；可以包含`java_opts`文件，用于指定单独的`JAVA_OPTS`（完整选项写在文件第一行，比如 `-Djava.ext.dirs=$JRE_HOME/lib/ext:/opt/javaapp/a/lib` ）。
+`_LOG_PATH`           | `japp`使用，jar包日志目录
+`_JAVA_OPTS`          | 公用的`JAVA_OPS`（已废弃，改由jar包应用的`java_opts`配置 ）
+`# Notify email config` | 这些变量已不再使用
+
+#### `mkhtml.sh`
+  由 `buildhtml` 使用，用于更改html项目中js中的配置文件，每个项目各有不同，case选项名必须与`html.lst`中的`htmlName`对应，（示例见`conf/mkhtml.sh`文件）。
+
+#### release.include
+  ezdpl脚本初始化服务器时会上传此文件到目标服务器`/usr/local/bin/`，用于
+- 判断服务器发行版
+- 提供配置文件内容或配置参数
+- 为`backupmysql.sh`脚本设置数据库备份选项
+- 为php服务器提供必要信息
+
+#### war.list
+
+war包信息，由`buildwar`和`depwar`使用。
+
+```
+#warName|warDeployName|webName|configFilesPath|gitBranch|gitRepo|codeDir|runTest
+salesweb|ROOT|Sales|WEB-INF/classes||||N
+backendapi|api|BackEnd|src/main/resources|master|ssh://user@server:sshport/path/to/backendapi.git|backend|N
+```
+
+- 字段间用`|`分隔
+- `warName`       ： war包名称，buildwar和depwar脚本以本字段作为参数，也是`$_WARS_RUN/webapps/` 下的目录名称
+- `warDeployName` ： 部署名称，即发布后war包的最终名称，也是xml部署方式的context xml文件名
+- `webName`       ： `$_BASES_DIR/webName`，目标应用服务器的tomcat目录名
 - `configFilesPath` ： 保存生产配置文件的路径（主要部分）
-- `gitBranch` ： git分支名称
-- `gitRepo` : git 代码库地址
+- `gitBranch`     ： git分支名称
+- `gitRepo`       ： git代码库地址，推荐ssh://地址
+- `codeDir`       ： git 代码库中真正代码的子目录
+- `runTest`       ： maven是否要运行test代码,（Y是，N否）
 
 如果`gitBranch`和`gitRepo`，`buildwar`脚本即按照war包重写来处理，没有下载代码和构建环节。
 
 #### webservers.lst
 
-web服务器信息
+web服务器信息，由`depwar`使用，定义war包的发布服务器。
 
 ```
-#webName|serverName|serverUser|serverPort
-Sales|172.16.2.1|root|22
+#webName|serverName|ServerIp|serverUser|serverPort|targetPath|deployMode(war/xml)|needRestart|webPort
+Sales|webs03|172.16.2.3|root|22|/opt/webs/sales|war|N|8080
+Sales|webs04|172.16.2.4|root|22|/opt/webs/sales|war|N|8080
+BackEnd|backs01|172.16.3.1|root|22||xml|Y|8080
 ```
 
-`webName`必须与 `war.list` 中对应。
+- `webName`    ： 必须与 `war.list` 中对应。
+- `serverName` ： 目标服务器名称，仅起到记录作用
+- `serverIp`   ： 目标服务器IP
+- `serverUser` ： 目标服务器SSH用户名
+- `serverPort` ： 目标服务器SSH端口
+- `targetPath` ： 如果用war方式部署，这里用来指定war包上传目录
+- `deployMode(war/xml)` ： 定义部署方式，war是直接上传，xml是修改目标服务器指定tomcat（即 `$_BASES_DIR/webName`）的context xml文件，比如 /opt/webs/Sales/conf/Catalina/localhost/ROOT.xml 。
+- `needRestart`： 部署war包后是否需要重启tomcat（Y是，N否）
+- `webPort`    ： web服务器监听端口（暂时仅起到记录作用）
 
-### 4\. bin/ 脚本使用方法
+
+### bin/ 脚本使用方法
+
+ezdpl公用脚本，任何ezdpl管理的项目里，必须保证此目录下的文件完全一致！
+
+
+脚本                   | 说明
+--------------------- | ----------------
+`batch.sh`		| 批量处理项目内的所有/部分服务器，执行 conf/batch.include 里编写的脚本（#开头的不会执行），错误的配置将造成重大灾难，**慎用！**
+`buildhtml`		| 构建静态页项目，需要配合 `conf/deploy.incude` ,`conf/html.lst`
+`buildwar`		| 构建java war包，需要配合 `conf/deploy.incude` ,`conf/war.lst`
+`chkngxlog`		| 分析nginx 访问日志，不带参数时显示帮助说明： 如 `chkngxlog` `status` 日志文件 , 统计http状态码
+`chkres`			| 检测项目内服务器的资源、监听端口和yum重要更新，依赖 `conf/hosts.lst` `conf/ezdpl.include`
+`chktcp`			| 检测项目内web服务器的“异常”TCP状态，依赖`conf/hosts.lst`，检测的是带有 _WEB_SERVER_ 标签的主机
+`dataquery`		| 项目日常MYSQL查询，依赖 `conf/dataquery.sql.sh` ，公用查询是统计行数最多的12个表
+`dephtml`			| 部署静态页项目，需要配合 `conf/deploy.incude` , `conf/html.lst` , `conf/htmlserver.lst`
+`depwar`			| 部署java war包，需要配合 `conf/deploy.incude` , `conf/war.lst` , `conf/webservers.lst`
+`gatherjvmstatus`		| 检测所有 带有 `_WEB_SERVER_` 标签的主机的 java heap 状态
+`how_to_prevent_a_cronjob_from_running_redundantly.sh`  |  长时间运行的cron job脚本建议添加这里的代码
+`kvmconf`			| 简易kvm虚拟机配置和管理
+`letsencrypt_renew_sync.sh`  | 更新letsencrypt免费SSL证书
+`mailfile`		| 命令行发送文件到邮件
+`monitor_webapps.sh` | 	监测tomcat是否运行正常，自动启动意外关闭的tomcat（已废弃，**勿用！**）
+`pysocket.py`		| 简易socket测试工具，不带参数时显示帮助说明
+`readsql`			  | 项目中对数据库的只读访问，依赖`conf/ezdpl.include`，需要提前用`mysql_config_editor`配置Mysql免密码访问
+`scs`			      | 针对项目内服务器的 ssh/scp 工具
+`ssht`			    | ssh 隧道工具
+`tail_ngx_log`	| 跟踪nginx访问日志，过滤特定关键字和http状态码，不带参数时显示帮助说明
+`web_login_test`	| jwt web 登录测试，不带参数时显示帮助说明
+`website_response_monitor.sh` | 监测网站反应，依赖`conf/websites.lst`
