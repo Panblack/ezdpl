@@ -258,18 +258,18 @@ servers/
 变量                     | 说明
 ----------------------- | ------------------------
 `_DEP_WORK_USER`        | 构建和部署脚本的运行用户，一般就是操作机/堡垒机上使用 `ezdpl` 的用户
-`export JAVA_HOME=`     | 设置操作机的java运行环境变量（非常重要！）
-`export JRE_HOME=`      | 设置操作机的java运行环境变量（非常重要！）
-`export PATH=`          | 设置操作机的java运行环境变量（非常重要！）
-`_OPER_PATH`            | war包处理目录，主要有 `$_OPER_PATH/build` 构建，`$_OPER_PATH/todeploy` 待发布包，`$_OPER_PATH/cook`重新打包
-`_WARS_RUN`             | 生产war包保存目录，一般是NFS共享的挂载目录
-`_HTML_RUN`             | 生产html静态页保存目录，一般是NFS共享的挂载目录
+`export JAVA_HOME=`     | 如果没有系统全局环境变量、或者全局变量不符合要求，这里必须给出适当的配置（非常重要！）
+`export JRE_HOME=`      | 如果没有系统全局环境变量、或者全局变量不符合要求，这里必须给出适当的配置（非常重要！）
+`export PATH=`          | 如果没有系统全局环境变量、或者全局变量不符合要求，这里必须给出适当的配置（非常重要！）
+`_OPER_PATH`            | war包处理目录，主要有 `$_OPER_PATH/build` 构建，`$_OPER_PATH/todeploy` 待发布包，`$_OPER_PATH/cook`重新打包，注意，这个目录的所有者必须是`$_DEP_WORK_USER`
+`_WARS_RUN`             | 生产war包保存目录，一般是NFS共享的挂载目录，这个目录的必须是`$_DEP_WORK_USER`可以写入的
+`_HTML_RUN`             | 生产html静态页保存目录，一般是NFS共享的挂载目录，这个目录的必须是`$_DEP_WORK_USER`可以写入的
 `_WAR_LST_FILE`         | 指定 war.lst 文件路径，默认是 $EZDPL_HOME/conf/war.lst
 `_WEBSERVERS_LST_FILE`  | 指定 webservers.lst 文件路径，默认是 $EZDPL_HOME/conf/webservers.lst
 `_WAR_DEPLOY_DELAY`     | web服务器部署war包后的等待时间（秒）
 `_HTML_LST_FILE`        | 指定 html.lst 文件路径，默认是 $EZDPL_HOME/conf/html.lst
 `_HTMLSERVERS_LST_FILE` | 指定 htmlservers.lst 文件路径，默认是 $EZDPL_HOME/conf/htmlservers.lst
-`_HTML_DEPLOY_DELAY`    | web服务器部署html文件后的等待时间（秒）
+`_HTML_DEPLOY_DELAY`    | web服务器部署html文件后的等待时间（秒）。有时在执行了发布后可能突然意识到操作错了，可以在这段时间内`Ctrl+c`取消发布。即使10秒之后也可以随时中断发布，影响范围可以控制在若干台服务器内，之后通过回退机制重新发布受影响的服务器
 
 #### `ezdpl.home.sh`
 
