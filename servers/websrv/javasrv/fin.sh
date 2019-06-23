@@ -1,51 +1,80 @@
 #!/bin/bash
 source /usr/local/bin/release.include
-echo $_RELEASE
+source /usr/local/bin/japp.include
+echo "RELEASE:    $_RELEASE"
+echo "_JDK_TYPE:  $_JDK_TYPE"
+echo
+echo "japp.include:"
+echo "_HOME_DIR:  $_HOME_DIR"
+echo "_BASES_DIR: $_BASES_DIR"
+echo "_APP_PATH:  $_APP_PATH"
+echo "_LOG_PATH:  $_LOG_PATH"
+echo "_LIB_PATH:  $_LIB_PATH"
+echo "_OPER_PATH: $_OPER_PATH"
+echo 
 
 # Get dirs ready
-mkdir -p /opt/logs /opt/app /opt/webs
-mkdir -p /opt/wars/cook /opt/wars/build /opt/wars/todeploy /opt/wars/_config /opt/wars/archive /opt/wars/backup
+# kill java app processes if present
+killall -9 java
 
-# jdk and symbolic link
-cd /opt
-echo "Extracts jdk"
-for j in /opt/packages/jdk*.tar.gz ; do
-    tar zxf $j 
-done
-# Make the latest version default
-_jdk=`find -type d -name "jdk1.*"|sort -V|tail -1`
-echo "$_jdk is default jdk"
-ln -sf $_jdk ./jdk
+_backup_dir="/opt/backup/`date +%Y%m%d_%H%M%S`"
+mkdir -p $_backup_dir
 
-# Maven
-cd /opt
-echo "Extracts maven"
-for m in /opt/packages/apache-maven*.tar.gz ; do
-    tar zxf $m
-done
-# Make the latest version default
-_maven=`find -type d -name apache-maven*|sort -V|tail -1`
-echo "$_maven is default maven"
-ln -sf $_maven ./maven
+if [[ -n $_HOME_DIR ]]; then
+    echo "_HOME_DIR is deprecated...."
+    /bin/mv -f $_HOME_DIR $_backup_dir
+    mkdir -p $_HOME_DIR
+fi
 
+/bin/mv -f $_OPER_PATH $_BASES_DIR $_APP_PATH $_LOG_PATH $_LIB_PATH $_backup_dir
+mkdir -p $_BASES_DIR $_APP_PATH $_LOG_PATH $_LIB_PATH
+mkdir -p $_OPER_PATH $_OPER_PATH/cook $_OPER_PATH/build $_OPER_PATH/todeploy $_OPER_PATH/_config $_OPER_PATH/archive $_OPER_PATH/backup
+
+if [[ $_JDK_TYPE = oracle ]]; then
+    echo "$_zz_jdk_oracle" > /etc/profile.d/zz_jdk.sh
+    source /etc/profile.d/zz_jdk.sh
+    # jdk and symbolic link
+    cd /opt
+    echo "Extracts jdk"
+    for j in /opt/packages/jdk*.tar.gz ; do
+        tar zxf $j
+    done
+    # Make the latest version default
+    _jdk=`find -type d -name "jdk1.*"|sort -V|tail -1`
+    echo "$_jdk is default jdk"
+    ln -sf $_jdk $JAVA_HOME
+
+    # Maven
+    cd /opt
+    echo "Extracts maven"
+    for m in /opt/packages/apache-maven*.tar.gz ; do
+        tar zxf $m
+    done
+    # Make the latest version default
+    _maven=`find -type d -name apache-maven*|sort -V|tail -1`
+    echo "$_maven is default maven"
+    ln -sf $_maven $MAVEN_HOME
+
+elif [[ $_JDK_TYPE = open ]]; then
+    echo "$_zz_jdk_open" > /etc/profile.d/zz_jdk.sh
+    yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel maven
+
+else
+    echo "Set _JDK_TYPE=oracle or _JDK_TYPE=open in release.include!"; exit 1
+
+fi
+
+
+# Configure tomcats webs
 # Configure tomcats app/webs
-cd /opt/app
-echo "Extracts tomcat*.zip"
-for tzip in /opt/packages/apache-tomcat-*.zip ; do
-    unzip -q $tzip
-done
+cd $_BASES_DIR
+pwd
 echo "Extracts tomcat*.tar.gz"
 for ttar in /opt/packages/apache-tomcat-*.tar.gz ; do
     tar zxf $ttar
 done
 
-_setenv='
-JAVA_OPTS="-server -Xms1024m -Xmx1024m -XX:+UseG1GC"
-CATALINA_OPTS=" -Djava.security.egd=/dev/urandom"
-UMASK="0022"
-CATALINA_OUT=/dev/null'
-
-for tm in apache-tomcat-*/ ; do 
+for tm in apache-tomcat-*/ ; do
     cd $tm
     pwd
     rm ./bin/*.bat -f
@@ -54,7 +83,7 @@ for tm in apache-tomcat-*/ ; do
     rm ./webapps/* -rf
     rm ./work/*    -rf
     rm ./temp/*    -rf
-    
+
     # context
     sed -i '/<Context>/a\    <Resources allowLinking="true" cachingAllowed="true" cacheMaxSize="102400" \/>' ./conf/context.xml
 
@@ -73,18 +102,23 @@ for tm in apache-tomcat-*/ ; do
     sed -i '/maxThreads=.* minSpareThreads=.* acceptCount=.* enableLookups=/d' ./conf/server.xml
     sed -i '/Connector port=\".*\" protocol=\"org.apache.coyote.http11.Http11Nio2Protocol\"/a\               maxThreads=\"640\" minSpareThreads=\"128\" acceptCount=\"768\" enableLookups=\"false\" ' ./conf/server.xml
 
-    _webdir="/opt/webs/app-`echo $tm|sed 's/apache-tomcat-//g'`"
-    mkdir -p $_webdir
-    /bin/cp -r ./* $_webdir
+    _webdir="app-`echo $tm|sed 's/apache-tomcat-//g'`"
     cd ..
+    mv -f $tm $_webdir
 done
-
-# Make the latest version default
-_tomcat=`find -type d -name "apache-tomcat-*"|sort -V|tail -1`
-ln -sf $_tomcat ./tomcat
 
 # Install rpms
 cd /opt/packages
-yum localinstall *.rpm
+yum localinstall *.rpm 2>/dev/null
+
+echo "make working dirs owned by $_WORK_USER:$_WORK_USER "
+chown -R $_WORK_USER:$_WORK_USER $_BASES_DIR
+chown -R $_WORK_USER:$_WORK_USER $_APP_PATH
+chown -R $_WORK_USER:$_WORK_USER $_LOG_PATH
+chown -R $_WORK_USER:$_WORK_USER $_LIB_PATH
+chown -R $_WORK_USER:$_WORK_USER $_OPER_PATH
 
 echo "`date +%F_%T` websrv/javasrv " >> /tmp/ezdpl.log
+                                                              
+#End
+

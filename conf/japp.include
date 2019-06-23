@@ -4,23 +4,24 @@
 # Global
 _WORK_USER="root"
 
-# for jdk
-export JAVA_HOME=/opt/jdk
-export JRE_HOME=$JAVA_HOME/jre
-export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
-export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
+source /etc/profile.d/zz_jdk.sh
 
-# for maven
-export MAVEN_HOME=/opt/maven
-export M2_HOME=$MAVEN_HOME
-export PATH=$PATH:$MAVEN_HOME/bin
+# for optional jdk
+#export JAVA_HOME=/opt/jdk
+#export JRE_HOME=$JAVA_HOME/jre
+#export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+#export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
+
+# for optional maven
+#export MAVEN_HOME=/opt/maven
+#export M2_HOME=$MAVEN_HOME
+#export PATH=$PATH:$MAVEN_HOME/bin
 
 # for tomcat apps
-#_HOME_DIR="/opt/app/tomcat"
 _HOME_DIR=""
 _BASES_DIR="/opt/webs"
-_LANG="zh_CN.UTF-8"
-_LC_ALL="zh_CN.UTF-8"
+_LANG="en_US.UTF-8"
+_LC_ALL="en_US.UTF-8"
 _WAR_RUNNING_PATH="/data/webShare/read/webapps"
 _MAX_SHUTDOWN_RETRY=15
 
@@ -29,12 +30,8 @@ _MAX_TRY=5
 _MAX_WAIT=10
 _APP_PATH="/opt/javaapp"
 _LOG_PATH="/opt/logs"
+_LIB_PATH="/opt/libs"
 _JAVA_OPTS=""
 #_JAVA_OPTS="-Djava.ext.dirs=$JRE_HOME/lib/ext:/opt/javaapp/a/lib:/opt/javaapp/b/lib"
+_OPER_PATH="/opt/wars"
 
-# Notify email config
-_WEBAPP_NOTIFY_SENDER=""
-_WEBAPP_NOTIFY_SENDER_USER=""
-_WEBAPP_NOTIFY_SENDER_PASS=""
-_WEBAPP_NOTIFY_SENDER_SMTP=""
-_WEBAPP_NOTIFY_RECEIVERS=""

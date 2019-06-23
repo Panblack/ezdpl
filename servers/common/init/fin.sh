@@ -128,10 +128,12 @@ if [[ $_RKHUNTER_PROPUPD = 1 ]];then
 fi
 
 # sshd_config
-_sshd_config="ClientAliveInterval 60
-ClientAliveCountMax 1"
 /bin/cp -p /etc/ssh/sshd_config /etc/ssh/sshd_config.`date +%Y%m%d_%H%M%S`
-echo "$_sshd_config" >> /etc/ssh/sshd_config
+sed -i 's/#UseDNS yes/UseDNS no/g' /etc/ssh/sshd_config
+sed -i 's/GSSAPIAuthentication yes/GSSAPIAuthentication no/g' /etc/ssh/sshd_config
+sed -i '/^ClientAliveInterval/d' /etc/ssh/sshd_config
+sed -i '/^ClientAliveCountMax/d' /etc/ssh/sshd_config
+echo -e "ClientAliveInterval 600\nClientAliveCountMax 10" >> /etc/ssh/sshd_config
 
 echo "`date +%F_%T` common/init " >> /tmp/ezdpl.log
 service sshd restart

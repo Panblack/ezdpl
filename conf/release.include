@@ -1,4 +1,4 @@
-# release.include v.20181211
+# release.include v.20190623
 ## RELEASE CHECK
 _os_release=`egrep '^NAME=|^VERSION_ID=' /etc/os-release|tr -d '\n'`
 _release=`echo $_os_release|awk -F \"  '{print $2}'`
@@ -20,23 +20,6 @@ else
     _RELEASE="${_release}${_version}"
 fi
 
-#if egrep '(CentOS|Red Hat)' /etc/system-release 2>/dev/null| grep 'release 6\.' &>/dev/null; then
-#    _RELEASE="CENTOS6"
-#fi
-#if egrep '(CentOS|Red Hat)' /etc/system-release 2>/dev/null| grep 'release 7\.' &>/dev/null; then
-#    _RELEASE="CENTOS7"
-#fi
-#if grep 'Amazon Linux AMI' /etc/system-release &>/dev/null; then
-#    _RELEASE="CENTOS7"
-#fi
-#if cat /etc/*-release|grep -i ubuntu &>/dev/null; then
-#    _RELEASE="UBUNTU"
-#    if [[ -f /etc/lsb-release ]]; then
-#	_UBUNTU_VERSION=`grep DISTRIB_RELEASE /etc/lsb-release|awk -F= '{print $2}'`
-#    fi
-#fi
-#
-
 ## common/init
 _CRON_FOR_ROOT="*/10 * * * * /usr/local/bin/ban_ssh.sh
 #*/10 * * * * /usr/sbin/ntpdate ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com
@@ -50,6 +33,8 @@ _CRON_FOR_ROOT="*/10 * * * * /usr/local/bin/ban_ssh.sh
 #gpgcheck=0"
 
 _SELINUX_OFF=1
+
+_HISTORY_RECORD=1
 
 _TIMEZONE_INFO="Asia/Shanghai"
 
@@ -78,7 +63,32 @@ show-totals: yes
 log-scale: yes
 "
 
-_HISTORY_RECORD=1
+# JDK configs
+_zz_jdk_oracle='
+export JAVA_HOME=/opt/jdk
+export JRE_HOME=$JAVA_HOME/jre
+export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+export MAVEN_HOME=/opt/maven
+export M2_HOME=$MAVEN_HOME
+export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$MAVEN_HOME/bin
+'
+_zz_jdk_open='
+export JAVA_HOME=/etc/alternatives/java_sdk
+export JRE_HOME=$JAVA_HOME/jre
+export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+export MAVEN_HOME=/usr/share/maven
+export M2_HOME=$MAVEN_HOME
+'
+
+# _JDK_TYPE: oracle open
+_JDK_TYPE=open
+
+_setenv='
+JAVA_OPTS="-server -Xms1024m -Xmx1024m -XX:+UseG1GC"
+CATALINA_OPTS=" -Djava.security.egd=/dev/urandom"
+UMASK="0022"
+#CATALINA_OUT=/dev/null
+'
 
 # pip install "$_PIP_INSTALL"
 _PIP_INSTALL=""
@@ -97,10 +107,6 @@ _MYSQL_MAX_DAYS=15
 _MYSQL_BACKUP_PATH="/data/backupmysql"
 _MYSQL_DATA_PATH="/data/mysql"
 _MYSQL_FSTAB="${_NFS_SERVER_IP}:/backupmysql      /data/backupmysql	nfs4    defaults,soft,timeo=60,retrans=2,noresvport  0 0"
-_MYSQL_RC_LOCAL="
-sleep 5
-mount -t nfs4 -o nosuid,nodev,noatime,nodiratime,intr ${_NFS_SERVER_IP}:/backupmysql      /data/backupmysql
-"
 
 ## websrv/init
 _USE_NFS=0
@@ -109,18 +115,11 @@ ${_NFS_SERVER_IP}:/appLogs/`hostname -s`    /data/logs             nfs4    defau
 ${_NFS_SERVER_IP}:/webShare/read  /data/webShare/read    nfs4    defaults,soft,timeo=60,retrans=2,noresvport  0 0
 ${_NFS_SERVER_IP}:/webShare/write /data/webShare/write   nfs4    defaults,soft,timeo=60,retrans=2,noresvport  0 0
 "
-_WEBSRV_RC_LOCAL="
-sleep 5
-mount -t nfs4 -o defaults,soft,timeo=60,retrans=2,noresvport ${_NFS_SERVER_IP}:/appLogs/`hostname -s`    /data/logs
-mount -t nfs4 -o defaults,soft,timeo=60,retrans=2,noresvport ${_NFS_SERVER_IP}:/webShare/read  /data/webShare/read
-mount -t nfs4 -o defaults,soft,timeo=60,retrans=2,noresvport ${_NFS_SERVER_IP}:/webShare/write /data/webShare/write
-"
 
 _LOCAL_DIRS_FOR_NFS="/data/logs/nginx /data/webShare/read /data/webShare/write"
-_NFS_DIRS_INIT="/data/webShare/read/html /data/webShare/read/webapps /data/webShare/read/download /data/webShare/read/config "
+#_NFS_DIRS_INIT="/data/webShare/read/html /data/webShare/read/webapps /data/webShare/read/download /data/webShare/read/config "
 
-_LOCAL_DIRS_FOR_APPS="/opt/html /opt/app /opt/webs /opt/javaapp /opt/logs /opt/libs"
-_LOCAL_DIRS_FOR_DEPLOY="/opt/wars/build /opt/wars/todeploy /opt/wars/cook /opt/wars/archive /opt/wars/_config"
+_LOCAL_DIRS_FOR_HTML="/opt/html"
 
 _WEBSERVER_FIREWALL_PORTS="80 443 8080 8090"
 _WEBSERVER_FIREWALL_RICH_RULES="rule family='ipv4' source address='224.2.2.3' port port='54328' protocol='udp' accept
@@ -130,8 +129,15 @@ rule family='ipv4' destination address='224.2.2.3' port port='54328' protocol='u
 #"rule family='ipv4' source address='224.2.2.3' port port='54328' protocol='udp' accept
 #rule family='ipv4' destination address='224.2.2.3' port port='54328' protocol='udp' accept"
 
-
+# php
 _PHP_VERSION="php-7.3.0"
 _PHP_ROOT="/opt/html"
 _PHP_USER="phpuser"
+
+# node
+_NODE_VERSION="v8.15.1"
+_NODE_HOME="/opt/node"
+_zz_node='
+export PATH="$PATH:/opt/node/bin"
+'
 
