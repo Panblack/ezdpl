@@ -111,6 +111,15 @@ done
 cd /opt/packages
 yum localinstall *.rpm 2>/dev/null
 
+
+# create $_WORK_USER if not present
+if ! id $_WORK_USER 2>/dev/null; then
+    _pass=`date +%s|md5sum|awk '{print $1}'`
+    echo "Creating user $_WORK_USER with password $_pass"
+    useradd $_WORK_USER
+    echo "$_pass" | passwd worker --stdin
+fi
+
 echo "make working dirs owned by $_WORK_USER:$_WORK_USER "
 chown -R $_WORK_USER:$_WORK_USER $_BASES_DIR
 chown -R $_WORK_USER:$_WORK_USER $_APP_PATH
