@@ -13,10 +13,6 @@ echo "_LIB_PATH:  $_LIB_PATH"
 echo "_OPER_PATH: $_OPER_PATH"
 echo 
 
-# Get dirs ready
-# kill java app processes if present
-killall -9 java
-
 _backup_dir="/opt/backup/`date +%Y%m%d_%H%M%S`"
 mkdir -p $_backup_dir
 
@@ -26,56 +22,7 @@ if [[ -n $_HOME_DIR ]]; then
     mkdir -p $_HOME_DIR
 fi
 
-/bin/mv -f $_OPER_PATH $_BASES_DIR $_APP_PATH $_LOG_PATH $_LIB_PATH $_backup_dir 2>/dev/null
-mkdir -p $_BASES_DIR $_APP_PATH $_LOG_PATH $_LIB_PATH
-mkdir -p $_OPER_PATH $_OPER_PATH/cook $_OPER_PATH/build $_OPER_PATH/todeploy $_OPER_PATH/_config $_OPER_PATH/archive $_OPER_PATH/backup
-
-case $_JDK_TYPE in
-
-  oracle)
-    echo "$_zz_jdk_oracle" > /etc/profile.d/zz_jdk.sh
-    source /etc/profile.d/zz_jdk.sh
-
-    # JDK 
-    cd /opt
-    echo "Extracts jdk"
-    if ls /opt/packages/jdk*.tar.gz &>/dev/null ; then
-        for j in /opt/packages/jdk*.tar.gz ; do
-            tar zxf $j
-        done
-        # Make the latest version default
-        _jdk=`find -type d -name "jdk1.*"|sort -V|tail -1`
-        echo "$_jdk is default jdk"
-        ln -sf $_jdk $JAVA_HOME
-    else
-	echo "No jdk files found in /opt/packages/ . "
-    fi
-
-    # Maven
-    cd /opt
-    if ls /opt/packages/apache-maven*.tar.gz &>/dev/null ; then 
-        echo "Extracts maven"
-        for m in /opt/packages/apache-maven*.tar.gz ; do
-            tar zxf $m
-        done
-        # Make the latest version default
-        _maven=`find -type d -name apache-maven*|sort -V|tail -1`
-        echo "$_maven is default maven"
-        ln -sf $_maven $MAVEN_HOME
-    else
-	echo "No maven files found in /opt/packages/ . "
-    fi
-    ;;
-  open)
-    echo "$_zz_jdk_open" > /etc/profile.d/zz_jdk.sh
-    yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel maven
-    ;;
-  *)
-    echo "Set _JDK_TYPE=oracle or _JDK_TYPE=open in release.include!"; exit 1
-    ;;
-esac
-
-# Configure tomcat webs
+# Configure new tomcat web
 cd $_BASES_DIR
 pwd
 echo "Extracts tomcat*.tar.gz"
@@ -114,21 +61,16 @@ if ls /opt/packages/apache-tomcat-*.tar.gz &>/dev/null; then
         sed -i '/Connector port=\".*\" protocol=\"org.apache.coyote.http11.Http11Nio2Protocol\"/a\               maxThreads=\"640\" minSpareThreads=\"128\" acceptCount=\"768\" enableLookups=\"false\" ' ./conf/server.xml
     
         _webdir="app-`echo $tm|sed 's/apache-tomcat-//g'`"
-        echo "$_webdir"
+	echo "$_webdir"
         cd ..
         if [[ -d $_webdir ]]; then
-            mv -f $_webdir $_backup_dir
-        fi
+	    mv -f $_webdir $_backup_dir
+	fi
         mv -f $tm $_webdir
     done
 else
     echo "No tomcat files found in /opt/packages/ ."    
 fi
-
-# Install rpms
-cd /opt/packages
-yum localinstall *.rpm 2>/dev/null
-
 
 # create $_WORK_USER if not present
 if ! id $_WORK_USER 2>/dev/null; then
@@ -139,13 +81,9 @@ if ! id $_WORK_USER 2>/dev/null; then
 fi
 
 echo "make working dirs owned by $_WORK_USER:$_WORK_USER "
-chown -R $_WORK_USER:$_WORK_USER $_BASES_DIR
-chown -R $_WORK_USER:$_WORK_USER $_APP_PATH
-chown -R $_WORK_USER:$_WORK_USER $_LOG_PATH
-chown -R $_WORK_USER:$_WORK_USER $_LIB_PATH
-chown -R $_WORK_USER:$_WORK_USER $_OPER_PATH
+chown -R $_WORK_USER:$_WORK_USER ${_BASES_DIR}/${_webdir}
 
-echo "`date +%F_%T` websrv/javasrv " >> /tmp/ezdpl.log
+echo "`date +%F_%T` websrv/newtomcat " >> /tmp/ezdpl.log
                                                               
 #End
 
