@@ -51,13 +51,13 @@ conf/war.lst，根据需要修改`warName`的配置信息，比如：
 - 项目backendapi的`webName`为BackEnd，即应用服务器上的tomcat目录应该为 `/opt/webs/BackEnd`
 - 项目backendapi的`configFilesPath`为`src/main/resources`，此为java web项目的默认值
 - 项目backendapi的`gitBranch`为master
-- 项目backendapi的代码库在 `192.168.0.2`，目录为`/home/dev/.gitbucket/repositories/java/backendapi.git`下，所以`gitRepo`见下文，
+- 项目backendapi的代码库在 `192.168.0.2`，目录为`/home/dev/.gitbucket/repositories/java/backendapi.git`下，所以`gitRepo`见下文
 - 项目backendapi的真正代码目录为backend，构建时不需要运行test
 
 - 项目salesweb的`warDeployName`为ROOT，即部署后名称为ROOT.war
 - 项目salesweb的`webName`为Sales，即应用服务器上的tomcat目录应该为 `/opt/webs/Sales`
 - 项目salesweb的`configFilesPath`为`WEB-INF/classes`，此为war包默认值
-- 项目salesweb没有配置分支和代码库，这样它将使用重写war包的方式构建，它的待发布war包需要复制到操作机的`/opt/wars/todeploy`中
+- 项目salesweb没有配置分支和代码库，这样它将使用重写war包的方式构建，它的待发布war包需要复制到操作机的`/opt/wars/todeploy`中，即`/opt/wars/todeploy/salesweb.war`
 
 ```
 #warName|warDeployName|webName|configFilesPath|gitBranch|gitRepo|codeDir|runTest
@@ -78,6 +78,7 @@ Sales|webs01|192.168.0.11|root|22|/opt/webs/sales|war|N|8090
 conf/html.lst，根据需要修改`htmlName`的配置信息，比如：
 - `portal`项目的代码库名字为`portalFront`，分支`deploybranch`，构建后的文件路径为dist，这是典型的node项目
 - `sales`项目的代码库名字为`salesFront`，分支为master，无`codeDir`和`builtPath`
+
 ```
 #htmlName|htmlDevName|gitBranch|gitRepo|codeDir|builtPath
 portal|portalFront|deploybranch|ssh://user@server:sshport/path/to/portalFront.git||dist
@@ -94,6 +95,10 @@ portal|web01|192.168.0.11|root|22||80
 portal|web02|192.168.0.12|root|22||80
 sales|webs01|192.168.0.11|root|22|/opt/html/sales|80
 ```
+
+`mkhtml.sh`
+
+需要按照 ezdpl 代码中的 conf/mkhtml.sh 范例编写，主要目的是替换html项目中后端的服务器地址，需要熟练掌握sed命令。
 
 ### 操作机上的目录和文件
 ```
@@ -130,9 +135,6 @@ sales|webs01|192.168.0.11|root|22|/opt/html/sales|80
         └── classes
             ├── config.properties
             └── jdbc.properties
-
-# mkhtml.sh，需要按照 ezdpl 代码中的 conf/mkhtml.sh 范例编写，主要目的是替换html项目中后端的服务器地址，需要熟练掌握sed命令
-
 ```
 
 创建目录的命令参考：
@@ -410,7 +412,106 @@ tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      
 ### buildwar 执行过程
 脚本本身具备一些注释，这里增加一些更详细的内容
 
+使用方法： buildwar warName 提交号
+如果没有提供参数则输出使用方法和可构建的warName（从war.lst中获得）
+
 1. 取得${EZDPL_HOME}
 1. 引用${EZDPL_HOME}/conf/deploy.include，获取必要的变量 `_OPER_PATH _WARS_RUN _WAR_LST_FILE`
-1. 如果存在${EZDPL_HOME}/conf/war.lst 文件，则获取所有warName的列表，保存到_usage变量，用于显示帮助信息；如果文件不存在，则显示错误信息并退出
-（待续...）
+1. 如果存在${EZDPL_HOME}/conf/war.lst 文件，则获取所有warName的列表，保存到_usage变量，用于显示帮助信息；如果文件不存在，则输出错误信息并退出
+1. 检查参数是否足够，第一个参数为 `warName`，第二个参数是git提交号，可选，默认是使用最新的代码版本
+1. 获取并输出`warName`的信息，如果war.lst中有同名的条目，只取第一条，如果参数给出的warName在`war.lst`中不存在，则输出错误信息并退出
+1. 检查`conf/_config/warName`目录是否存在，如果不存在则给出错误信息并退出
+1. 检查`/data/webShare/read/webapps/warName`目录是否存在，如果不存在则输出错误信息并退出
+1. 参数给出的`warName`含有git repo，使用源码构建war包
+  - 判断`/opt/wars/build/`目录是否存在，如果不存在则输出错误信息并退出
+  - 进入`/opt/wars/build/`，clone代码，如果clone失败则输出错误信息并退出
+  - 切到指定的分支，如果参数里指定了提交号则reset，如果reset失败则输出错误信息并退出
+  - 创建部署目录`/data/webShare/read/webapps/warName/日期时间_TAG_提交号`
+  - 在`/data/webShare/read/webapps/warName/versions`文件里记录本次版本信息
+  - 复制生产配置文件到部署目录（以备检查）
+  - 更换源码中的生产配置文件，记录版本信息到源码配置文件位置
+  - maven构建，根据`runTest`决定是否运行test
+  - war包构建成功后复制到部署目录`/data/webShare/read/webapps/warName/日期时间_TAG_提交号`，如果war包构建失败则输出错误信息并退出
+  - 计算构建目录和部署目录的两个war包的 md5 校验和，确保文件一致
+1. 参数给出的`warName`没有git repo，使用重写war包的方式构建
+  - 判断`/opt/wars/todeploy/warName.war`是否存在，如果不存在则输出错误信息并退出
+  - 创建部署目录`/data/webShare/read/webapps/warName/日期时间`
+  - 复制war包到`/opt/wars/cook`，将生产配置文件注入到war包
+  - 复制到部署目录`/data/webShare/read/webapps/warName/日期时间`
+  - 计算两个war包的 md5 校验和，确保文件一致
+1. 显示部署目录名，即 `日期时间_TAG_提交号` 或 `日期时间`，这一行信息可以为 `depwar` 做参数
+
+### depwar 执行过程
+脚本本身具备一些注释，这里增加一些更详细的内容
+
+使用方法： depwar warName d|u 部署目录名 确认n|y
+如果没有提供参数则输出使用方法和部署目录内容
+
+1. 取得${EZDPL_HOME}
+1. 引用`${EZDPL_HOME}/conf/deploy.include`，获取必要的变量 `_OPER_PATH _WARS_RUN _WAR_LST_FILE _WEBSERVERS_LST_FILE _WAR_DEPLOY_DELAY`
+1. 检查参数是否足够，第一个参数为 `warName`，第二个参数是 d 或者 u，即部署或者撤下，第三个参数是部署目录名，第四个参数是部署前确认与否，默认为y
+1. 检查`/data/webShare/read/webapps/warName/部署目录名`是否存在，如果不存在则输出错误信息并退出
+1. 部署日志路径`/opt/wars/depwar.log`
+1. 获取并输出`warName`的信息，如果 war.lst 中有同名的条目，只取第一条，如果参数给出的 warName 在`war.lst`中不存在，则输出错误信息并退出
+1. 获取并输出 warName 对应的 webservers 信息，如果 webservers.lst 中没有找到，则输出错误信息并退出
+1. 如果第四个参数为空或者不等于 n ，则显示确认提示，输入Y并回车继续，其他字符并回车退出
+1. 等待5秒，如果操作错误，这时候可以Ctrl+c退出
+1. 根据 webservers.lst 中找到的服务器信息，依次执行部署操作，每个服务器部署完毕后会有一段等待时间
+   - 显示war包和服务器信息
+   - xml方式部署：调用应用服务器上的 `/usr/local/bin/deployWebxml`, 传递 `webName deployName war包路径 是否重启tomcat` 参数，deployWebxml 将根据参数信息在对应的 tomcat中写入xml配置文件 `/conf/Catalina/localhost/deployName.xml`，xml文件内容指向部署目录的war包，即使不重启tomcat，也会触发tomcat卸载原war包，启动新的war包。
+   - war方式部署：直接上传war包到远程服务器的 targetPath ，根据配置决定是否重启tomcat
+   - 如果deployMode即不是xml也不是war，则输出错误信息并退出
+   - u 参数目前没有遇到使用场景，暂且不表
+
+### buildwar 和 depwar 的整合
+`depwar warName d $( buildwar warName | tail -1 )`
+
+先运行`buildwar warName`，然后取输出的最后一行，把结果带入到 depwar 的参数中。
+
+### buildhtml 执行过程
+脚本本身具备一些注释，这里增加一些更详细的内容
+
+使用方法： buildhtml htmlName 提交号
+如果没有提供参数则输出使用方法和部署目录内容（ _此处有待修改，应该从html.lst中获得列表_ ）
+
+1. 取得${EZDPL_HOME}
+1. 引用`${EZDPL_HOME}/conf/deploy.include`，获取必要的变量 `_HTML_RUN _HTML_LST_FILE`，引用 `${EZDPL_HOME}/conf/mkhtml.sh`
+1. 检查参数是否足够，第一个参数为 `htmlName`，第二个参数是git提交号，可选，默认是使用最新的代码版本
+1. 检查`/data/webShare/read/webapps/htmlName`目录是否存在，如果不存在则输出错误信息并退出
+1. 如果存在 `${EZDPL_HOME}/conf/html.lst` 文件，则获取并输出 htmlName 信息，如果文件不存在，则输出错误信息并退出
+1. 如果 html.lst 中有同名的条目，只取第一条，如果参数给出的 htmlName 在`html.lst` 中不存在，则输出错误信息并退出
+1. 创建 building 目录 `/data/webShare/read/html/htmlName/building`
+1. 在 building 目录里检查是否已有代码库，如果没有则重新 clone,，如果有则 pull 最新代码，切到指定的分支，如果 clone 和切分支失败，则输出错误信息并退出
+1. 如果参数中有提交号，则 reset 到提交号，如果失败则输出错误信息并退出
+1. 提取代码版本信息
+1. 如果没有`builtPath`，则清除代码中的敏感内容，一般是各种 `.` 开头的配置文件，README.md等，这些文件不可以发布到web服务器上
+1. 运行 `mkhtml.sh`，更新配置文件
+1. 复制文件到部署目录 `/data/webShare/read/html/htmlName/日期_提交号`
+1. 记录版本信息（ _此处有信息泄露风险，需要将文件名修改为随机字符_ ）
+1. 显示部署目录名，即 `日期时间_提交号`，这一行信息可以为 `dephtml` 做参数
+
+### dephtml 执行过程
+脚本本身具备一些注释，这里增加一些更详细的内容
+
+使用方法： dephtml htmlName 部署目录名 确认n|y
+如果没有提供参数则输出使用方法和部署目录内容
+
+1. 取得${EZDPL_HOME}
+1. 引用${EZDPL_HOME}/conf/deploy.include，获取必要的变量 `_OPER_PATH _HTML_RUN _HTML_LST_FILE _HTMLSERVERS_LST_FILE _HTML_DEPLOY_DELAY`
+1. 检查`/data/webShare/read/html/htmlName/部署目录名`是否存在，如果不存在则输出错误信息并退出
+1. 检查参数是否足够，第一个参数为 `htmlName`，第二个参数是部署目录名，第三个参数是部署前确认与否，默认为y
+1. 部署日志路径`/opt/wars/dephtml.log`
+1. 如果存在`${EZDPL_HOME}/conf/html.lst` 和 `htmlservers.lst` 文件，则获取并输出 htmlName 和服务器信息，如果文件不存在，则输出错误信息并退出
+1. 如果 html.lst 中有同名的条目，只取第一条，如果参数给出的 htmlName 在`html.lst`中不存在，则输出错误信息并退出
+1. 获取并输出 htmlName 对应的 htmlservers 信息，如果 htmlservers.lst 中没有找到，则输出错误信息并退出
+1. 如果第三个参数为空或者不等于 n ，则显示确认提示，输入Y并回车继续，其他字符并回车退出
+1. 等待5秒，如果操作错误，这时候可以Ctrl+c退出
+1. 根据 htmlservers.lst 中找到的服务器信息，依次执行部署操作，每个服务器部署完毕后会有一段等待时间
+  - 如果配了`targetPath`，则删除应用服务器上的目标目录，将新文件复制为目标目录，比如`/opt/html/htmlName`
+  - 如果配了`targetPath`，则删除应用服务器上的软链接，新建软链接指向新的html部署目录，比如`/opt/html/htmlName -> /data/webShare/read/html/htmlName/日期_提交号`
+
+
+### buildhtml 和 dephtml 的整合
+`dephtml htmlName $( buildhtml htmlName | tail -1 )`
+
+先运行`buildhtml htmlName`，然后取输出的最后一行，把结果带入到 dephtml 的参数中。

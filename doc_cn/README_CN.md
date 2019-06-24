@@ -266,10 +266,10 @@ servers/
 `_HTML_RUN`             | 生产html静态页保存目录，一般是NFS共享的挂载目录，这个目录的必须是`$_DEP_WORK_USER`可以写入的
 `_WAR_LST_FILE`         | 指定 war.lst 文件路径，默认是 $EZDPL_HOME/conf/war.lst
 `_WEBSERVERS_LST_FILE`  | 指定 webservers.lst 文件路径，默认是 $EZDPL_HOME/conf/webservers.lst
-`_WAR_DEPLOY_DELAY`     | web服务器部署war包后的等待时间（秒）
+`_WAR_DEPLOY_DELAY`     | web服务器war包部署完成后的等待时间（秒）
 `_HTML_LST_FILE`        | 指定 html.lst 文件路径，默认是 $EZDPL_HOME/conf/html.lst
 `_HTMLSERVERS_LST_FILE` | 指定 htmlservers.lst 文件路径，默认是 $EZDPL_HOME/conf/htmlservers.lst
-`_HTML_DEPLOY_DELAY`    | web服务器部署html文件后的等待时间（秒）。有时在执行了发布后可能突然意识到操作错了，可以在这段时间内`Ctrl+c`取消发布。即使10秒之后也可以随时中断发布，影响范围可以控制在若干台服务器内，之后通过回退机制重新发布受影响的服务器
+`_HTML_DEPLOY_DELAY`    | web服务器html部署完成后的等待时间（秒）
 
 #### `ezdpl.home.sh`
 
