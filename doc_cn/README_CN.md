@@ -110,15 +110,15 @@ ezdpl公用脚本，任何ezdpl管理的项目里，必须保证此目录下的�
 
 ## 三. 使用和配置方法
 
-以下提到的目录结构以 `EZDPL_HOME` 为基准，例如把ezdpl clone 到 /root/myezdpl :
+以下提到的目录结构以 `EZDPL_HOME` 为基准，例如把ezdpl clone 到 /home/dpl/myezdpl :
 
-`[dpl@localhost]# git clone https://github.com/Panblack/ezdpl.git myezdpl`
+`[dpl@localhost ~]# git clone https://github.com/Panblack/ezdpl.git myezdpl`
 
 clone下了ezdpl的代码，首先要修改 `git remote` 到 **自己的git服务器repo** 上，然后继续定制以适应您的生产环境。
 
-- `$EZDPL_HOME` 即： `/root/myezdpl/`
-- `servers/common/init` 即 `/root/ezdpl/servers/common/init
-- 操作机需要在环境变量PATH中添加 `$EZDPL_HOME/bin` 和 `$EZDPL_HOME/local`，本例中即`export PATH=$PATH:/root/myezdpl/bin:/root/myezdpl/local`，这样即可在操作机任何目录执行 bin/ 和 local/ 下的脚本
+- `$EZDPL_HOME` 即： `/home/dpl/myezdpl/`
+- `servers/common/init` 即 `/home/dpl/ezdpl/servers/common/init`
+- 操作机需要在环境变量PATH中添加 `$EZDPL_HOME/bin` 和 `$EZDPL_HOME/local`，本例中即`export PATH=$PATH:/home/dpl/myezdpl/bin:/home/dpl/myezdpl/local`，这样即可在操作机任何目录执行 bin/ 和 local/ 下的脚本
 
 ### 1\. ezdpl 使用方法
 
@@ -564,8 +564,8 @@ scs 是为了简化登录服务器、上传下载文件的操作而编写的。
 `scs web01 e 'uname -a'`   | 在`conf/hosts.lst`中定义的 web01 服务器上执行 `uname -a`命令，结果显示在操作机命令行下，不会登录到服务器。不可以用alias，不可以运行交互命令。
 `scs web01 d /dir/file.txt /tmp/` | 将 `conf/hosts.lst`中定义的 web01 上的 `/dir/file.txt` 文件下载到操作机的 `/tmp/` 目录
 `scs web01 dp /dir /tmp/`         | 将 `conf/hosts.lst`中定义的 web01 上的 `/dir` 目录下载到操作机的 `/tmp/` 目录
-`scs web01 u ./file.txt /root/`  | 将 `./file.txt` 上传到 `conf/hosts.lst`中定义的 web01 的 `/root/` 目录
-`scs web01 up ./dir /root/`      | 将 `./dir` 目录上传到 `conf/hosts.lst`中定义的 web01 的 `/root/` 目录
+`scs web01 u ./file.txt /tmp/`  | 将 `./file.txt` 上传到 `conf/hosts.lst`中定义的 web01 的 `/tmp/` 目录
+`scs web01 up ./dir /tmp/`      | 将 `./dir` 目录上传到 `conf/hosts.lst`中定义的 web01 的 `/tmp/` 目录
 `scs some_user@192.168.50.20:2112` | 登录 `conf/hosts.lst` 中未定义的服务器，用户 some_user , IP 192.168.50.20 , 服务器ssh端口 2112
 
 ```
