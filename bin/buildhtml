@@ -121,7 +121,7 @@ if ! cp -r ./${_builtPath}/* $_deploy_path ; then
 fi
 
 # 记录版本信息
-_html_version_Show_file="${_deploy_path}/html_version_Show.txt"
+_html_version_Show_file="${_deploy_path}/${_commit}.txt"
 _version_info="\n\n${_datetime}\n${_deploy_path}\n${_git_branch_v}\n${_git_log}"
 touch $_html_version_Show_file
 echo -e "$_version_info" | tee -a $_html_version_Show_file
