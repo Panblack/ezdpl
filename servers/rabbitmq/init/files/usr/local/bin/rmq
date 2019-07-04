@@ -1,5 +1,11 @@
 #!/bin/bash
 ps aux|grep rabbit|sed 's/ -/\n -/g'
 echo
-netstat -lntp |egrep "beam|epmd"
+netstat -antup|egrep '(epmd|beam.smp)'|sort -k6
+echo
+echo 'Queues:';rabbitmqctl list_queues|grep -v 'Listing queues'|sort
+echo
+echo 'Connections:'; rabbitmqctl list_connections|grep -v 'Listing connections'|sort
+echo
+
 
