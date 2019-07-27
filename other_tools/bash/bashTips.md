@@ -1,5 +1,9 @@
 # Bash Tips 
 
+## Clear old snaps
+`snap list --all | awk '/disabled/{print $1, $3}' | while read snapname revision; do snap remove "$snapname" --revision="$revision";done`
+`sudo snap set system refresh.retain=2`
+
 ## Record iotop 
 `nohup iotop -o -b -t > iotop.log &`
 
