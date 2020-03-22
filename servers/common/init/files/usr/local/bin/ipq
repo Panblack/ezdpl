@@ -16,13 +16,13 @@ else
 fi
 echo
 
-echo "Query ip.cn"
-if [ -n $_ip ]; then
-  curl -s http://ip.cn?ip=$_ip |grep -E -v '<|>'
-else
-  curl -s http://ip.cn |grep -E -v '<|>'
-fi
-echo
+#echo "Query ip.cn"
+#if [ -n $_ip ]; then
+#  curl -s http://ip.cn?ip=$_ip |grep -E -v '<|>'
+#else
+#  curl -s http://ip.cn |grep -E -v '<|>'
+#fi
+#echo
 
 echo "Query ipip.net"
 if [[ -n $_ip ]]; then
