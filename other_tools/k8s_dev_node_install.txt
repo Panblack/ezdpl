@@ -1,0 +1,220 @@
+
+
+## plan
+1. OS Ubuntu20.04, 2C2M
+1. Containerd instead of docker
+1. etcd cluster(to be)
+1. Conponents
+  - coredns
+  - ingress-nginx
+  - calico
+  - metallb
+  - istio(to be)
+
+## nodes
+- dev-k8s-node001.lab.example.com 192.168.122.101
+- dev-k8s-node002.lab.example.com 192.168.122.102
+- dev-k8s-node003.lab.example.com 192.168.122.103
+
+
+## Configure
+```
+sudo -i
+
+#hosts
+echo "
+192.168.122.101  dev-k8s-node001.lab.example.com dev-k8s-node001
+192.168.122.102  dev-k8s-node002.lab.example.com dev-k8s-node002
+192.168.122.103  dev-k8s-node003.lab.example.com dev-k8s-node003
+" >> /etc/hosts
+
+#sysctl
+cat > /etc/sysctl.d/k8s.conf << eof
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+vm.swappiness = 0
+eof
+
+#module
+echo br_netfilter >> /etc/modules && modeprobe br_netfilter
+sysctl -p
+sysctl --system
+
+#swapoff
+swapoff -a
+sudo cp -p /etc/fstab /etc/fstab.bak
+sed -ir 's/.*swap/#&/g' /etc/fstab
+rm -rf /swap.img
+free -tm
+
+#sudo 
+echo "ubuntu  ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers.d/ubuntu
+
+#aliyun k8s repo & install kube*
+curl -s https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg | sudo apt-key add -
+echo "deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main" >>/etc/apt/sources.list.d/kubernetes.list
+apt-get update
+apt-cache policy kubectl kubeadm kubelet | grep 1.24
+apt-get install kubelet=1.24.2-00 kubectl=1.24.2-00 kubeadm=1.24.2-00 containerd tree sysstat -y 
+
+#turn off autoupgrade
+sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
+sed -i 's/1/0/g' /etc/apt/apt.conf.d/10periodic 
+# or
+sudo apt-mark hold kubeadm kubectl kubelet
+
+#containerd
+sudo mkdir /etc/containerd/
+sudo containerd config default > ~/containerd.default.toml
+sudo cp ~/containerd.default.toml /etc/containerd/config.toml
+sudo chmod 640 /etc/containerd/config.toml
+sudo vim /etc/containerd/config.toml
+sudo diff -y -W200 /etc/containerd/config.toml ~/containerd.default.toml
+
+    sandbox_image = "registry.aliyuncs.com/google_containers/pause:3.7"				   |	    sandbox_image = "k8s.gcr.io/pause:3.5
+            SystemdCgroup = true								   |	            SystemdCgroup = false
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]						      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]			   |
+          endpoint = ["https://docker.mirrors.ustc.edu.cn"]					   <
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."k8s.gcr.io"]			   <
+          endpoint = ["https://registry.aliyuncs.com/google_containers"]			   <
+
+
+>#      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]							      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+>#        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."gcr.io"]					     <
+>#          endpoint = ["https://registry.aliyuncs.com/google_containers","https://registry.gcr.io"]	     <
+>Jun 12 07:31:17 dev-k8s-node001.lab.example.com containerd[622]: time="2022-06-12T07:31:17.011511551Z" level=error msg="RunPodSandbox for &PodSandboxMetadata{Name:etcd-dev-k8s-node001.lab.example.com,Uid:ea1817b033bd55bb32ef22fd81038f61,Namespace:kube-system,Attempt:0,} failed, error" error="failed to get sandbox image \"k8s.gcr.io/pause:3.5\": failed to pull image \"k8s.gcr.io/pause:3.5\": failed to pull and unpack image \"k8s.gcr.io/pause:3.5\": failed to resolve reference \"k8s.gcr.io/pause:3.5\": failed to do request: Head https://k8s.gcr.io/v2/pause/manifests/3.5: dial tcp 64.233.189.82:443: i/o timeout"
+>
+>[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
+>[kubelet-check] Initial timeout of 40s passed.
+>
+>
+>	Unfortunately, an error has occurred:
+>		timed out waiting for the condition
+>
+>	This error is likely caused by:
+>		- The kubelet is not running
+>		- The kubelet is unhealthy due to a misconfiguration of the node in some way (required cgroups disabled)
+>
+>	If you are on a systemd-powered system, you can try to troubleshoot the error with the following commands:
+>		- 'systemctl status kubelet'
+>		- 'journalctl -xeu kubelet'
+>
+>	Additionally, a control plane component may have crashed or exited when started by the container runtime.
+>	To troubleshoot, list all containers using your preferred container runtimes CLI.
+>
+>	Here is one example how you may list all Kubernetes containers running in cri-o/containerd using crictl:
+>		- 'crictl --runtime-endpoint /run/containerd/containerd.sock ps -a | grep kube | grep -v pause'
+>		Once you have found the failing container, you can inspect its logs with:
+>		- 'crictl --runtime-endpoint /run/containerd/containerd.sock logs CONTAINERID'
+
+#containerd drop-in for proxy and limit
+sudo vim /etc/systemd/system/containerd.service.d/proxy.conf
+	[Service]
+	HTTP_PROXY=http://proxy:1080
+	LimitNOFILE=65536
+
+sudo systemctl daemon-reload
+sudo systemctl restart containerd
+sudo systemctl status containerd
+
+
+#ctrctl
+crictl config --set runtime-endpoint=unix:///run/containerd/containerd.sock,image-endpoint=unix:///run/containerd/containerd.sock,pull-image-on-create=true,disable-pull-on-run=true
+>	cat /etc/crictl.yaml 
+>	runtime-endpoint: "unix:///var/run/containerd/containerd.sock"
+>	image-endpoint: "unix:///var/run/containerd/containerd.sock"
+>	timeout: 0
+>	debug: false
+>	pull-image-on-create: true
+>	disable-pull-on-run: true
+
+>	ubuntu@dev-k8s-node001:~$ sudo crictl pull nginx
+>	Image is up to date for sha256:0e901e68141fd02f237cf63eb842529f8a9500636a9419e3cf4fb986b8fe3d5d
+>	ubuntu@dev-k8s-node001:~$ sudo crictl image ls
+>	IMAGE                     TAG                 IMAGE ID            SIZE
+>	docker.io/library/nginx   latest              0e901e68141fd       56.7MB
+
+#ctr
+sudo ctr -n k8s.io images ls
+sudo http_proxy=http://proxy:1080 ctr image pull nginx
+
+#auto completion
+echo -e "source <(kubeadm completion bash)\nsource <(kubectl completion bash)" >> ~/.profile
+
+
+
+## Install kube-system
+sudo kubeadm init --kubernetes-version=v1.23.0 --apiserver-advertise-address=192.168.122.101 --image-repository=registry.aliyuncs.com/google_containers --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/16
+
+>	Your Kubernetes control-plane has initialized successfully!
+>	
+>	To start using your cluster, you need to run the following as a regular user:
+>	
+>	  mkdir -p $HOME/.kube
+>	  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+>	  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+>	
+>	Alternatively, if you are the root user, you can run:
+>	
+>	  export KUBECONFIG=/etc/kubernetes/admin.conf
+>	
+>	You should now deploy a pod network to the cluster.
+>	Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+>	  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+>	
+>	Then you can join any number of worker nodes by running the following on each as root:
+>	
+>	kubeadm join 192.168.122.101:6443 --token spsb8l.m5vhru3igz2qqaz7 \
+>		--discovery-token-ca-cert-hash sha256:2ec452d8a01a6bf6e737b51a926e053103f83d9e1d387a02bf5390bf29e8b117 
+>	
+
+
+
+ubuntu@dev-k8s-node001:~$ kubectl get nodes 
+NAME                              STATUS     ROLES                  AGE     VERSION
+dev-k8s-node001.lab.example.com   NotReady   control-plane,master   4m57s   v1.23.0
+dev-k8s-node002.lab.example.com   NotReady   <none>                 45s     v1.23.0
+dev-k8s-node003.lab.example.com   NotReady   <none>                 37s     v1.23.0
+ubuntu@dev-k8s-node001:~$ kubectl get pods -A -o wide
+NAMESPACE     NAME                                                      READY   STATUS              RESTARTS   AGE     IP                NODE                              NOMINATED NODE   READINESS GATES
+kube-system   coredns-6d8c4cb4d-mbf6s                                   0/1     Pending             0          4m42s   <none>            <none>                            <none>           <none>
+kube-system   coredns-6d8c4cb4d-sxvmm                                   0/1     Pending             0          4m42s   <none>            <none>                            <none>           <none>
+kube-system   etcd-dev-k8s-node001.lab.example.com                      1/1     Running             0          5m      192.168.122.101   dev-k8s-node001.lab.example.com   <none>           <none>
+kube-system   kube-apiserver-dev-k8s-node001.lab.example.com            1/1     Running             0          4m49s   192.168.122.101   dev-k8s-node001.lab.example.com   <none>           <none>
+kube-system   kube-controller-manager-dev-k8s-node001.lab.example.com   1/1     Running             0          4m59s   192.168.122.101   dev-k8s-node001.lab.example.com   <none>           <none>
+kube-system   kube-proxy-2rnm2                                          1/1     Running             0          4m43s   192.168.122.101   dev-k8s-node001.lab.example.com   <none>           <none>
+kube-system   kube-proxy-p2nhg                                          0/1     ContainerCreating   0          49s     192.168.122.102   dev-k8s-node002.lab.example.com   <none>           <none>
+kube-system   kube-proxy-v2mmr                                          1/1     Running             0          41s     192.168.122.103   dev-k8s-node003.lab.example.com   <none>           <none>
+kube-system   kube-scheduler-dev-k8s-node001.lab.example.com            1/1     Running             0          4m55s   192.168.122.101   dev-k8s-node001.lab.example.com   <none>           <none>
+
+
+wget  https://docs.projectcalico.org/manifests/calico.yaml
+kubectl apply -f calico.yaml 
+
+
+ubuntu@dev-k8s-node001:~$ kubectl get nodes 
+NAME                              STATUS   ROLES                  AGE   VERSION
+dev-k8s-node001.lab.example.com   Ready    control-plane,master   58m   v1.23.0
+dev-k8s-node002.lab.example.com   Ready    <none>                 53m   v1.23.0
+dev-k8s-node003.lab.example.com   Ready    <none>                 53m   v1.23.0
+ubuntu@dev-k8s-node001:~$ kubectl get pods -A
+NAMESPACE     NAME                                                      READY   STATUS    RESTARTS   AGE
+kube-system   calico-kube-controllers-6b77fff45-zdnkd                   1/1     Running   0          51m
+kube-system   calico-node-66gv4                                         1/1     Running   0          51m
+kube-system   calico-node-ldwmw                                         1/1     Running   0          51m
+kube-system   calico-node-pjjf4                                         1/1     Running   0          51m
+kube-system   coredns-6d8c4cb4d-mbf6s                                   1/1     Running   0          57m
+kube-system   coredns-6d8c4cb4d-sxvmm                                   1/1     Running   0          57m
+kube-system   etcd-dev-k8s-node001.lab.example.com                      1/1     Running   0          58m
+kube-system   kube-apiserver-dev-k8s-node001.lab.example.com            1/1     Running   0          57m
+kube-system   kube-controller-manager-dev-k8s-node001.lab.example.com   1/1     Running   0          58m
+kube-system   kube-proxy-2rnm2                                          1/1     Running   0          57m
+kube-system   kube-proxy-p2nhg                                          1/1     Running   0          53m
+kube-system   kube-proxy-v2mmr                                          1/1     Running   0          53m
+kube-system   kube-scheduler-dev-k8s-node001.lab.example.com            1/1     Running   0          58m
+
+```
+
+

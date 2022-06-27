@@ -1,5 +1,8 @@
 # Bash Tips 
 
+## sudo asterisk 
+`sudo sh -c "ls -l /root/* "`
+
 ## Clear old snaps
 `snap list --all | awk '/disabled/{print $1, $3}' | while read snapname revision; do snap remove "$snapname" --revision="$revision";done`
 `sudo snap set system refresh.retain=2`
